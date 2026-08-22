@@ -1,8 +1,9 @@
 {
   "owner": {
-    "username": "your-github-username"
+    "username": "kundarwork-debug",
+    "email": "kundar.work@gmail.com"
   },
-  "records": {
-    "CNAME": "https://kundarwork-debug.github.io/Side-Quote-Generator/"
+  "record": {
+    "CNAME": "kundarwork-debug.github.io"
   }
 }
