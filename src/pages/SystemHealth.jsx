@@ -18,7 +18,6 @@ export default function SystemHealth(){
  const [uptime]=useState(Date.now())
  const update=(id,next)=>setStatus(old=>({...old,[id]:next}))
  const refresh=useCallback(async()=>{
-  if(busy)return
   setBusy(true)
   try{
    const start=performance.now()
@@ -47,7 +46,7 @@ export default function SystemHealth(){
    update('browser',{status:navigator.onLine?'operational':'offline',value:navigator.onLine?'Online':'Offline',message:'Browser network connectivity.'})
    setOverall(navigator.onLine?'degraded':'offline')
   }finally{setChecked(new Date().toLocaleTimeString('en-IN'));setBusy(false)}
- },[busy])
+ },[])
  useEffect(()=>{refresh();const id=setInterval(()=>refresh(),30000);return()=>clearInterval(id)},[])
  const max=Math.max(1,...history)
  const OverallIcon=overall==='operational'?CheckCircle2:overall==='degraded'?AlertTriangle:overall==='offline'?CloudOff:Activity
