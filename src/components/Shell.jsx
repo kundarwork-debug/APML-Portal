@@ -162,7 +162,7 @@ export default function Shell(){
   <header className="portal-header"><div className="portal-header-inner">
    <Link to="/" className="portal-brand"><img className="apml-rotating-logo" src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal"/><span><b>APML <i>Portal</i></b><small>EMPLOYEE WORKSPACE</small></span></Link>
    <nav id="portal-main-navigation" className={menuOpen?'portal-nav open':'portal-nav'} aria-label="Main navigation">{links.map(({to,label,icon:Icon})=><NavLink key={to} to={to} end={to==='/'}><Icon size={15}/><span>{label}</span></NavLink>)}<Link to="/bug-report" className="portal-nav-support"><LifeBuoy size={15}/> Support</Link></nav>
-   <div className="portal-header-actions"><span className="portal-live"><i/> Operational</span><button type="button" className="portal-menu-toggle" onClick={()=>setMenuOpen(v=>!v)} aria-expanded={menuOpen} aria-controls="portal-main-navigation" aria-label={menuOpen?'Close navigation':'Open navigation'}><HamburgerButton open={menuOpen} onToggle={()=>setMenuOpen(v=>!v)}/></button></div>
+   <div className="portal-header-actions"><span className="portal-live"><i/> Operational</span><HamburgerButton open={menuOpen} onToggle={()=>setMenuOpen(v=>!v)}/></div>
   </div></header>
   <main className="page-content portal-page-content"><Outlet/></main>
   <FloatingMascot pagePath={location.pathname}/>
