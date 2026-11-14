@@ -12,7 +12,7 @@
         var base = window.location.pathname.indexOf(repoBase) === 0 ? repoBase : '/';
         var path = base === repoBase
           ? window.location.pathname.slice(repoBase.length)
-          : window.location.pathname.replace(/^\\/+/, '');
+          : window.location.pathname.replace(/^\/+/, '');
         var requested = path + window.location.search + window.location.hash;
         window.location.replace(base + '?p=' + encodeURIComponent(requested));
       })();
