@@ -114,3 +114,5 @@
 .fo-contact-status.deleted{background:#171717;color:#fff;border:1px solid #171717}
 .fo-contact-row.deleted .fo-contact-actions button{color:#171717}
 .fo-contact-row.deleted .fo-contact-actions .fo-danger{color:#b4232c}
+
+.fo-admin.fo-google-admin{width:42px;height:42px;min-height:42px;padding:0;border:1px solid #dadce0;border-radius:50%;background:#fff;color:#3c4043;box-shadow:0 1px 3px #20212420;flex:none}.fo-admin.fo-google-admin:hover{background:#fff;box-shadow:0 2px 7px #20212426}.fo-google-mark{width:22px;height:22px}
