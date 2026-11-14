@@ -89,3 +89,10 @@
  .fo-stats{gap:6px}
  .fo-stats>span{padding:6px 8px}
 }
+
+.fo-google-admin{width:42px;height:42px;min-height:42px;padding:0;border:1px solid #dadce0;border-radius:50%;background:#fff;color:#3c4043;box-shadow:0 1px 2px #2021241a;transition:box-shadow .18s,border-color .18s,transform .18s}
+.fo-google-admin:hover{border-color:#c5c9ce;background:#fff;box-shadow:0 2px 7px #20212426;transform:translateY(-1px)}
+.fo-google-mark{display:block;width:21px;height:21px}
+.fo-admin-spinner{animation:fo-admin-spin .8s linear infinite}
+@keyframes fo-admin-spin{to{transform:rotate(360deg)}}
+@media(max-width:760px){.fo-google-admin{width:42px;height:42px;min-height:42px;flex:none;align-self:flex-start}}
