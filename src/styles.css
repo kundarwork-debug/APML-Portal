@@ -137,3 +137,8 @@
 @media(max-width:768px){.apml-floating-mascot{display:none}}
 @media(max-width:600px){.apml-floating-mascot{right:14px;bottom:18px}.apml-floating-tip{margin-right:8px}.apml-floating-mascot>div>button{width:108px;height:108px;margin-right:-6px}.apml-floating-face{inset:2px;width:104px;height:104px}}
 @media(prefers-reduced-motion:reduce){.apml-floating-tip,.apml-floating-cursor{transition:none;animation:none}}
+
+
+/* Final home hero alignment and floating assistant footer boundary */
+.legacy-hero>:not(.apml-mascot-stage){position:relative;top:-24px}
+@media(max-width:600px){.legacy-hero>:not(.apml-mascot-stage){top:-16px}}
