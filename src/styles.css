@@ -142,3 +142,11 @@
 /* Final home hero alignment and floating assistant footer boundary */
 .legacy-hero>:not(.apml-mascot-stage){position:relative;top:-24px}
 @media(max-width:600px){.legacy-hero>:not(.apml-mascot-stage){top:-16px}}
+
+/* Tighten the homepage hero spacing below the header. */
+.legacy-hero{padding-top:clamp(20px,2.5vw,38px)}
+.apml-mascot-stage{margin-bottom:10px}
+@media(max-width:600px){
+ .legacy-hero{padding-top:22px}
+ .apml-mascot-stage{margin-bottom:8px}
+}
