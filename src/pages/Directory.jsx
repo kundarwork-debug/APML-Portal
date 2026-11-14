@@ -87,7 +87,7 @@ export default function Directory(){
     finally{setBusy(false)}
   }
   async function saveRecord(record){
-    if(!db || (record.id && !authorized())){notify('Please sign in with an authorized admin account.');return}
+    if(!db){notify('Directory is not connected.');return}
     if(!record.name.trim()||!record.location.trim()){notify('Name and location are required.');return}
     try{
       setBusy(true)
@@ -177,7 +177,7 @@ export default function Directory(){
             <div className="directory-location"><b>{item.location||'N/A'}</b><small>{item.region||''}</small></div>
             <a className="directory-phone" href={item.contact?'tel:'+String(item.contact).replace(/[^+\d]/g,''):undefined}><Phone size={14}/>{item.contact||'No number'}</a>
             <div className="directory-address"><span>{item.address||'No address specified'}</span><div><a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(item.address||item.location||'')} target="_blank" rel="noreferrer"><MapPin size={13}/> Maps <ExternalLink size={11}/></a><button onClick={()=>copyAddress(item.address||'')}><Copy size={13}/> Copy</button></div></div>
-            <div className="directory-row-actions">{admin&&(isDeleted?<><button title="Restore contact" onClick={()=>updateFlag(item.id,{isDeleted:false})}><RotateCcw size={16}/></button><button className="danger" title="Delete permanently" onClick={()=>permanentlyDelete(item.id)}><Trash2 size={16}/></button></>:<><button title="Edit contact" onClick={()=>setEdit({...item})}><Pencil size={16}/></button><button className="danger" title="Delete contact" onClick={()=>updateFlag(item.id,{isDeleted:true})}><Trash2 size={16}/></button></>)}</div>
+            <div className="directory-row-actions">{isDeleted?(admin?<><button title="Restore contact" onClick={()=>updateFlag(item.id,{isDeleted:false})}><RotateCcw size={16}/></button><button className="danger" title="Delete permanently" onClick={()=>permanentlyDelete(item.id)}><Trash2 size={16}/></button></>:null):<><button title="Edit contact" onClick={()=>setEdit({...item})}><Pencil size={16}/></button>{admin&&<button className="danger" title="Delete contact" onClick={()=>updateFlag(item.id,{isDeleted:true})}><Trash2 size={16}/></button>}</>}</div>
           </article>
         })}
       </div>}
