@@ -198,3 +198,26 @@
   .portal-page-content{padding-bottom:8px}
   .portal-site-footer{margin-top:0;padding-top:18px}
 }
+
+
+/* Shared page frame — aligned with the legacy portal's full-width layout.
+   This affects only on-screen page wrappers; quotation document/PDF styles
+   and the PDF generation pipeline are intentionally untouched. */
+.app-shell main[class$="-page"],
+.app-shell div[class$="-page"]{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:clamp(18px,2vw,28px) clamp(16px,2.2vw,36px) 48px;
+}
+@media(max-width:768px){
+  .app-shell main[class$="-page"],
+  .app-shell div[class$="-page"]{
+    padding:16px 14px 32px;
+  }
+}
+/* Keep content panels and page headings on a consistent vertical rhythm. */
+.app-shell [class$="-head"],
+.app-shell [class$="-heading"]{
+  margin-top:0;
+}
