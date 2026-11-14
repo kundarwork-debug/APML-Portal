@@ -40,8 +40,10 @@ function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = [...document.scripts].find(script => script.src === src)
     if (existing) {
-      if (src.includes('firebase') && window.firebase?.database) return resolve()
-      if (existing.dataset.loaded === '1') return resolve()
+      const ready = src.includes('firebase-auth') ? !!window.firebase?.auth
+        : src.includes('firebase-database') ? !!window.firebase?.database
+          : src.includes('firebase-app') ? !!window.firebase : existing.dataset.loaded === '1'
+      if (ready || existing.dataset.loaded === '1') return resolve()
       existing.addEventListener('load', resolve, { once: true })
       existing.addEventListener('error', reject, { once: true })
       return
