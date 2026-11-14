@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>APML Portal</title>
+    <script>
+      (function () {
+        var base = '/APML-Portal/';
+        var path = window.location.pathname.indexOf(base) === 0
+          ? window.location.pathname.slice(base.length)
+          : window.location.pathname.replace(/^\\/+/, '');
+        var requested = path + window.location.search + window.location.hash;
+        window.location.replace(base + '?p=' + encodeURIComponent(requested));
+      })();
+    </script>
+  </head>
+  <body>Opening APML Portal…</body>
+</html>
