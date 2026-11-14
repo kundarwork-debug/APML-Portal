@@ -4,7 +4,7 @@ import './SystemHealth.css'
 
 const WORKER_HEALTH='https://apml-drive-api.kundar-work.workers.dev/health'
 const FIREBASE_HEALTH='https://apml-portal-default-rtdb.firebaseio.com/analytics/daily_logs.json?shallow=true'
-const assets=[import.meta.env.BASE_URL+'logo.svg',import.meta.env.BASE_URL+'other/logo.svg',import.meta.env.BASE_URL+'notify.js']
+const assets=[import.meta.env.BASE_URL+'logo.svg',import.meta.env.BASE_URL+'other/logo.svg',import.meta.env.BASE_URL+'notify.js',import.meta.env.BASE_URL+'manifest.webmanifest',import.meta.env.BASE_URL+'pwa-192.svg',import.meta.env.BASE_URL+'pwa-512.svg',import.meta.env.BASE_URL+'sw.js']
 const services=[
  {id:'portal',name:'Portal frontend',icon:Globe,detail:'Testing this page and static site assets.'},
  {id:'api',name:'Cloudflare Worker',icon:Server,detail:'Checking the APML Cloudflare Worker health route.'},
@@ -40,7 +40,7 @@ export default function SystemHealth(){
   update('browser',{status:navigator.onLine?'operational':'offline',value:navigator.onLine?'Online':'Offline',message:'Browser network connectivity.'})
   let sw='Not registered',swStatus='degraded'
   if('serviceWorker' in navigator){try{const regs=await navigator.serviceWorker.getRegistrations();sw=regs.length?(navigator.serviceWorker.controller?'Active':'Registered'):'Not registered';swStatus=regs.length?'operational':'degraded'}catch(e){sw='Unavailable'}}
-  update('pwa',{status:swStatus,value:sw,message:'PWA service worker has not yet been migrated to the React app.'})
+  update('pwa',{status:swStatus,value:sw,message:swStatus==='operational'?'Offline shell caching is enabled for the GitHub Pages app.':'Service-worker registration is not available in this browser.'})
   const overallStatus=!navigator.onLine?'offline':!workerOk||!firebaseOk||assetFailed?'degraded':'operational'
   setOverall(overallStatus);setChecked(new Date().toLocaleTimeString('en-IN'));setBusy(false)
  },[])
