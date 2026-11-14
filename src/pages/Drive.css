@@ -2,3 +2,5 @@
 .drive-item.folder[ondragover]{transition:outline-color .15s,background .15s}.drive-item.folder:has(.drive-open:hover){outline:1px solid var(--brand,#b4232c)}.drive-item[draggable="true"]{cursor:grab}.drive-item[draggable="true"]:active{opacity:.65}.drive-tools button{white-space:nowrap}@media(max-width:640px){.drive-tools{flex-wrap:wrap}.drive-tools input{flex:1 1 100%}.drive-tools button{flex:1 1 auto;min-height:40px}}
 
 .drive-pagination{display:flex;align-items:center;justify-content:center;gap:14px;padding:18px 8px;color:var(--text-muted);font-size:13px;font-weight:700}.drive-pagination button{border:1px solid var(--border);border-radius:999px;background:var(--surface);padding:9px 16px;color:var(--text-main);font:inherit;cursor:pointer}.drive-pagination button:disabled{opacity:.4;cursor:not-allowed}
+
+.drive-preview{height:132px;border-radius:10px;overflow:hidden;background:var(--surface-subtle,#f1efec);display:flex;align-items:center;justify-content:center}.drive-preview img,.drive-preview video{width:100%;height:100%;object-fit:cover;display:block}.drive-preview span{font-size:36px}
