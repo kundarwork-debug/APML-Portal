@@ -201,7 +201,6 @@ export default function Gallery() {
     } finally { setBusy(false) }
   }
   async function addFolder() {
-    if (!admin) return
     const label = await driveInput('Create gallery folder', { placeholder: 'e.g. Fragile Items' })
     if (!label) return
     const id = label.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -396,6 +395,15 @@ export default function Gallery() {
       await driveToast('Media permanently deleted')
     } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
   }
+  async function trashMedia(item) {
+    if (admin) return move(item, 'deleted')
+    const confirmed = await driveConfirm('Move media to trash?', 'This media item will be moved to the Trash Archive.', 'Move to trash')
+    if (!confirmed) return
+    try {
+      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder: 'deleted' })
+      await driveToast('Media moved to trash')
+    } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
+  }
   function handleDrop(event, folderId) {
     event.preventDefault()
     const key = event.dataTransfer.getData('text/plain')
@@ -443,9 +451,9 @@ export default function Gallery() {
           <option value="">Select destination folder…</option>
           {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}
         </select></label>
-        <button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={!admin || busy}><Upload size={15}/> Upload Media</button>
-        <button className="gallery-action" onClick={addCatboxLink} disabled={!admin || busy}><Link2 size={15}/> Catbox Link</button>
-        <button className="gallery-action" onClick={addFolder} disabled={!admin || busy}><FolderPlus size={15}/> Add Folder</button>
+        <button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={busy}><Upload size={15}/> Upload Media</button>
+        <button className="gallery-action" onClick={addCatboxLink} disabled={busy}><Link2 size={15}/> Catbox Link</button>
+        <button className="gallery-action" onClick={addFolder} disabled={busy}><FolderPlus size={15}/> Add Folder</button>
         <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/>
       </div>
     </section>
@@ -482,13 +490,14 @@ export default function Gallery() {
               <div className="gallery-card-footer">
                 <button className="gallery-download" onClick={() => downloadMedia(item)}><Download size={14}/> Download</button>
                 <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><ExternalLink size={15}/></a>
-                {admin && <div className="gallery-admin-actions">{activeFolder === 'deleted' ? <>
+                {activeFolder === 'deleted' && admin && <div className="gallery-admin-actions">
                   <button title="Restore media" onClick={() => move(item, 'others')}><RotateCcw size={14}/></button>
                   <button title="Delete permanently" onClick={() => permanentDelete(item)}><Trash2 size={14}/></button>
-                </> : <>
-                  <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>
-                  <button title="Move to trash" onClick={() => move(item, 'deleted')}><Trash2 size={14}/></button>
-                </>}</div>}
+                </div>}
+                {activeFolder !== 'deleted' && <div className="gallery-admin-actions">
+                  {admin && <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
+                  <button title="Move to trash" onClick={() => trashMedia(item)}><Trash2 size={14}/></button>
+                </div>}
               </div>
             </div>
           </article>
