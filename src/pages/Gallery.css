@@ -4,3 +4,5 @@
 .gallery-pagination{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:14px;padding:18px 8px;color:var(--text-muted);font-size:13px;font-weight:700}.gallery-pagination button{border:1px solid var(--border);border-radius:999px;background:var(--surface);padding:9px 16px;color:var(--text-main);font:inherit;cursor:pointer}.gallery-pagination button:disabled{opacity:.4;cursor:not-allowed}@media(max-width:480px){.gallery-pagination{gap:8px;flex-wrap:wrap}}
 
 .gallery-lightbox-content button{color:#fff;text-decoration:none;border:1px solid #ffffff66;border-radius:8px;padding:8px 12px;background:#ffffff12;font:inherit;cursor:pointer}
+
+.gallery-stats-pills{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.gallery-stats-pills span{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border:1px solid var(--border);border-radius:999px;background:var(--surface-subtle);color:var(--text-muted);font-size:11px}.gallery-stats-pills strong{color:var(--text-main);font-size:12px}
