@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search, MapPin, Phone, Copy, Pencil, Trash2, RotateCcw, Plus, Upload, LogOut, Users, MapPinned, LoaderCircle, X, ExternalLink } from 'lucide-react'
+import { driveAlert, driveConfirm, driveToast, getSwal } from '../lib/sweetalert'
 import './Directory.css'
 
 const firebaseConfig = {
@@ -39,10 +40,7 @@ function ensureAuth() {
     return fb
   })
 }
-function ensureSwal() {
-  if (window.Swal) return Promise.resolve(window.Swal)
-  return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/sweetalert2@11';s.onload=()=>resolve(window.Swal);s.onerror=()=>reject(new Error('Dialog library unavailable'));document.head.appendChild(s)})
-}
+
 function escapeText(value='') { return String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
 function deleted(record) { return record.isDeleted===true || record.isDeleted==='true' || record.isDeleted===1 }
 function GoogleMark(){return <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.15v3.14C3.15 21.32 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.62H1.15C.42 8.1 0 9.77 0 11.5s.42 3.4 1.15 4.88l4.12-3.14z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.68 1.15 6.62l4.12 3.14c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>}
@@ -75,7 +73,7 @@ export default function Directory(){
     return (q?pool.filter(r=>Object.values(r).some(v=>String(v??'').toLowerCase().includes(q))):pool)
       .sort((a,b)=>Number(deleted(a))-Number(deleted(b)))
   },[rows,admin,query])
-  const notify=(message)=>{setToast(message);window.setTimeout(()=>setToast(''),2600)}
+  const notify=(message)=>{driveToast(message).catch(()=>{setToast(message);window.setTimeout(()=>setToast(''),2600)})}
   const authorized=()=>Boolean(admin && window.firebase?.auth?.().currentUser && ADMIN_EMAILS.includes(String(window.firebase.auth().currentUser.email||'').toLowerCase().trim()))
   async function toggleAdmin(){
     try{
@@ -85,7 +83,7 @@ export default function Directory(){
       const email=String(result.user.email||'').toLowerCase().trim()
       if(!ADMIN_EMAILS.includes(email)){await instance.signOut();throw new Error('This Google account is not authorized as an APML Directory admin.')}
       setAuth(instance);setAdmin(true);setUserEmail(email);notify('Admin access enabled')
-    }catch(e){const Swal=await ensureSwal().catch(()=>null);if(Swal)Swal.fire('Admin sign-in failed',e.message,'error');else notify(e.message)}
+    }catch(e){await driveAlert('Admin sign-in failed',e.message,'error').catch(()=>notify(e.message))}
     finally{setBusy(false)}
   }
   async function saveRecord(record){
@@ -100,11 +98,14 @@ export default function Directory(){
   }
   async function updateFlag(id,patch){
     if(!authorized())return notify('Admin access required')
+    if(patch.isDeleted===true && !(await driveConfirm('Hide this contact?','It will move to deleted records and remain recoverable by admins.','Hide contact')))return
+    if(patch.isDeleted===false && !(await driveConfirm('Restore this contact?','It will become visible in the public directory again.','Restore contact','question')))return
     try{setBusy(true);await db.child(id).update(patch);notify(patch.isDeleted?'Contact moved to deleted records':patch.isDeleted===false?'Contact restored':'Contact updated')}
     catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}
   }
   async function permanentlyDelete(id){
     if(!authorized())return notify('Admin access required')
+    if(!(await driveConfirm('Delete permanently?','This contact will be permanently removed. This cannot be undone.','Delete permanently','error')))return
     try{setBusy(true);await db.child(id).remove();notify('Contact permanently deleted')}
     catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}
   }
@@ -130,7 +131,7 @@ export default function Directory(){
         const key=x.record.contact.replace(/\D/g,'')+'|'+x.record.location.trim().toLowerCase()
         if(existing.has(key)||seen.has(key))duplicates.push(x);else{seen.add(key);unique.push(x)}
       })
-      const Swal=await ensureSwal()
+      const Swal=await getSwal()
       const preview='<div style="text-align:left"><p>'+source.length+' rows read from <b>'+escapeText(file.name)+'</b></p><p>Ready: <b>'+unique.length+'</b> · Duplicates skipped: <b>'+duplicates.length+'</b> · Invalid: <b>'+invalid.length+'</b></p><div style="max-height:220px;overflow:auto"><table style="width:100%;font-size:12px"><tbody>'+unique.slice(0,8).map(x=>'<tr><td>'+x.rowNumber+'</td><td>'+escapeText(x.record.name)+'</td><td>'+escapeText(x.record.contact)+'</td><td>'+escapeText(x.record.location)+'</td></tr>').join('')+'</tbody></table></div></div>'
       if(!unique.length){await Swal.fire({icon:'info',title:'Nothing to import',html:preview});return}
       const confirm=await Swal.fire({icon:'question',title:'Review Excel import',html:preview,showCancelButton:true,confirmButtonText:'Import '+unique.length+' contacts',cancelButtonText:'Cancel',width:680})
@@ -141,7 +142,7 @@ export default function Directory(){
         await db.update(batch)
       }
       await Swal.fire({icon:'success',title:'Import complete',text:unique.length+' contacts added. Duplicates skipped: '+duplicates.length+'. Invalid rows: '+invalid.length+'.'})
-    }catch(e){const Swal=await ensureSwal().catch(()=>null);if(Swal)Swal.fire('Import failed',e.message,'error');else notify(e.message)}
+    }catch(e){await driveAlert('Import failed',e.message,'error').catch(()=>notify(e.message))}
     finally{event.target.value=''}
   }
   async function copyAddress(address){
