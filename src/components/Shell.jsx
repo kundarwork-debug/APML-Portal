@@ -35,10 +35,25 @@ export default function Shell(){
   {showInstall&&installEvent&&<aside className="install-prompt"><div><strong>Install APML Portal</strong><span>Add the workspace to your phone for quick access.</span></div><button onClick={installPortal}>Install</button><button className="install-dismiss" onClick={()=>setShowInstall(false)} aria-label="Dismiss install prompt">×</button></aside>}
   <header className="portal-header"><div className="portal-header-inner">
    <Link to="/" className="portal-brand"><img src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal"/><span><b>APML <i>Portal</i></b><small>EMPLOYEE WORKSPACE</small></span></Link>
-   <nav className={menuOpen?'portal-nav open':'portal-nav'} aria-label="Main navigation">{links.map(({to,label,icon:Icon})=><NavLink key={to} to={to} end={to==='/'}><Icon size={15}/><span>{label}</span></NavLink>)}<Link to="/bug-report" className="portal-nav-support"><LifeBuoy size={15}/> Support</Link></nav>
-   <div className="portal-header-actions"><span className="portal-live"><i/> Operational</span><button className="portal-menu-toggle" onClick={()=>setMenuOpen(v=>!v)} aria-label={menuOpen?'Close navigation':'Open navigation'}>{menuOpen?<X size={21}/>:<Menu size={21}/>}</button></div>
+   <nav id="portal-main-navigation" className={menuOpen?'portal-nav open':'portal-nav'} aria-label="Main navigation">{links.map(({to,label,icon:Icon})=><NavLink key={to} to={to} end={to==='/'}><Icon size={15}/><span>{label}</span></NavLink>)}<Link to="/bug-report" className="portal-nav-support"><LifeBuoy size={15}/> Support</Link></nav>
+   <div className="portal-header-actions"><span className="portal-live"><i/> Operational</span><button type="button" className="portal-menu-toggle" onClick={()=>setMenuOpen(v=>!v)} aria-expanded={menuOpen} aria-controls="portal-main-navigation" aria-label={menuOpen?'Close navigation':'Open navigation'}>{menuOpen?<X size={21}/>:<Menu size={21}/>}</button></div>
   </div></header>
   <main className="page-content portal-page-content"><Outlet/></main>
-  <footer className="footer portal-footer"><span>© {new Date().getFullYear()} APML Portal</span><div><Link to="/about">About</Link><Link to="/bug-report">Support</Link><Link to="/privacy">Privacy</Link><Link to="/terms">Terms</Link></div></footer>
+  <footer className="site-footer portal-site-footer">
+   <div className="footer-grid-layout">
+    <div className="footer-left-col">
+     <div className="footer-brand-group"><div className="footer-logo-box"><img src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal" className="rotating-logo"/></div><div><div className="footer-title">APML<span> Portal</span></div><div className="footer-subtitle">Independent Employee Utility Portal</div></div></div>
+     <p className="footer-desc">APML Portal is an independent, unofficial utility website built primarily to help APML employees with selected work tasks. It is not an official company website.</p>
+     <div className="footer-contact-details"><a href="mailto:Kundar.work@gmail.com">Kundar.work@gmail.com</a><a href="tel:+919910579530">+91 99105 79530</a></div>
+    </div>
+    <div className="footer-right-col"><div className="footer-links-heading">Links</div><div className="footer-links-list"><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms &amp; Conditions</Link><Link to="/cookies">Cookies &amp; Storage Policy</Link><Link to="/bug-report" className="footer-bug-link">Report a Bug</Link></div></div>
+   </div>
+   <div className="footer-mobile-links" aria-label="Footer navigation">
+    <div className="footer-mobile-link-group"><div className="footer-links-heading">Resources</div><div className="footer-links-list"><Link to="/directory">Directory</Link><Link to="/drive">Cloud Drive</Link><Link to="/gallery">Gallery</Link><Link to="/car-rate">Car Rate Calculator</Link><Link to="/local-rate">Local Rate Calculator</Link><Link to="/field-officer">Field Officer</Link></div></div>
+    <div className="footer-mobile-link-group"><div className="footer-links-heading">Legal</div><div className="footer-links-list"><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms &amp; Conditions</Link><Link to="/cookies">Cookies &amp; Storage Policy</Link></div></div>
+   </div>
+   <div className="footer-divider"></div>
+   <div className="footer-bottom-row"><div className="footer-copyright">© {new Date().getFullYear()} APML Portal. Unofficial operations workspace.</div><div className="footer-actions-group"><a href="https://github.com/kundarwork-debug" className="footer-author-pill" target="_blank" rel="noreferrer" title="About Developer"><img src="https://github.com/kundarwork-debug.png" alt="" className="footer-avatar"/><span>Prasad Kundar</span></a></div></div>
+  </footer>
  </div>
 }
