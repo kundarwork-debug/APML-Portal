@@ -6,17 +6,34 @@
     <title>APML Portal</title>
     <script>
       (function () {
-        // GitHub Pages hosts this repository under /APML-Portal/.
-        // Vercel and Cloudflare Pages host it at the domain root.
+        // A stale service worker can keep serving this fallback after a deployment.
+        // Remove only APML's own worker and shell caches, then restore the requested route.
         var repoBase = '/APML-Portal/';
         var base = window.location.pathname.indexOf(repoBase) === 0 ? repoBase : '/';
         var path = base === repoBase
           ? window.location.pathname.slice(repoBase.length)
-          : window.location.pathname.replace(/^\/+/, '');
+          : window.location.pathname.replace(/^\\/+/, '');
         var requested = path + window.location.search + window.location.hash;
-        window.location.replace(base + '?p=' + encodeURIComponent(requested));
+        var destination = base + '?p=' + encodeURIComponent(requested);
+
+        Promise.all([
+          ('serviceWorker' in navigator
+            ? navigator.serviceWorker.getRegistrations().then(function (items) {
+                return Promise.all(items.map(function (item) { return item.unregister(); }));
+              })
+            : Promise.resolve()),
+          ('caches' in window
+            ? caches.keys().then(function (keys) {
+                return Promise.all(keys.filter(function (key) {
+                  return key.indexOf('apml-portal-shell-') === 0;
+                }).map(function (key) { return caches.delete(key); }));
+              })
+            : Promise.resolve())
+        ]).catch(function () {}).then(function () {
+          window.location.replace(destination);
+        });
       })();
     </script>
   </head>
-  <body>Opening APML Portal…</body>
+  <body>Restoring APML Portal…</body>
 </html>
