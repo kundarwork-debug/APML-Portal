@@ -86,7 +86,7 @@ function FloatingMascot({pagePath}){
   window.addEventListener('scroll',update,{passive:true})
   window.addEventListener('resize',update)
   return()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update)}
- },[])
+ },[pagePath,pageKey,isIndexPage])
  useEffect(()=>{
   if(!visible||!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return
   const sectors=['right','down-right','down','down-left','left','up-left','up','up-right']
