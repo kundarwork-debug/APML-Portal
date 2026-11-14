@@ -49,7 +49,7 @@ function OperationalTelemetry(){
    try{
     db=await getApmlDatabase()
     if(!active)return
-    const listen=(path,key,transform=value=>Number(value)||0)=>{
+    const listen=(path,key,transform=snap=>Number(snap.val())||0)=>{
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
