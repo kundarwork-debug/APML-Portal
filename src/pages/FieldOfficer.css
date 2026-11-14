@@ -100,3 +100,17 @@
 .fo-contact-phone .fo-copy-phone{width:max-content;max-width:100%;padding:0;border:0;background:transparent;color:#55585d;text-align:left;text-decoration:none;font:600 11px inherit;cursor:pointer}
 .fo-contact-phone .fo-copy-phone:hover{color:#a91f29;text-decoration:underline}
 .fo-contact-phone .fo-copy-phone:focus-visible{outline:2px solid #b4232c;outline-offset:3px;border-radius:3px}
+
+/* Soft-deleted contacts are visible only in admin view and use a black treatment. */
+.fo-contact-row.deleted{background:#f1f1f1;border-color:#dedede;color:#171717}
+.fo-contact-row.deleted:hover{background:#e9e9e9}
+.fo-contact-row.deleted .fo-contact-avatar{background:#171717;color:#fff}
+.fo-contact-row.deleted .fo-contact-main strong,
+.fo-contact-row.deleted .fo-contact-branch strong,
+.fo-contact-row.deleted .fo-contact-phone .fo-copy-phone{color:#171717}
+.fo-contact-row.deleted .fo-contact-main span,
+.fo-contact-row.deleted .fo-contact-branch>span,
+.fo-contact-row.deleted .fo-contact-phone>span{color:#666}
+.fo-contact-status.deleted{background:#171717;color:#fff;border:1px solid #171717}
+.fo-contact-row.deleted .fo-contact-actions button{color:#171717}
+.fo-contact-row.deleted .fo-contact-actions .fo-danger{color:#b4232c}
