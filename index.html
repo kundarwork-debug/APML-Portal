@@ -20,7 +20,7 @@
       var p=new URLSearchParams(window.location.search).get('p');
       if(p!==null){
         var base='%BASE_URL%';
-        window.history.replaceState(null,'',base+p.replace(/^\\/+/, ''));
+        window.history.replaceState(null,'',base+p.replace(/^\/+/, '')));
       }
     })();
   </script><div id="root"></div><script type="module" src="/src/main.jsx"></script></body>
