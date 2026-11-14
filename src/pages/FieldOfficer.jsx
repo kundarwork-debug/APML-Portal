@@ -56,7 +56,9 @@ export default function FieldOfficer(){
     const key=mobile.replace(/\D/g,'')+'|'+branch.toUpperCase();
     if(existing.has(key)){skipped.push('duplicate');continue}
     existing.add(key);
-    const rawStatus=pick('status').trim().toLowerCase();\n    const officerStatus=rawStatus==='assco'||rawStatus==='associate'?'Assco':rawStatus==='leave'?'Leave':rawStatus==='left'?'Left':'Active';\n    imported.push({name,branch:branch.toUpperCase(),apmCode:pick('apmcode','apm','code')||'N/A',mobile,designation:pick('designation','title')||'Marketing Executive',role:'BFO',status:officerStatus,isDeleted:false});
+    const rawStatus=pick('status').trim().toLowerCase();
+    const officerStatus=rawStatus==='assco'||rawStatus==='associate'?'Assco':rawStatus==='leave'?'Leave':rawStatus==='left'?'Left':'Active';
+    imported.push({name,branch:branch.toUpperCase(),apmCode:pick('apmcode','apm','code')||'N/A',mobile,designation:pick('designation','title')||'Marketing Executive',role:'BFO',status:officerStatus,isDeleted:false});
    }
    if(!imported.length)throw new Error('No valid new officers found. Required columns: Name, Branch and Mobile.');
    for(let i=0;i<imported.length;i+=25){const updates={};imported.slice(i,i+25).forEach(v=>{updates[ref.push().key]=v});await ref.update(updates)}
