@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import PrivacyConsent from './PrivacyConsent'
 import { Footer } from './ui/footer'
@@ -18,7 +18,7 @@ function FloatingMascot({pagePath}){
  const [typedText,setTypedText]=useState('')
  const [direction,setDirection]=useState('center')
  const [reaction,setReaction]=useState('')
- const [tipIndex,setTipIndex]=useState(()=>Math.floor(Math.random()*5))
+ const [tipIndex,setTipIndex]=useState(0)
  const timers=useRef({type:null,hide:null,reaction:null})
  const typing=useRef(false)
  const token=useRef(0)
@@ -48,6 +48,7 @@ function FloatingMascot({pagePath}){
   if(duration>0)timers.current.reaction=setTimeout(()=>setReaction(''),duration)
  }
  const playTip=(message,holdMs=5000)=>{
+  if(!message)return
   clearTimeout(timers.current.type);clearTimeout(timers.current.hide)
   const currentToken=++token.current
   typing.current=true
@@ -105,7 +106,7 @@ function FloatingMascot({pagePath}){
  },[visible,reaction])
  useEffect(()=>{
   const initial=setTimeout(()=>{
-   if(!typing.current&&!bubbleVisible&&(!isIndexPage||window.scrollY>250))playTip(tips[tipIndex])
+   if(!typing.current&&!bubbleVisible&&(!isIndexPage||window.scrollY>250))playTip(tips[tipIndex % tips.length])
   },1000)
   return()=>clearTimeout(initial)
  },[pagePath])
