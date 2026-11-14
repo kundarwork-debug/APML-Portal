@@ -4,6 +4,11 @@ import {getApmlDatabase,getApmlAuth} from '../lib/firebase'
 import {driveAlert,driveConfirm,driveToast} from '../lib/sweetalert'
 import './FieldOfficer.css'
 
+const admins=['kundar701@gmail.com','kundar.work@gmail.com']
+const empty={name:'',branch:'',apmCode:'N/A',mobile:'',designation:'Marketing Executive',role:'BFO',status:'Active',isDeleted:false}
+let xlsxLoad
+function loadXlsx(){if(!xlsxLoad)xlsxLoad=new Promise((resolve,reject)=>{if(window.XLSX)return resolve(window.XLSX);const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=()=>resolve(window.XLSX);s.onerror=()=>reject(new Error('Excel import library could not load.'));document.head.appendChild(s)});return xlsxLoad}
+function normHeader(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
 function isDeleted(x){return x.isDeleted===true||x.isDeleted==='true'||x.isDeleted===1}
 
 export default function FieldOfficer(){
@@ -13,6 +18,7 @@ export default function FieldOfficer(){
  const activeRecords=records.filter(x=>!isDeleted(x)),activeCount=activeRecords.length
  const branchCount=new Set(activeRecords.map(x=>(x.branch||'').trim().toUpperCase()).filter(Boolean)).size
  const leaveCount=activeRecords.filter(x=>['leave','assco'].includes(String(x.status||'').toLowerCase())).length
+ const availableBranches=[...new Set(activeRecords.map(x=>String(x.branch||'').trim().toUpperCase()).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
  const filtered=useMemo(()=>records.filter(x=>admin||!isDeleted(x)).filter(x=>statusFilter==='All'||(statusFilter==='Deleted'?isDeleted(x):!isDeleted(x)&&String(x.status||'Active').toLowerCase()===statusFilter.toLowerCase())).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))||String(a.name||'').localeCompare(String(b.name||''))),[records,query,admin,statusFilter])
  const notify=m=>{driveToast(m).catch(()=>{setToast(m);window.setTimeout(()=>setToast(''),2800)})}
  async function toggleAdmin(){setBusy(true);try{const auth=await getApmlAuth();if(admin){await auth.signOut();setAdmin(false);notify('Admin view closed');return}const result=await auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider()),email=(result.user.email||'').toLowerCase().trim();if(!admins.includes(email)){await auth.signOut();throw new Error('This Google account is not authorized for admin access.')}setAdmin(true);notify('Admin access enabled')}catch(e){try{await driveAlert('Admin sign-in failed',e.message||'Please try again.','error')}catch{notify(e.message||'Admin sign-in failed')}}finally{setBusy(false)}}
@@ -58,19 +64,23 @@ export default function FieldOfficer(){
    </div>
   </section>
   <div className="fo-toolbar"><div className="fo-filter-tabs">{['All','Active','Assco','Leave','Left',...(admin?['Deleted']:[])].map(x=><button key={x} className={statusFilter===x?'selected':''} onClick={()=>setStatusFilter(x)}>{x==='All'?'All officers':x}</button>)}</div>
-   <div className="fo-quick-filters">{['MUM','PUN','GRGN','DEL','AHMD','GOA'].map(x=><button key={x} onClick={()=>setQuery(x)}>{x}</button>)}<button onClick={()=>{setQuery('');setStatusFilter('All')}}><RefreshCw size={12}/> Clear</button></div>
+   <div className="fo-quick-filters">{availableBranches.map(branch=><button key={branch} className={query.trim().toUpperCase()===branch?'selected':''} onClick={()=>setQuery(query.trim().toUpperCase()===branch?'':branch)}>{branch}</button>)}{(query||statusFilter!=='All')&&<button onClick={()=>{setQuery('');setStatusFilter('All')}}><RefreshCw size={12}/> Clear</button>}</div>
   </div>
   <div className="fo-live-status"><span className="fo-live-dot"/>{status}<span className="fo-status-count">Showing {filtered.length.toLocaleString('en-IN')} of {(admin?records.length:activeCount).toLocaleString('en-IN')} records</span></div>
   <section className="fo-results"><div className="fo-results-heading"><h2><Users size={17}/> Field officers</h2><span>{admin?'Admin view':'Public directory'}{admin?' · includes deleted records':''}</span></div>
-   <div className="fo-grid">{filtered.map(x=><article className={'fo-card '+(isDeleted(x)?'deleted':'')} key={x.id}>
-    <div className="fo-card-top"><span className="fo-avatar">{(x.name||'?').trim().slice(0,1).toUpperCase()}</span><span className={'fo-status-tag '+(isDeleted(x)?'deleted':String(x.status||'Active').toLowerCase())}>{isDeleted(x)?'Deleted':x.status||'Active'}</span></div>
-    <div className="fo-card-person"><strong>{x.name||'Unnamed officer'}</strong><small>{x.designation||x.role||'Field Officer'}{x.role?' · '+x.role:''}</small></div>
-    <div className="fo-card-details"><div><span>BRANCH</span><strong>{x.branch||'—'}</strong></div><div><span>APM CODE</span><strong>{x.apmCode||'—'}</strong></div></div>
-    <a className="fo-card-phone" href={x.mobile?'tel:'+String(x.mobile).replace(/[^+\d]/g,''):undefined}><Phone size={14}/>{x.mobile||'Contact unavailable'}</a>
-    <div className="fo-card-actions">{!isDeleted(x)&&x.mobile&&<a className="fo-contact-action" href={'https://wa.me/91'+String(x.mobile).replace(/\D/g,'').slice(-10)} target="_blank" rel="noreferrer"><MessageCircle size={14}/> WhatsApp</a>}
-     {admin&&(isDeleted(x)?<><button onClick={()=>update(x.id,{isDeleted:false})}><RotateCcw size={14}/> Restore</button><button className="fo-danger" onClick={()=>permanentlyDelete(x.id)}><Trash2 size={14}/> Delete forever</button></>:<><button onClick={()=>setEdit({...empty,...x})}><Pencil size={14}/> Edit</button><button className="fo-danger" onClick={()=>update(x.id,{isDeleted:true})}><Trash2 size={14}/> Hide</button></>)}
-    </div>
-   </article>)}{!filtered.length&&<div className="fo-empty"><Users size={28}/><strong>{status.includes('Connecting')?'Loading field officers…':'No matching field officers found'}</strong><span>Try another name, branch code or status filter.</span></div>}</div>
+   <div className="fo-contact-list">
+    {filtered.map(x=><article className={'fo-contact-row '+(isDeleted(x)?'deleted':'')} key={x.id}>
+     <span className="fo-contact-avatar">{(x.name||'?').trim().slice(0,1).toUpperCase()}</span>
+     <div className="fo-contact-main"><strong>{x.name||'Unnamed officer'}</strong><span>{x.designation||x.role||'Field Officer'}{x.role?' · '+x.role:''}</span></div>
+     <div className="fo-contact-branch"><span>BRANCH</span><strong>{x.branch||'—'}</strong></div>
+     <div className="fo-contact-phone"><span>PHONE</span>{x.mobile?<a href={'tel:'+String(x.mobile).replace(/[^+\\d]/g,'')}>{x.mobile}</a>:<em>Not available</em>}</div>
+     <span className={'fo-contact-status '+(isDeleted(x)?'deleted':String(x.status||'Active').toLowerCase())}>{isDeleted(x)?'Deleted':x.status||'Active'}</span>
+     <div className="fo-contact-actions">{!isDeleted(x)&&x.mobile&&<a className="fo-contact-action" href={'https://wa.me/91'+String(x.mobile).replace(/\\D/g,'').slice(-10)} target="_blank" rel="noreferrer" title="WhatsApp"><MessageCircle size={16}/></a>}
+      {admin&&(isDeleted(x)?<><button onClick={()=>update(x.id,{isDeleted:false})} title="Restore"><RotateCcw size={16}/></button><button className="fo-danger" onClick={()=>permanentlyDelete(x.id)} title="Delete forever"><Trash2 size={16}/></button></>:<><button onClick={()=>setEdit({...empty,...x})} title="Edit"><Pencil size={16}/></button><button className="fo-danger" onClick={()=>update(x.id,{isDeleted:true})} title="Hide"><Trash2 size={16}/></button></>)}
+     </div>
+    </article>)}
+    {!filtered.length&&<div className="fo-empty"><Users size={28}/><strong>{status.includes('Connecting')?'Loading field officers…':'No matching field officers found'}</strong><span>Try another name, branch code or status filter.</span></div>}
+   </div>
   </section>
   {edit&&<div className="fo-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setEdit(null)}}><form className="fo-modal" onSubmit={e=>{e.preventDefault();save()}}><div className="fo-modal-head"><div><b>{edit.id?'Edit field officer':'Create field officer'}</b><small>Keep branch and contact information current</small></div><button type="button" onClick={()=>setEdit(null)} aria-label="Close">×</button></div><div className="fo-form-grid">
    <label>Officer name *<input required value={edit.name||''} onChange={e=>setEdit(v=>({...v,name:e.target.value}))}/></label><label>Branch code *<input required value={edit.branch||''} onChange={e=>setEdit(v=>({...v,branch:e.target.value.toUpperCase()}))}/></label><label>APM code<input value={edit.apmCode||''} onChange={e=>setEdit(v=>({...v,apmCode:e.target.value}))}/></label><label>Mobile number *<input required value={edit.mobile||''} onChange={e=>setEdit(v=>({...v,mobile:e.target.value}))}/></label>
