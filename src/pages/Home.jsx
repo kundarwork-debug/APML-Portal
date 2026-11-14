@@ -177,7 +177,7 @@ function FloatingMascot(){
    const sector=(Math.round(Math.atan2(dy,dx)/(Math.PI*2/8))+sectors.length)%sectors.length
    if(!reaction)setDirection(sectors[sector])
   }
-  const reset=()=>setDirection('center')
+  const reset=e=>{if(!e.relatedTarget)setDirection('center')}
   window.addEventListener('pointermove',aim,{passive:true})
   window.addEventListener('pointerout',reset,{passive:true})
   return()=>{window.removeEventListener('pointermove',aim);window.removeEventListener('pointerout',reset)}
