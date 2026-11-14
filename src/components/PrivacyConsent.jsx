@@ -10,9 +10,8 @@ const DISMISSED_KEY='apml-privacy-dismissed'
 function readChoice(){
   try{
     const saved=JSON.parse(localStorage.getItem(PRIVACY_KEY)||'null')
-    if(saved&&typeof saved.analytics==='boolean')return saved
+    if(saved&&saved.analytics===true)return saved
     if(localStorage.getItem(ANALYTICS_KEY)==='yes')return{essential:true,analytics:true}
-    if(localStorage.getItem(ANALYTICS_KEY)==='no')return{essential:true,analytics:false}
   }catch(_){}
   return null
 }
@@ -34,7 +33,7 @@ export default function PrivacyConsent(){
     const choice=readChoice()
     let dismissed=false
     try{dismissed=sessionStorage.getItem(DISMISSED_KEY)==='yes'}catch(_){}
-    setOpen(Boolean(!choice&&!dismissed&&location.pathname!=='/cookies'))
+    setOpen(Boolean(!choice&&!dismissed&&!['/cookies','/privacy','/terms'].includes(location.pathname)))
     return()=>window.removeEventListener('apml:review-privacy',review)
   },[location.pathname])
 
@@ -43,7 +42,8 @@ export default function PrivacyConsent(){
     try{
       localStorage.setItem(PRIVACY_KEY,JSON.stringify(choice))
       localStorage.setItem(ANALYTICS_KEY,analytics?'yes':'no')
-      sessionStorage.removeItem(DISMISSED_KEY)
+      if(analytics)sessionStorage.removeItem(DISMISSED_KEY)
+      else sessionStorage.setItem(DISMISSED_KEY,'yes')
     }catch(_){}
     setOpen(false)
     window.dispatchEvent(new CustomEvent('apml-analytics-consent-changed',{detail:choice}))
