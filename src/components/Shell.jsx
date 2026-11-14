@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import PrivacyConsent from './PrivacyConsent'
+import { getApmlDatabase } from '../lib/firebase'
 import { Footer } from './ui/footer'
 import { Component as HamburgerButton } from './ui/demo'
 import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale } from 'lucide-react'
@@ -146,13 +147,10 @@ export default function Shell(){
  useEffect(()=>{const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile||window.matchMedia('(display-mode: standalone)').matches)return;let timer;const ready=e=>{e.preventDefault();setInstallEvent(e);timer=window.setTimeout(()=>setShowInstall(true),5000)};const installed=()=>{setShowInstall(false);setInstallEvent(null)};window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);window.clearTimeout(timer)}},[])
  async function installPortal(){if(!installEvent)return;await installEvent.prompt();await installEvent.userChoice;setShowInstall(false);setInstallEvent(null)}
  useEffect(()=>{
-  const config={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
   const hasConsent=()=>{try{const choice=JSON.parse(localStorage.getItem('apml-privacy-consent')||'null');return !!(choice&&choice.analytics===true)||localStorage.getItem('apml-analytics-consent')==='yes'}catch(_){return false}}
   const indiaDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
-  const loadSdk=async(src,ready)=>{if(ready())return;let el=[...document.scripts].find(x=>x.src===src);if(!el){el=document.createElement('script');el.src=src;document.head.appendChild(el)}await new Promise((resolve,reject)=>{el.addEventListener('load',resolve,{once:true});el.addEventListener('error',reject,{once:true})});if(!ready())throw Error('Firebase SDK unavailable')}
-  const getDb=async()=>{await loadSdk('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',()=>!!window.firebase?.apps);await loadSdk('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',()=>!!window.firebase?.database);if(!window.firebase.apps.length)window.firebase.initializeApp(config);return window.firebase.database()}
   window.apmlHasAnalyticsConsent=hasConsent
-  window.logDailyActivity=async(type)=>{if(!hasConsent())return;try{const db=await getDb();await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1)}catch(error){console.warn('APML daily analytics unavailable',error)}}
+  window.logDailyActivity=async(type)=>{if(!hasConsent())return;try{const db=await getApmlDatabase();await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1)}catch(error){console.warn('APML daily analytics unavailable',error)}}
   const recordVisitor=()=>{if(!hasConsent())return;const today=indiaDate();try{if(localStorage.getItem('apml_last_visit_date')===today)return;localStorage.setItem('apml_last_visit_date',today)}catch(_){}window.logDailyActivity('visitors')}
   window.addEventListener('apml-analytics-consent-granted',recordVisitor);recordVisitor()
   return()=>window.removeEventListener('apml-analytics-consent-granted',recordVisitor)
