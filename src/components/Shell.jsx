@@ -168,7 +168,7 @@ export default function Shell(){
   <main className="page-content portal-page-content"><Outlet/></main>
   <FloatingMascot pagePath={location.pathname}/>
   <Footer
-   className="mt-12"
+   className="portal-site-footer mt-12"
    brand={{
     name: 'APML Portal',
     description: 'An independent, unofficial employee utility workspace built to make selected APML work tasks simpler and more accessible. Not an official company website.'
