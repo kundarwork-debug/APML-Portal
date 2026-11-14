@@ -1,9 +1,12 @@
 import {useEffect,useMemo,useState} from 'react'
-import {Plus, Pencil, Trash2, RotateCcw, LogOut, LoaderCircle, X, Search, Phone, MessageCircle, UserRoundPlus} from 'lucide-react'
+import {Plus, Pencil, Trash2, RotateCcw, LogOut, LoaderCircle, X, Search, Phone, MessageCircle, UserRoundPlus, Upload} from 'lucide-react'
 import './FieldOfficer.css'
 
 const config={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:90fc2b64776f530874a67d'}
 const admins=['kundar701@gmail.com','kundar.work@gmail.com']
+let xlsxLoad
+function loadXlsx(){if(!xlsxLoad)xlsxLoad=new Promise((resolve,reject)=>{if(window.XLSX)return resolve(window.XLSX);const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=()=>resolve(window.XLSX);s.onerror=()=>reject(new Error('Excel import library could not load.'));document.head.appendChild(s)});return xlsxLoad}
+function normHeader(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
 const empty={name:'',branch:'',apmCode:'N/A',mobile:'',designation:'Marketing Executive',role:'BFO',status:'Active',isDeleted:false}
 let firebaseLoad
 function loadFirebase(){
@@ -25,7 +28,7 @@ function isDeleted(x){return x.isDeleted===true||x.isDeleted==='true'||x.isDelet
 
 export default function FieldOfficer(){
  const [records,setRecords]=useState([]),[query,setQuery]=useState(''),[status,setStatus]=useState('Connecting to live officer directory…'),[admin,setAdmin]=useState(false),[busy,setBusy]=useState(false),[edit,setEdit]=useState(null),[toast,setToast]=useState('')
- const [ref,setRef]=useState(null)
+ const [ref,setRef]=useState(null),[importing,setImporting]=useState(false)
  useEffect(()=>{let active=true,dbRef=null,handler=null;(async()=>{try{const fb=await loadFirebase();if(!active)return;dbRef=fb.database().ref('field_officers');setRef(dbRef);handler=snap=>{if(!active)return;const v=snap.val()||{};setRecords(Object.entries(v).map(([id,x])=>({...x,id})));setStatus('Live sync connected')};dbRef.on('value',handler,e=>{if(active)setStatus('Unable to load directory: '+e.message)})}catch(e){if(active)setStatus('Firebase connection unavailable. '+e.message)}})();return()=>{active=false;if(dbRef&&handler)dbRef.off('value',handler)}},[])
  const activeCount=records.filter(x=>!isDeleted(x)).length
  const filtered=useMemo(()=>records.filter(x=>admin||!isDeleted(x)).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))),[records,query,admin])
@@ -33,11 +36,38 @@ export default function FieldOfficer(){
  async function toggleAdmin(){setBusy(true);try{const fb=await loadAuth(),auth=fb.auth();if(admin){await auth.signOut();setAdmin(false);notify('Admin view closed');return}const result=await auth.signInWithPopup(new fb.auth.GoogleAuthProvider()),email=(result.user.email||'').toLowerCase().trim();if(!admins.includes(email)){await auth.signOut();throw new Error('This Google account is not authorized for admin access.')}setAdmin(true);notify('Admin access enabled')}catch(e){notify(e.message||'Admin sign-in failed')}finally{setBusy(false)}}
  async function save(){if(!admin||!ref)return notify('Admin access required');const value={...edit,name:edit.name.trim(),branch:edit.branch.trim().toUpperCase(),apmCode:edit.apmCode.trim()||'N/A',mobile:edit.mobile.trim(),role:'BFO'};if(!value.name||!value.branch||!value.mobile)return notify('Name, branch and mobile are required.');setBusy(true);try{if(edit.id)await ref.child(edit.id).update(value);else await ref.push({...value,isDeleted:false});setEdit(null);notify(edit.id?'Officer details updated':'New field officer created')}catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}}
  async function update(id,patch){if(!admin||!ref)return;setBusy(true);try{await ref.child(id).update(patch);notify(patch.isDeleted?'Officer hidden from directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
+ async function importExcel(file){
+  if(!admin||!ref)return notify('Admin access required');
+  if(!file)return;
+  setImporting(true);
+  try{
+   const XLSX=await loadXlsx(),data=await file.arrayBuffer(),book=XLSX.read(data,{type:'array'}),sheet=book.Sheets[book.SheetNames[0]];
+   const rows=XLSX.utils.sheet_to_json(sheet,{defval:'',raw:false});
+   if(!rows.length)throw new Error('The selected sheet has no data rows.');
+   const existing=new Set(records.filter(x=>!isDeleted(x)).map(x=>String(x.mobile||'').replace(/\D/g,'')+'|'+String(x.branch||'').trim().toUpperCase()));
+   const imported=[],skipped=[];
+   for(const row of rows){
+    const mapped={};Object.entries(row).forEach(([k,v])=>{mapped[normHeader(k)]=String(v??'').trim()});
+    const pick=(...keys)=>{for(const k of keys){if(mapped[k]!==undefined&&mapped[k]!=='')return mapped[k]}return ''};
+    const name=pick('name','officername','fieldofficer','employeename');
+    const branch=pick('branch','branchcode','location');
+    const mobile=pick('mobile','mobileno','phonenumber','contact','contactnumber');
+    if(!name||!branch||!mobile){skipped.push('invalid');continue}
+    const key=mobile.replace(/\D/g,'')+'|'+branch.toUpperCase();
+    if(existing.has(key)){skipped.push('duplicate');continue}
+    existing.add(key);
+    imported.push({name,branch:branch.toUpperCase(),apmCode:pick('apmcode','apm','code')||'N/A',mobile,designation:pick('designation','title')||'Marketing Executive',role:'BFO',status:pick('status')||'Active',isDeleted:false});
+   }
+   if(!imported.length)throw new Error('No valid new officers found. Required columns: Name, Branch and Mobile.');
+   for(let i=0;i<imported.length;i+=25){const updates={};imported.slice(i,i+25).forEach(v=>{updates[ref.push().key]=v});await ref.update(updates)}
+   notify('Imported '+imported.length+' officers'+(skipped.length?' · skipped '+skipped.length+' invalid/duplicate rows':''));
+  }catch(e){notify('Excel import failed: '+e.message)}finally{setImporting(false)}
+ }
  async function permanentlyDelete(id){if(!admin||!ref)return;if(!window.confirm('Permanently remove this officer? This cannot be undone.'))return;setBusy(true);try{await ref.child(id).remove();notify('Officer permanently deleted')}catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}}
  return <main className="fo-page">
   <header className="fo-heading"><div className="eyebrow">PEOPLE DIRECTORY</div><h1>Field Officer <span>Directory</span></h1><p>Find branch officers, contact details and current status.</p><div className="fo-status"><i/> {status} · {activeCount.toLocaleString('en-IN')} active records</div></header>
   <section className="fo-panel">
-   <div className="fo-toolbar"><div className="fo-search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search name, branch, APM code or mobile…"/></div><div className="fo-toolbar-actions">{admin&&<button className="fo-create" onClick={()=>setEdit({...empty})}><Plus size={16}/> Create officer</button>}<button onClick={toggleAdmin} disabled={busy}>{busy?'Please wait…':admin?<><LogOut size={15}/> Exit admin</>:'Admin sign in'}</button></div></div>
+   <div className="fo-toolbar"><div className="fo-search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search name, branch, APM code or mobile…"/></div><div className="fo-toolbar-actions">{admin&&<><button className="fo-create" onClick={()=>setEdit({...empty})}><Plus size={16}/> Create officer</button><label className="fo-create fo-import-label"><Upload size={15}/> {importing?'Importing…':'Import Excel'}<input type="file" accept=".xlsx,.xls,.csv" disabled={importing||busy} onChange={e=>{const f=e.target.files?.[0];e.target.value='';importExcel(f)}} hidden/></label></>}<button onClick={toggleAdmin} disabled={busy}>{busy?'Please wait…':admin?<><LogOut size={15}/> Exit admin</>:'Admin sign in'}</button></div></div>
    <div className="fo-chips">{['MUM','PUN','GRGN','DEL','AHMD','GOA'].map(x=><button key={x} onClick={()=>setQuery(x)}>{x}</button>)}<button onClick={()=>setQuery('')}>Clear</button></div>
    <div className="fo-list"><div className="fo-row fo-head"><b>Officer / Role</b><b>Branch / APM</b><b>Contact</b><b>Status</b><b>Actions</b></div>
     {filtered.map(x=><article className={'fo-row '+(isDeleted(x)?'deleted':'')} key={x.id}>
