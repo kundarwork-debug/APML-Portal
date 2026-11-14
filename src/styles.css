@@ -33,3 +33,47 @@
 @media(max-width:900px){.legacy-tool-card{grid-column:span 6}.legacy-tool-card.wide{grid-column:span 6}.legacy-hero{padding-top:44px}.legacy-telemetry-head{align-items:flex-start;flex-direction:column}}
 @media(max-width:600px){.legacy-hero{padding:32px 18px 35px}.legacy-hero h1{font-size:clamp(39px,10.8vw,54px)}.legacy-hero-description{font-size:15px}.apml-mascot-stage{width:104px;height:104px;margin-bottom:14px}.apml-hero-mascot{width:108px;height:108px;transform:translateY(12px)}.apml-hero-mascot-bubble{right:-80px;font-size:10px}.legacy-workspace,.legacy-telemetry{padding:0 15px;margin-bottom:34px}.legacy-section-bar{gap:10px;align-items:flex-start}.legacy-section-bar h2{font-size:15px}.legacy-section-bar p{max-width:260px;font-size:11px}.legacy-section-bar>span{white-space:nowrap;font-size:9px;padding:5px 8px}.legacy-tool-grid{grid-template-columns:1fr;gap:12px}.legacy-tool-card,.legacy-tool-card.wide{grid-column:1;padding:20px 17px;border-radius:18px}.legacy-tool-card h3{font-size:16px}.legacy-telemetry>a{padding:20px 16px}.legacy-telemetry-head h2{font-size:15px;align-items:flex-start}.legacy-telemetry-head p{margin-left:30px}.legacy-telemetry-stats{grid-template-columns:1fr;gap:14px}.legacy-telemetry-stats>div{border-right:0;border-bottom:1px dashed #e7dfd8;padding-bottom:14px}.legacy-telemetry-stats>div:last-child{border:0;padding-bottom:0}.apml-floating-mascot{display:none}}
 @media(prefers-reduced-motion:reduce){.legacy-tool-card,.legacy-hero-action{animation:none;transition:none}}
+
+/* Header menu control: use the hamburger consistently at every viewport size. */
+.portal-header-inner{position:relative}
+.portal-menu-toggle{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#554b45;flex:none;transition:background .18s,border-color .18s}
+.portal-menu-toggle:hover,.portal-menu-toggle[aria-expanded="true"]{background:#fff0ed;border-color:#f1d1c9;color:var(--red)}
+.portal-nav{display:none;position:absolute;top:calc(100% + 1px);right:24px;left:auto;width:min(620px,calc(100vw - 32px));max-height:min(72vh,620px);overflow:auto;padding:14px;background:#fffdfb;border:1px solid var(--line);border-radius:0 0 16px 16px;box-shadow:0 18px 38px #33231d1c;flex-wrap:wrap;justify-content:flex-start;z-index:60}
+.portal-nav.open{display:flex}
+.portal-nav a{font-size:11px;padding:10px 12px}
+.portal-nav a svg{display:block}
+.portal-nav-support{border-left:0;margin-left:0;padding-left:12px!important}
+.portal-header-actions{margin-left:auto}
+@media(max-width:900px){.portal-nav{left:12px;right:12px;width:auto;top:calc(100% + 1px)}}
+/* React port of the legacy shared footer. */
+.portal-site-footer{margin-top:54px;padding:42px max(22px,calc((100% - 1320px)/2)) 30px;display:flex;flex-direction:column;gap:30px;color:var(--muted);font-size:13px;background:var(--canvas);border-top:1px solid var(--line)}
+.portal-site-footer .footer-grid-layout{display:flex;align-items:flex-start;justify-content:space-between;gap:40px;width:100%}
+.portal-site-footer .footer-left-col{max-width:500px;display:flex;flex-direction:column;gap:14px}
+.portal-site-footer .footer-brand-group{display:flex;align-items:center;gap:13px}
+.portal-site-footer .footer-logo-box{width:46px;height:46px;border-radius:50%;background:#b91c1c12;border:1px solid #b91c1c25;display:grid;place-items:center}
+.portal-site-footer .footer-logo-box img{width:27px;height:27px;object-fit:contain}
+.portal-site-footer .footer-title{font:800 18px Manrope,sans-serif;color:var(--ink)}
+.portal-site-footer .footer-title span{color:var(--red)}
+.portal-site-footer .footer-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.portal-site-footer .footer-desc{max-width:470px;font-size:12px;line-height:1.7;color:var(--muted);margin:0}
+.portal-site-footer .footer-contact-details{display:flex;flex-wrap:wrap;gap:7px 16px;font-size:12px;font-weight:700}
+.portal-site-footer .footer-contact-details a{color:var(--ink)}
+.portal-site-footer .footer-right-col{display:flex;flex-direction:column;gap:12px;min-width:190px}
+.portal-site-footer .footer-links-heading{font:800 15px Manrope,sans-serif;color:var(--ink)}
+.portal-site-footer .footer-links-list{display:flex;flex-direction:column;gap:9px}
+.portal-site-footer .footer-links-list a{color:var(--muted);font-size:12px;font-weight:600}
+.portal-site-footer .footer-links-list a:hover,.portal-site-footer .footer-bug-link{color:var(--red)}
+.portal-site-footer .footer-mobile-links{display:none}
+.portal-site-footer .footer-divider{height:1px;background:var(--line);width:100%}
+.portal-site-footer .footer-bottom-row{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:12px;font-weight:600}
+.portal-site-footer .footer-author-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 15px 6px 6px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font-size:12px}
+.portal-site-footer .footer-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+.apml-floating-mascot{position:fixed;right:26px;bottom:24px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+.apml-floating-mascot>button{position:relative;width:82px;height:82px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;filter:drop-shadow(0 5px 8px #1c191733);touch-action:manipulation}
+.apml-floating-face,.apml-floating-reaction{position:absolute;inset:0;display:block;background-size:300% 300%;background-repeat:no-repeat;transition:opacity .12s}
+.apml-floating-face{background-image:url('https://koboyo.com/page-mascot/mascots/beard-directions.webp')}
+.apml-floating-reaction{background-image:url('https://koboyo.com/page-mascot/mascots/beard-reactions.webp')}
+.apml-floating-tip{position:relative;max-width:270px;padding:13px 34px 13px 15px;border:1px solid #292524;border-radius:17px 17px 2px 17px;background:#fff;color:#1c1917;box-shadow:4px 4px 0 #292524;font-size:12px;font-weight:700;line-height:1.55}
+.apml-floating-tip-close{position:absolute;top:5px;right:7px;width:22px;height:22px;border:0;border-radius:50%;background:#f5f1ed;color:#554b45;font-size:17px;line-height:1}
+@media(max-width:768px){.apml-floating-mascot{display:none}.portal-site-footer{padding:22px 16px;margin-top:28px;gap:0}.portal-site-footer .footer-left-col,.portal-site-footer .footer-right-col,.portal-site-footer .footer-divider,.portal-site-footer .footer-bottom-row{display:none}.portal-site-footer .footer-mobile-links{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%}.portal-site-footer .footer-mobile-link-group{display:flex;flex-direction:column;gap:10px;min-width:0}.portal-site-footer .footer-mobile-link-group .footer-links-list{gap:10px}.portal-site-footer .footer-mobile-link-group .footer-links-list a{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.apml-floating-face,.portal-menu-toggle{transition:none}}
