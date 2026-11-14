@@ -33,7 +33,7 @@ interface FooterProps extends React.HTMLAttributes<HTMLElement> {
 export const Footer = React.forwardRef<HTMLElement, FooterProps>(
   ({ className, brand, socialLinks, columns, copyright, ...props }, ref) => (
     <footer ref={ref} className={cn("pt-16 sm:pt-20", className)} {...props}>
-      <div className="mx-auto max-w-screen-xl px-4 lg:px-8">
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 xl:px-10">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4">
             <a href="/" className="text-xl font-semibold tracking-tight text-foreground">
