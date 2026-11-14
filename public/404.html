@@ -6,9 +6,12 @@
     <title>APML Portal</title>
     <script>
       (function () {
-        var base = '/APML-Portal/';
-        var path = window.location.pathname.indexOf(base) === 0
-          ? window.location.pathname.slice(base.length)
+        // GitHub Pages hosts this repository under /APML-Portal/.
+        // Vercel and Cloudflare Pages host it at the domain root.
+        var repoBase = '/APML-Portal/';
+        var base = window.location.pathname.indexOf(repoBase) === 0 ? repoBase : '/';
+        var path = base === repoBase
+          ? window.location.pathname.slice(repoBase.length)
           : window.location.pathname.replace(/^\\/+/, '');
         var requested = path + window.location.search + window.location.hash;
         window.location.replace(base + '?p=' + encodeURIComponent(requested));
