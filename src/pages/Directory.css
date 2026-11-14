@@ -56,3 +56,45 @@
 .directory-toast{display:none}
 .directory-busy{border-color:#e5e1d9;border-radius:10px;font-family:'Plus Jakarta Sans','DM Sans',sans-serif}
 @media(max-width:620px){.directory-page{padding:16px 14px 32px!important}.directory-panel{padding:14px}.directory-heading{margin-bottom:16px}.directory-actions{gap:6px}.directory-btn{padding:9px 10px}.directory-record{border-radius:0}.directory-person b{font-size:12px}}
+
+
+/* Field Officer contact-list theme shared with the Hub & Branch Directory */
+.directory-results{border:1px solid #e5e1d9;border-radius:13px;overflow:hidden;background:#fff}
+.directory-table-head{display:grid;grid-template-columns:minmax(190px,1.55fr) minmax(110px,.85fr) minmax(125px,.9fr) minmax(170px,1.35fr) 76px;gap:14px;align-items:center;padding:12px 16px;background:#f8f7f5;color:#85888d;border-bottom:1px solid #e5e1d9;font-size:9px;font-weight:800;letter-spacing:.1em}
+.directory-record{display:grid;grid-template-columns:minmax(190px,1.55fr) minmax(110px,.85fr) minmax(125px,.9fr) minmax(170px,1.35fr) 76px;gap:14px;align-items:center;padding:12px 16px;min-width:0;background:#fff;border:0;border-bottom:1px solid #eeeae5;border-radius:0;font:500 11px 'Plus Jakarta Sans','DM Sans',sans-serif;transition:background .16s}
+.directory-record:last-child{border-bottom:0}
+.directory-record:not(.is-deleted):hover{background:#fffafa}
+.directory-person{gap:10px}
+.directory-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:#b4232c;color:#fff;font-size:12px;font-weight:800}
+.directory-person b{font-size:11px;font-weight:800;color:#202124}
+.directory-person small{font-size:10px;color:#85888d}
+.directory-location b{font-size:11px;font-weight:800;color:#303236}
+.directory-location small{font-size:10px;color:#85888d}
+.directory-phone{font-size:11px;font-weight:700;color:#303236}
+.directory-address>span{font-size:10px;line-height:1.5;color:#777a80}
+.directory-address>div{gap:11px;margin-top:6px}
+.directory-address a,.directory-address button{font-size:10px;color:#b4232c}
+.directory-row-actions{justify-content:flex-end;gap:5px}
+.directory-row-actions button{width:31px;height:31px;border:1px solid #e5e1d9;border-radius:9px;background:#fff;color:#b4232c}
+.directory-row-actions button:hover{background:#fff0ed;border-color:#e7b7b1}
+.directory-row-actions button.danger{color:#dc4444}
+.directory-record.is-deleted{background:#171717;color:#fff}
+.directory-record.is-deleted .directory-person b,.directory-record.is-deleted .directory-location b{color:#fff}
+.directory-record.is-deleted .directory-person small,.directory-record.is-deleted .directory-location small,.directory-record.is-deleted .directory-address>span{color:#bbb}
+.directory-record.is-deleted .directory-avatar{background:#050505;border:1px solid #555}
+.directory-record.is-deleted .directory-phone{color:#fff}
+.directory-record.is-deleted .directory-address a,.directory-record.is-deleted .directory-address button{color:#b9d3f5}
+.directory-record.is-deleted .directory-row-actions button{background:#292929;border-color:#555;color:#a9e2c3}
+.directory-record.is-deleted .directory-row-actions button.danger{color:#ff7777}
+@media(max-width:1000px){
+ .directory-table-head{display:none}
+ .directory-record{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+ .directory-person{grid-column:1/-1}
+ .directory-row-actions{justify-content:flex-start}
+}
+@media(max-width:620px){
+ .directory-record{grid-template-columns:minmax(0,1fr);gap:10px;padding:13px 14px}
+ .directory-person{grid-column:auto}
+ .directory-location,.directory-phone,.directory-address,.directory-row-actions{padding-left:48px}
+ .directory-row-actions{justify-content:flex-start}
+}
