@@ -1,8 +1,8 @@
+import { useEffect } from 'react'
+
 export default function EditorPage(){
-  return <iframe
-    title="APML Legacy Quotation Editor"
-    src="/modules/editor.html"
-    style={{display:'block',width:'100%',height:'100vh',minHeight:'100vh',border:0,background:'#FDF8F5'}}
-    allow="clipboard-read; clipboard-write"
-  />
+  useEffect(()=>{
+    window.location.replace('/modules/editor.html')
+  },[])
+  return <div style={{minHeight:'100vh',display:'grid',placeItems:'center',background:'#FDF8F5',color:'#78716c',fontFamily:'sans-serif'}}>Opening the original APML Quotation Editor…</div>
 }
