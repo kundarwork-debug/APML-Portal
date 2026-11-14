@@ -242,3 +242,30 @@
 }
 @media(max-width:480px){.portal-menu-toggle{width:42px;height:42px;min-width:42px;flex-basis:42px}.portal-nav{right:12px;max-width:calc(100vw - 24px)}}
 @media(prefers-reduced-motion:reduce){.portal-menu-toggle svg,.portal-menu-line,.portal-nav{transition:none!important}}
+
+
+/* APML Hub homepage — shared Drive/Gallery typography, surfaces and spacing */
+.legacy-home{font-family:'Plus Jakarta Sans','DM Sans',sans-serif;color:#202124}
+.legacy-hero{padding-top:clamp(20px,2.5vw,38px);padding-bottom:clamp(38px,4vw,58px)}
+.legacy-eyebrow{color:#a9a09a;font-size:10px;letter-spacing:.15em}
+.legacy-hero h1{font-family:'Plus Jakarta Sans','DM Sans',sans-serif;letter-spacing:-.05em;color:#202124}
+.legacy-hero h1 span{color:#b4232c}
+.legacy-hero-description{color:#777a80}
+.legacy-hero-action{border-radius:10px;background:#b4232c;box-shadow:0 3px 10px #b4232c22}
+.legacy-section-bar h2{font-family:'Plus Jakarta Sans','DM Sans',sans-serif;color:#202124}
+.legacy-section-bar h2 svg{color:#b4232c}
+.legacy-section-bar p{color:#777a80}
+.legacy-section-bar>span{border:1px solid #e5e1d9;border-radius:10px;background:#fff;color:#b4232c}
+.legacy-tool-card{border-color:#e5e1d9;border-radius:16px;background:#fff;box-shadow:0 2px 8px #20212408;transition:transform .18s,border-color .18s,box-shadow .18s}
+.legacy-tool-card:hover{border-color:#b4232c66;box-shadow:0 12px 28px #20212412}
+.legacy-tool-card h3{font-family:'Plus Jakarta Sans','DM Sans',sans-serif;color:#202124}
+.legacy-tool-card p{color:#777a80}
+.legacy-card-head span{border-color:#f0d7d4;background:#fff5f4;color:#b4232c}
+.legacy-tags small{border-color:#e5e1d9;border-radius:7px;background:#f8f7f5;color:#686b70}
+.legacy-card-footer{border-color:#eeeae5}
+.legacy-card-footer>span,.legacy-card-footer b{color:#b4232c}
+.legacy-telemetry>a{border-color:#e5e1d9;border-radius:16px;background:#fff;box-shadow:0 2px 8px #20212408}
+.legacy-telemetry-head h2{font-family:'Plus Jakarta Sans','DM Sans',sans-serif;color:#202124}
+.legacy-telemetry-head h2 svg{color:#b4232c}
+.legacy-telemetry-stats strong{color:#202124}
+@media(max-width:600px){.legacy-tool-card,.legacy-tool-card.wide{border-radius:15px}.legacy-telemetry>a{border-radius:15px}}
