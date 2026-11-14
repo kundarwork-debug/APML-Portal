@@ -25,6 +25,17 @@ export default function Shell(){
   useEffect(()=>{const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile||window.matchMedia('(display-mode: standalone)').matches)return;let timer;const ready=e=>{e.preventDefault();setInstallEvent(e);timer=window.setTimeout(()=>setShowInstall(true),5000)};const installed=()=>{setShowInstall(false);setInstallEvent(null)};window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);window.clearTimeout(timer)}},[])
   async function installPortal(){if(!installEvent)return;await installEvent.prompt();await installEvent.userChoice;setShowInstall(false);setInstallEvent(null)}
 
+  useEffect(()=>{
+    const src = import.meta.env.BASE_URL + 'notify.js?v=21.46';
+    if (document.querySelector('script[data-apml-notify]')) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.dataset.apmlNotify = 'true';
+    document.body.appendChild(script);
+    return ()=>{ script.remove(); };
+  },[])
+
   const location=useLocation()
   const active=links.find(x=>x.to===location.pathname)?.label || (location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
   return <div className="app-shell">
