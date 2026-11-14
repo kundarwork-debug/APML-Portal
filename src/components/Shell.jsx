@@ -23,7 +23,7 @@ export default function Shell(){
   const active=links.find(x=>x.to===location.pathname)?.label || (location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
   return <div className="app-shell">
     <aside className={`sidebar ${open?'sidebar-open':''}`}>
-      <div className="brand"><img src="/logo.svg" alt="APML" /><div><strong>APML <span>Portal</span></strong><small>EMPLOYEE WORKSPACE</small></div><button className="icon-btn close-nav" onClick={()=>setOpen(false)} aria-label="Close menu"><X size={19}/></button></div>
+      <div className="brand"><img src={import.meta.env.BASE_URL + "logo.svg"} alt="APML" /><div><strong>APML <span>Portal</span></strong><small>EMPLOYEE WORKSPACE</small></div><button className="icon-btn close-nav" onClick={()=>setOpen(false)} aria-label="Close menu"><X size={19}/></button></div>
       <div className="side-caption">WORKSPACE</div>
       <nav className="side-nav">{links.map(({to,label,icon:Icon})=><NavLink key={to} to={to} end={to==='/'} onClick={()=>setOpen(false)} className={({isActive})=>isActive?'nav-item active':'nav-item'}><Icon size={18}/><span>{label}</span>{to==='/'&&<span className="nav-dot"/>}</NavLink>)}</nav>
       <div className="side-bottom"><div className="help-card"><div className="help-icon"><LifeBuoy size={18}/></div><strong>Need a hand?</strong><p>Report an issue or share feedback with the portal team.</p><Link to="/bug-report" onClick={()=>setOpen(false)}>Get support <ChevronRight size={14}/></Link></div><div className="side-foot">Independent employee utility portal <span>•</span> React rebuild</div></div>
