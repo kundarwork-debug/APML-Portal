@@ -20,7 +20,7 @@ interface FooterColumn {
   links: FooterLink[];
 }
 
-interface FooterProps extends React.HTMLAttributes<HTMLDivElement> {
+interface FooterProps extends React.HTMLAttributes<HTMLElement> {
   brand: {
     name: string;
     description: string;
@@ -30,7 +30,7 @@ interface FooterProps extends React.HTMLAttributes<HTMLDivElement> {
   copyright?: string;
 }
 
-export const Footer = React.forwardRef<HTMLDivElement, FooterProps>(
+export const Footer = React.forwardRef<HTMLElement, FooterProps>(
   ({ className, brand, socialLinks, columns, copyright, ...props }, ref) => (
     <footer ref={ref} className={cn("pt-16 sm:pt-20", className)} {...props}>
       <div className="mx-auto max-w-screen-xl px-4 lg:px-8">
