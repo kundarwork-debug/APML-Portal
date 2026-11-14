@@ -169,3 +169,32 @@
 @media(max-width:768px){
   .portal-site-footer{margin-top:18px;padding:20px 16px 16px;gap:0}
 }
+
+
+/* Shared APML logo motion in header and footer. */
+.apml-rotating-logo{
+  transform-origin:50% 50%;
+  animation:apml-logo-rotate 12s linear infinite;
+  will-change:transform;
+}
+@keyframes apml-logo-rotate{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@media(prefers-reduced-motion:reduce){
+  .apml-rotating-logo{animation:none}
+}
+
+/* Keep the footer close to the actual end of page content. */
+.portal-page-content{
+  flex:0 0 auto;
+  padding-bottom:12px;
+}
+.portal-site-footer{
+  margin-top:0;
+  padding-top:24px;
+}
+@media(max-width:768px){
+  .portal-page-content{padding-bottom:8px}
+  .portal-site-footer{margin-top:0;padding-top:18px}
+}
