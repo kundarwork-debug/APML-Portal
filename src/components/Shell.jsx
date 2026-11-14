@@ -12,6 +12,123 @@ const links = [
  {to:'/analytics',label:'Analytics',icon:ChartNoAxesCombined},{to:'/system-health',label:'System Health',icon:Activity},
  {to:'/apml-lite',label:'APML Lite',icon:BriefcaseBusiness},{to:'/about',label:'About',icon:CircleHelp}
 ]
+function FloatingMascot(){
+ const [visible,setVisible]=useState(false)
+ const [bubbleVisible,setBubbleVisible]=useState(false)
+ const [typedText,setTypedText]=useState('')
+ const [direction,setDirection]=useState('center')
+ const [reaction,setReaction]=useState('')
+ const [tipIndex,setTipIndex]=useState(()=>Math.floor(Math.random()*5))
+ const timers=useRef({type:null,hide:null,reaction:null})
+ const typing=useRef(false)
+ const token=useRef(0)
+ const boops=useRef({count:0,last:0})
+ const tips=[
+  'Welcome to APML Portal! Select any module below to get started. 🚀',
+  'Tip: Use the hamburger menu on top to quickly navigate anywhere.',
+  'All telemetry systems and personnel metrics are live and synced!',
+  'Need a quotation? Open the Quotation Editor, and your PDF is saved to the Drive automatically. 📄',
+  'Click my avatar anytime for another quick hint!'
+ ]
+ const directionNames=['up-left','up','up-right','left','center','right','down-left','down','down-right']
+ const reactionNames=['blink','heart','sparkle','surprised','starry','blush','sleepy','dizzy','delighted']
+ const position=(name,names)=>{const i=names.indexOf(name);return i<0?'50% 50%':((i%3)*50)+'% '+(Math.floor(i/3)*50)+'%'}
+ const clearTimers=()=>{clearTimeout(timers.current.type);clearTimeout(timers.current.hide);clearTimeout(timers.current.reaction)}
+ const showReaction=(name,duration=900)=>{
+  clearTimeout(timers.current.reaction)
+  setReaction(name)
+  if(duration>0)timers.current.reaction=setTimeout(()=>setReaction(''),duration)
+ }
+ const playTip=(message,holdMs=5000)=>{
+  clearTimeout(timers.current.type);clearTimeout(timers.current.hide)
+  const currentToken=++token.current
+  typing.current=true
+  setTypedText('')
+  setReaction('delighted')
+  setBubbleVisible(true)
+  let index=0
+  const step=()=>{
+   if(currentToken!==token.current)return
+   if(index<message.length){
+    setTypedText(message.slice(0,index+1))
+    index++
+    timers.current.type=setTimeout(step,30)
+   }else{
+    typing.current=false
+    setReaction('')
+    timers.current.hide=setTimeout(()=>{
+     if(currentToken===token.current)setBubbleVisible(false)
+    },holdMs)
+   }
+  }
+  step()
+ }
+ useEffect(()=>{
+  const update=()=>{
+   const scrollY=window.scrollY||document.documentElement.scrollTop
+   const scrollPosition=scrollY+window.innerHeight
+   const footer=document.querySelector('.portal-site-footer')
+   const bodyHeight=document.body.offsetHeight
+   const footerHeight=footer?footer.offsetHeight:0
+   const nearBottom=scrollPosition>(bodyHeight-footerHeight+20)
+   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&scrollY>250&&!nearBottom)
+   if(nearBottom){clearTimeout(timers.current.hide);setBubbleVisible(false)}
+  }
+  update()
+  window.addEventListener('scroll',update,{passive:true})
+  window.addEventListener('resize',update)
+  return()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update)}
+ },[])
+ useEffect(()=>{
+  if(!visible||!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return
+  const sectors=['right','down-right','down','down-left','left','up-left','up','up-right']
+  const aim=e=>{
+   const el=document.querySelector('.apml-floating-mascot button')
+   const rect=el?.getBoundingClientRect();if(!rect)return
+   const dx=e.clientX-(rect.left+rect.width/2),dy=e.clientY-(rect.top+rect.height/2)
+   if(Math.hypot(dx,dy)<70){setDirection('center');return}
+   const sector=(Math.round(Math.atan2(dy,dx)/(Math.PI*2/8))+sectors.length)%sectors.length
+   if(!reaction)setDirection(sectors[sector])
+  }
+  const reset=e=>{if(!e.relatedTarget)setDirection('center')}
+  window.addEventListener('pointermove',aim,{passive:true})
+  window.addEventListener('pointerout',reset,{passive:true})
+  return()=>{window.removeEventListener('pointermove',aim);window.removeEventListener('pointerout',reset)}
+ },[visible,reaction])
+ useEffect(()=>{
+  const initial=setTimeout(()=>{
+   if(!typing.current&&!bubbleVisible&&window.scrollY>250)playTip(tips[tipIndex])
+  },1000)
+  return()=>clearTimeout(initial)
+ },[])
+ useEffect(()=>()=>{clearTimers();token.current++},[])
+ const interact=()=>{
+  if(typing.current)return
+  const now=Date.now()
+  boops.current.count=now-boops.current.last<1600?boops.current.count+1:1
+  boops.current.last=now
+  const count=boops.current.count
+  const nextReaction=count>=4?'dizzy':['heart','sparkle','delighted'][(count-1)%3]
+  if(count>=4)boops.current.count=0
+  showReaction(nextReaction,900)
+  const next=(tipIndex+1)%tips.length
+  setTipIndex(next)
+  playTip(tips[next])
+ }
+ if(!visible)return null
+ return <div className="apml-floating-mascot">
+  <div className="apml-floating-mascot-inner">
+   <div className={'apml-floating-tip'+(bubbleVisible?' show':'')} role="status" aria-live="polite">
+    <span>{typedText}</span><span className="apml-floating-cursor" aria-hidden="true">|</span>
+   </div>
+   <button type="button" aria-label="Click Wobnimo for another APML Portal tip" title="Click for a new message!" onClick={interact}>
+    <span className="apml-floating-face" style={{backgroundPosition:position(direction,directionNames),opacity:reaction?0:1}}/>
+    <span className="apml-floating-face apml-floating-reaction" style={{backgroundPosition:position(reaction,reactionNames),opacity:reaction?1:0}}/>
+   </button>
+  </div>
+ </div>
+}
+
 export default function Shell(){
  const [menuOpen,setMenuOpen]=useState(false),[installEvent,setInstallEvent]=useState(null),[showInstall,setShowInstall]=useState(false)
  const location=useLocation()
@@ -40,6 +157,7 @@ export default function Shell(){
    <div className="portal-header-actions"><span className="portal-live"><i/> Operational</span><button type="button" className="portal-menu-toggle" onClick={()=>setMenuOpen(v=>!v)} aria-expanded={menuOpen} aria-controls="portal-main-navigation" aria-label={menuOpen?'Close navigation':'Open navigation'}>{menuOpen?<X size={21}/>:<Menu size={21}/>}</button></div>
   </div></header>
   <main className="page-content portal-page-content"><Outlet/></main>
+  <FloatingMascot pagePath={location.pathname}/>
   <Footer
    className="mt-12"
    brand={{
