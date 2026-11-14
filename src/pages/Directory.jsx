@@ -155,6 +155,7 @@ export default function Directory(){
       <h1>APML Hub &amp; Branch <span>Directory</span></h1>
       <p>Find branch locations and contact details in one place. Search by city, branch, officer name or phone number.</p>
       <div className="directory-live"><i/> Firebase real-time sync <b>{activeCount.toLocaleString('en-IN')} active records</b></div>
+      <button className={admin?'directory-admin directory-admin-active':'directory-admin directory-google-admin'} onClick={toggleAdmin} disabled={busy} title={admin?'Exit admin view':'Sign in with Google'} aria-label={admin?'Exit admin view':'Sign in with Google'}>{busy?<span className="admin-button-spinner"/>:admin?<LogOut size={17}/>:<GoogleMark/>}</button>
     </div>
     <section className="directory-panel">
       <div className="directory-toolbar">
@@ -163,7 +164,6 @@ export default function Directory(){
           {admin&&<button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button>}
           <input id="directory-excel" hidden type="file" accept=".xlsx,.xls,.csv" onChange={importExcel}/>
           <button className="directory-btn create" onClick={()=>setEdit({...EMPTY})}><Plus size={16}/> Create contact</button>
-          <button className="directory-admin" onClick={toggleAdmin} disabled={busy} title={admin?'Exit admin view':'Admin login'}>{admin?<LogOut size={17}/>:<GoogleMark/>}</button>
         </div>
       </div>
       <div className="directory-search"><Search size={19}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Type city, branch code, officer name, or phone number..." aria-label="Search directory"/></div>
