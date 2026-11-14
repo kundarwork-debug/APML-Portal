@@ -43,19 +43,55 @@ function HeroMascot(){
 function FloatingMascot(){
  const [visible,setVisible]=useState(false)
  const [tip,setTip]=useState(false)
- const tips=['Welcome to APML Portal! Select any module below to get started. 🚀','Use the navigation above to quickly move around the portal.','Need a quotation? Open the Quotation Editor to create an A4 PDF.','Click my avatar anytime for another quick hint!']
+ const [direction,setDirection]=useState('center')
+ const [reaction,setReaction]=useState('')
  const [tipIndex,setTipIndex]=useState(0)
+ const timer=useRef(null)
+ const tips=['Welcome to APML Portal! Select any module below to get started. 🚀','Use the navigation menu above to quickly move around the portal.','Need a quotation? Open the Quotation Editor to create an A4 PDF.','I’m here if you need a quick pointer around the workspace.']
+ const directionNames=['up-left','up','up-right','left','center','right','down-left','down','down-right']
+ const reactionNames=['blink','heart','sparkle','surprised','starry','blush','sleepy','dizzy','delighted']
+ const position=(name,names)=>{const i=names.indexOf(name);return `${(i%3)*50}% ${Math.floor(i/3)*50}%`}
  useEffect(()=>{
   const update=()=>{
-   const footer=document.querySelector('.footer')
-   const nearFooter=footer&&footer.getBoundingClientRect().top<window.innerHeight+120
-   setVisible(window.innerWidth>768&&window.scrollY>250&&!nearFooter)
+   const footer=document.querySelector('.portal-site-footer')
+   const footerNear=footer&&footer.getBoundingClientRect().top<window.innerHeight+80
+   setVisible(window.innerWidth>768&&window.scrollY>180&&!footerNear)
   }
-  update();window.addEventListener('scroll',update,{passive:true});window.addEventListener('resize',update)
+  update()
+  window.addEventListener('scroll',update,{passive:true})
+  window.addEventListener('resize',update)
   return()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update)}
  },[])
+ useEffect(()=>{
+  if(!visible||!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return
+  const aim=e=>{
+   const el=document.querySelector('.apml-floating-mascot button')
+   const rect=el?.getBoundingClientRect();if(!rect)return
+   const dx=e.clientX-(rect.left+rect.width/2),dy=e.clientY-(rect.top+rect.height/2)
+   if(Math.hypot(dx,dy)<65){setDirection('center');return}
+   const sector=Math.round(Math.atan2(dy,dx)/(Math.PI*2/8))
+   const clockwise=['right','down-right','down','down-left','left','up-left','up','up-right']
+   setDirection(clockwise[(sector+8)%8])
+  }
+  window.addEventListener('pointermove',aim,{passive:true})
+  return()=>window.removeEventListener('pointermove',aim)
+ },[visible])
+ useEffect(()=>()=>clearTimeout(timer.current),[])
+ const interact=()=>{
+  clearTimeout(timer.current)
+  setTipIndex(i=>(i+1)%tips.length)
+  setTip(true)
+  setReaction(current=>{const next=reactionNames[(reactionNames.indexOf(current)+1)%reactionNames.length];return next})
+  timer.current=setTimeout(()=>setReaction(''),650)
+ }
  if(!visible)return null
- return <div className="apml-floating-mascot">{tip&&<div className="apml-floating-tip">{tips[tipIndex]}</div>}<button aria-label="Show APML Portal tip" onClick={()=>{setTipIndex(i=>(i+1)%tips.length);setTip(true)}}><span className="apml-floating-face"/></button></div>
+ return <div className="apml-floating-mascot">
+  {tip&&<div className="apml-floating-tip" role="status">{tips[tipIndex]}<button type="button" className="apml-floating-tip-close" aria-label="Close tip" onClick={()=>setTip(false)}>×</button></div>}
+  <button type="button" aria-label="Interact with Wobnimo assistant" onClick={interact}>
+   <span className="apml-floating-face" style={{backgroundPosition:position(direction,directionNames),opacity:reaction?0:1}}/>
+   <span className="apml-floating-face apml-floating-reaction" style={{backgroundPosition:position(reaction,reactionNames),opacity:reaction?1:0}}/>
+  </button>
+ </div>
 }
 export default function Home(){
  const [query,setQuery]=useState('')
