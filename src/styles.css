@@ -81,3 +81,29 @@
 
 /* Tailwind utilities are scoped to the new shadcn-style UI components. */
 @tailwind utilities;
+
+
+/* Wide-screen layout: use available desktop width instead of a narrow centered column. */
+.portal-header-inner{max-width:1800px;padding-left:clamp(18px,2.6vw,48px);padding-right:clamp(18px,2.6vw,48px)}
+.legacy-home{width:100%;max-width:none;margin:0;padding:0 clamp(16px,2.5vw,48px) 36px}
+.legacy-hero{padding-top:clamp(52px,5vw,82px);padding-bottom:clamp(48px,4.5vw,72px)}
+.legacy-workspace,.legacy-telemetry{width:100%;max-width:none;padding:0;margin-left:auto;margin-right:auto}
+.legacy-tool-grid{gap:clamp(14px,1.25vw,22px)}
+.legacy-tool-card{padding:clamp(20px,1.7vw,30px)}
+.legacy-tool-card p{max-width:440px}
+.legacy-telemetry>a{padding:clamp(24px,2.2vw,36px)}
+.portal-site-footer .mx-auto{max-width:1600px}
+@media(min-width:1500px){
+ .legacy-tool-grid{grid-template-columns:repeat(12,minmax(0,1fr))}
+ .legacy-tool-card{min-height:230px}
+ .legacy-tool-card.wide{grid-column:span 6}
+}
+@media(max-width:900px){
+ .legacy-home{padding-left:18px;padding-right:18px}
+ .legacy-workspace,.legacy-telemetry{padding:0}
+}
+@media(max-width:600px){
+ .legacy-home{padding-left:0;padding-right:0}
+ .legacy-workspace,.legacy-telemetry{padding:0 15px}
+ .legacy-hero{padding-left:18px;padding-right:18px}
+}
