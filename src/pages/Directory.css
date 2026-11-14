@@ -98,3 +98,5 @@
  .directory-location,.directory-phone,.directory-address,.directory-row-actions{padding-left:48px}
  .directory-row-actions{justify-content:flex-start}
 }
+
+.directory-heading{position:relative;padding-right:58px}.directory-admin.directory-google-admin,.directory-admin.directory-admin-active{position:absolute;top:0;right:0;width:42px;height:42px;padding:0;border-radius:50%;flex:none}.directory-admin.directory-google-admin{border-color:#dadce0;background:#fff;color:#3c4043;box-shadow:0 1px 3px #20212420}.directory-admin.directory-google-admin:hover{background:#fff;box-shadow:0 2px 7px #20212426}.apml-google-mark{display:block;width:22px;height:22px}.admin-button-spinner{width:17px;height:17px;border:2px solid #dadce0;border-top-color:#4285f4;border-radius:50%;animation:admin-button-spin .75s linear infinite}@keyframes admin-button-spin{to{transform:rotate(360deg)}}
