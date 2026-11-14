@@ -54,3 +54,8 @@ Feature-parity testing and integration verification are still in progress. Some 
 GitHub `main` is the source of truth for this migration. No Vercel project or deployment is required while development continues. Vercel can be connected later without changing the React source.
 
 Live GitHub Pages site: https://kundarwork-debug.github.io/APML-Portal/\n\nGitHub Pages publishes the compiled Vite `dist` output through `.github/workflows/deploy-pages.yml`. In repository Settings → Pages, set **Build and deployment → Source** to **GitHub Actions**. The React app uses the `/APML-Portal/` project-site base path and includes an SPA route fallback.\n\nThe app also includes a mobile-only install prompt (shown five seconds after the browser signals install eligibility), a service worker and offline shell caching.\n\nThe portal is an independent, unofficial employee utility website.
+## Licence and copyright
+
+APML Portal is proprietary software. Copyright © 2026 PRASAD KUNDAR. All rights reserved. Reuse, modification, redistribution, or commercial use of original project materials requires prior written permission, except where applicable law or a third-party licence provides otherwise.
+
+See [LICENSE.md](./LICENSE.md) for the licence terms, [COPYRIGHT.md](./COPYRIGHT.md) for the ownership notice, and [NOTICE.md](./NOTICE.md) for a brief proprietary notice. Third-party components remain subject to their respective licences.
