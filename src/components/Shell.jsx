@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import { Menu, X, ChevronRight, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, ShieldCheck, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink } from 'lucide-react'
 
@@ -19,6 +19,11 @@ const links = [
 
 export default function Shell(){
   const [open,setOpen]=useState(false)
+  const [installEvent,setInstallEvent]=useState(null)
+  const [showInstall,setShowInstall]=useState(false)
+  useEffect(()=>{const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile||window.matchMedia('(display-mode: standalone)').matches)return;let timer;const ready=e=>{e.preventDefault();setInstallEvent(e);timer=window.setTimeout(()=>setShowInstall(true),5000)};const installed=()=>{setShowInstall(false);setInstallEvent(null)};window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);window.clearTimeout(timer)}},[])
+  async function installPortal(){if(!installEvent)return;await installEvent.prompt();await installEvent.userChoice;setShowInstall(false);setInstallEvent(null)}
+
   const location=useLocation()
   const active=links.find(x=>x.to===location.pathname)?.label || (location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
   return <div className="app-shell">
@@ -29,6 +34,8 @@ export default function Shell(){
       <div className="side-bottom"><div className="help-card"><div className="help-icon"><LifeBuoy size={18}/></div><strong>Need a hand?</strong><p>Report an issue or share feedback with the portal team.</p><Link to="/bug-report" onClick={()=>setOpen(false)}>Get support <ChevronRight size={14}/></Link></div><div className="side-foot">Independent employee utility portal <span>•</span> React rebuild</div></div>
     </aside>
     {open&&<button className="mobile-scrim" onClick={()=>setOpen(false)} aria-label="Close navigation"/>}
+    {showInstall&&installEvent&&<aside className="install-prompt"><div><strong>Install APML Portal</strong><span>Add the workspace to your phone for quick access.</span></div><button onClick={installPortal}>Install</button><button className="install-dismiss" onClick={()=>setShowInstall(false)} aria-label="Dismiss install prompt">×</button></aside>}
+
     <div className="main-column">
       <header className="topbar"><button className="icon-btn menu-btn" onClick={()=>setOpen(true)} aria-label="Open menu"><Menu size={20}/></button><div className="crumb"><span>APML Portal</span><ChevronRight size={14}/><strong>{active}</strong></div><div className="top-actions"><span className="status-pill"><i/> Portal workspace</span><Link className="top-link" to="/about">About <ExternalLink size={13}/></Link></div></header>
       <main className="page-content"><Outlet/></main>
