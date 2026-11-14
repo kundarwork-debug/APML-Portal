@@ -55,8 +55,8 @@ function OperationalTelemetry(){
   })
   const start=async()=>{
    try{
-    await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-    await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
+    if(!window.firebase?.apps)await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
+    if(!window.firebase?.database)await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
     if(!active)return
     if(!window.firebase.apps.length)window.firebase.initializeApp(config)
     db=window.firebase.database()
@@ -70,7 +70,9 @@ function OperationalTelemetry(){
     const startPresence=()=>{
      try{
       if(!window.apmlHasAnalyticsConsent?.())return
-      const id='user_'+Math.random().toString(36).slice(2,9)
+      let id
+      try{id=sessionStorage.getItem('apml_presence_session')}catch(_){}
+      if(!id){id='user_'+Math.random().toString(36).slice(2,9);try{sessionStorage.setItem('apml_presence_session',id)}catch(_){}}
       const own=db.ref('presence/'+id)
       db.ref('.info/connected').on('value',snap=>{
        if(snap.val()===true){own.onDisconnect().remove();own.set({online:true,timestamp:Date.now()})}
