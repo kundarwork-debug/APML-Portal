@@ -1,19 +1,84 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Search, Sparkles, Clock3, ShieldCheck, ChevronRight } from 'lucide-react'
-import { modules, categories } from '../data/modules'
+import { ArrowDown, ArrowUpRight, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
+import { modules } from '../data/modules'
+
+const homeTools = [
+  { id:'editor', title:'Quotation Drafting Studio', description:'Create official quotations with freight formulas, GST calculations and A4 PDF preview.', label:'Documentation', tags:['A4 PDF Export','Freight Matrix','GST Calculation'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/pencil-dynamic-color.png', wide:true },
+  { id:'drive', title:'APML Cloud Drive', description:'Organise assets into folders and manage documents, media and web files.', label:'Storage Hub', tags:['Direct Links','Folder Tree','Downloads'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/folder-dynamic-color.png', wide:true },
+  { id:'gallery', title:'Packing Standards Gallery', description:'Visual packaging standards and operational video references.', label:'Media Assets', tags:['Fleet Logistics','Cloud Sync'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/picture-dynamic-color.png' },
+  { id:'directory', title:'Hub & Branch Directory', description:'Find nationwide warehouse hubs, branch details and contacts.', label:'Directory', tags:['Pan-India Hubs','Map Pins'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/location-dynamic-color.png' },
+  { id:'field-officer', title:'Field Officer Directory WCRO', description:'Browse field officers and regional coverage with direct contact details.', label:'Directory', tags:['WCRO Region','WhatsApp'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/boy-dynamic-color.png' },
+  { id:'apml-lite', title:'APML Lite Rate Calculator', description:'Quick CFT volume calculations with floor constraints.', label:'Volume Pricing', tags:['450 CFT Limit','Base Floor'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/calculator-dynamic-color.png' },
+  { id:'car-rate', title:'Car Rate Calculator', description:'Vehicle transport rate estimation with distance-based formulas.', label:'Vehicle Freight', tags:['Model Detection','600 KM Base'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/map-pin-dynamic-color.png' },
+  { id:'local-rate', title:'APML Local Rate', description:'Intra-city relocation rate calculations with SOP budget rates.', label:'Local Shifting', tags:['Intra-City','SOP Guidelines'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/bag-dynamic-color.png' }
+]
+const directions=['up-left','up','up-right','left','center','right','down-left','down','down-right']
+const gaze=['right','down-right','down','down-left','left','up-left','up','up-right']
+const reactions=['heart','sparkle','delighted','dizzy']
+const spritePos=(index)=>`${(index%3)*50}% ${Math.floor(index/3)*50}%`
+
+function HeroMascot(){
+ const [direction,setDirection]=useState('center')
+ const [reaction,setReaction]=useState('')
+ const [bubble,setBubble]=useState(false)
+ const timer=useRef()
+ const button=useRef()
+ useEffect(()=>{
+  if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return
+  const move=e=>{
+   const rect=button.current?.getBoundingClientRect(); if(!rect)return
+   const dx=e.clientX-(rect.left+rect.width/2),dy=e.clientY-(rect.top+rect.height/2)
+   if(Math.hypot(dx,dy)<70){setDirection('center');return}
+   const angle=Math.atan2(dy,dx),sector=Math.round(angle/(Math.PI*2/8))
+   setDirection(gaze[(sector+8)%8])
+  }
+  window.addEventListener('pointermove',move,{passive:true})
+  return()=>window.removeEventListener('pointermove',move)
+ },[])
+ const boop=()=>{const next=reactions[Math.floor(Math.random()*3)];setReaction(next);setBubble(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{setReaction('');setBubble(false)},850)}
+ useEffect(()=>()=>clearTimeout(timer.current),[])
+ return <div className="apml-mascot-stage"><div className="apml-mascot-halo"/><button ref={button} className="apml-hero-mascot" onClick={boop} aria-label="Interact with Wobnimo"><span className="apml-mascot-squash"><span className="apml-mascot-sprite directions" style={{backgroundPosition:spritePos(directions.indexOf(direction)),opacity:reaction?0:1}}/><span className="apml-mascot-sprite reactions" style={{backgroundPosition:spritePos(reactions.indexOf(reaction)),opacity:reaction?1:0}}/></span></button>{bubble&&<span className="apml-hero-mascot-bubble">Hey there! 👋</span>}</div>
+}
+function FloatingMascot(){
+ const [visible,setVisible]=useState(false)
+ const [tip,setTip]=useState(false)
+ const tips=['Welcome to APML Portal! Select any module below to get started. 🚀','Use the navigation above to quickly move around the portal.','Need a quotation? Open the Quotation Editor to create an A4 PDF.','Click my avatar anytime for another quick hint!']
+ const [tipIndex,setTipIndex]=useState(0)
+ useEffect(()=>{
+  const update=()=>{
+   const footer=document.querySelector('.footer')
+   const nearFooter=footer&&footer.getBoundingClientRect().top<window.innerHeight+120
+   setVisible(window.innerWidth>768&&window.scrollY>250&&!nearFooter)
+  }
+  update();window.addEventListener('scroll',update,{passive:true});window.addEventListener('resize',update)
+  return()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update)}
+ },[])
+ if(!visible)return null
+ return <div className="apml-floating-mascot">{tip&&<div className="apml-floating-tip">{tips[tipIndex]}</div>}<button aria-label="Show APML Portal tip" onClick={()=>{setTipIndex(i=>(i+1)%tips.length);setTip(true)}}><span className="apml-floating-face"/></button></div>
+}
 export default function Home(){
- const [query,setQuery]=useState(''); const [category,setCategory]=useState('All tools')
- const filtered=useMemo(()=>modules.filter(m=>(category==='All tools'||m.category===category)&&(`${m.title} ${m.description}`.toLowerCase().includes(query.toLowerCase()))),[query,category])
- const featured=modules.slice(0,3)
- return <div className="home-page">
-  <section className="welcome-panel"><div className="welcome-copy"><div className="eyebrow"><Sparkles size={14}/> YOUR EVERYDAY WORKSPACE</div><h1>Everything you need.<br/><span>One helpful place.</span></h1><p>Welcome to APML Portal — a thoughtfully organised workspace for everyday tools, team resources and operational utilities.</p><div className="welcome-actions"><a href="#tools" className="btn-primary">Explore tools <ArrowUpRight size={17}/></a><Link to="/about" className="btn-quiet">Discover the portal <ChevronRight size={16}/></Link></div></div><div className="welcome-art"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/><div className="art-logo"><img src={import.meta.env.BASE_URL + "logo.svg"} alt="APML network hub"/></div><div className="float-chip chip-top"><ShieldCheck size={15}/> Work, made simpler</div><div className="float-chip chip-bottom"><Sparkles size={15}/> Built for your workflow</div></div><div className="welcome-glow"/></section>
-  <div className="quick-strip"><div><span className="quick-icon"><Clock3 size={17}/></span><div><strong>Ready when you are</strong><small>Useful tools in one workspace</small></div></div><div><span className="quick-icon"><ShieldCheck size={17}/></span><div><strong>Simple & focused</strong><small>Designed around daily tasks</small></div></div><div><span className="quick-icon"><Sparkles size={17}/></span><div><strong>Always evolving</strong><small>More improvements ahead</small></div></div></div>
-  <section className="section-block" id="tools"><div className="section-heading"><div><div className="eyebrow muted">THE TOOLKIT</div><h2>Find the right tool</h2><p>Shortcuts to the resources you use most.</p></div><span className="count-label">{modules.length} tools <span>available</span></span></div>
-  <div className="tool-controls"><label className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search tools and resources…"/></label><div className="category-tabs">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?'category-tab selected':'category-tab'}>{c}</button>)}</div></div>
-  <div className="module-grid">{filtered.map((m,i)=>{const Icon=m.icon;return <Link to={m.path} className="module-card" key={m.id} style={{'--delay':`${i*35}ms`}}><div className={`module-icon ${m.color}`}><Icon size={21}/></div><div className="module-card-top">{m.tag&&<span className="mini-tag">{m.tag}</span>}<ArrowUpRight size={17} className="card-arrow"/></div><div className="module-category">{m.category}</div><h3>{m.title}</h3><p>{m.description}</p><span className="module-open">Open tool <ChevronRight size={15}/></span></Link>})}</div>
-  {filtered.length===0&&<div className="empty-state">No tools match that search. Try another keyword or category.</div>}
+ const [query,setQuery]=useState('')
+ const filtered=useMemo(()=>homeTools.filter(t=>(t.title+' '+t.description+' '+t.tags.join(' ')).toLowerCase().includes(query.toLowerCase())),[query])
+ const activeCount=homeTools.filter(t=>modules.some(m=>m.id===t.id)).length
+ return <div className="home-page legacy-home">
+  <section className="legacy-hero" aria-labelledby="homeHeroTitle">
+   <HeroMascot/>
+   <p className="legacy-eyebrow"><i/> APML PORTAL</p>
+   <h1 id="homeHeroTitle">The workday,<br/><span>made simpler.</span></h1>
+   <p className="legacy-hero-description">A connected workspace for the tools, information and everyday operations your team relies on.</p>
+   <a className="legacy-hero-action" href="#workspace">Explore workspace <ArrowDown size={18}/></a>
+   <p className="legacy-hero-note">One portal for all solutions.</p>
   </section>
-  <section className="bottom-note"><div className="note-mark"><Sparkles size={18}/></div><div><strong>A workspace that keeps getting better.</strong><p>We’re rebuilding APML Portal on a modern React foundation while keeping the familiar tools and workflows at the centre.</p></div><Link to="/about">Learn more <ArrowUpRight size={15}/></Link></section>
+  <section className="legacy-workspace" id="workspace">
+   <div className="legacy-section-bar"><div><h2><Grid2X2 size={21}/> Your workspace</h2><p>Everything you need to keep daily operations moving.</p></div><span>{activeCount} Active Tools</span></div>
+   <div className="legacy-tool-grid">{filtered.map((tool,i)=><Link key={tool.id} to={modules.find(m=>m.id===tool.id)?.path||'/'} className={`legacy-tool-card ${tool.wide?'wide':''}`} style={{'--tool-delay':`${i*45}ms`}}>
+    <div><div className="legacy-card-head"><img src={tool.image} alt="" loading="lazy"/><span>{tool.label}</span></div><h3>{tool.title}</h3><p>{tool.description}</p><div className="legacy-tags">{tool.tags.map(tag=><small key={tag}>{tag}</small>)}</div></div>
+    <div className="legacy-card-footer"><span>✦ Interactive Tool</span><b>Launch <ArrowUpRight size={18}/></b></div>
+   </Link>)}</div>
+   {filtered.length===0&&<p className="legacy-empty">No tools match your search.</p>}
+  </section>
+  <section className="legacy-telemetry"><Link to="/analytics"><div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across regional offices and nationwide hubs.</p></div><span><i/> All systems monitored</span></div><div className="legacy-telemetry-stats"><div><small>Live Active Personnel</small><strong>—</strong><em>Concurrent field officers &amp; HODs</em></div><div><small>PDF Quotations Drafted</small><strong>—</strong><em>Exact Container &amp; Maxcare</em></div><div><small>Cloud Files &amp; Media Downloads</small><strong>—</strong><em>Drive &amp; gallery archives</em></div></div></Link></section>
+  <FloatingMascot/>
  </div>
 }
