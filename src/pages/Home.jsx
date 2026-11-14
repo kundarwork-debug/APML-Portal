@@ -112,9 +112,11 @@ function FloatingMascot(){
  const position=(name,names)=>{const i=names.indexOf(name);return `${(i%3)*50}% ${Math.floor(i/3)*50}%`}
  useEffect(()=>{
   const update=()=>{
+   const hero=document.querySelector('.legacy-hero')
    const footer=document.querySelector('.portal-site-footer')
+   const heroStillVisible=hero&&hero.getBoundingClientRect().bottom>0
    const footerNear=footer&&footer.getBoundingClientRect().top<window.innerHeight+80
-   setVisible(window.innerWidth>768&&window.scrollY>180&&!footerNear)
+   setVisible(window.innerWidth>768&&window.scrollY>180&&!heroStillVisible&&!footerNear)
   }
   update()
   window.addEventListener('scroll',update,{passive:true})
