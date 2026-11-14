@@ -44,8 +44,9 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
       <div className="mx-auto w-full max-w-none px-5 sm:px-8 lg:px-12 2xl:px-16">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-4 lg:col-span-3">
-            <Link to="/" className="text-xl font-semibold tracking-tight text-foreground">
-              {brand.name}
+            <Link to="/" className="inline-flex items-center gap-3 text-xl font-semibold tracking-tight text-foreground">
+              <img src="/logo.svg" alt="" aria-hidden="true" className="apml-rotating-logo h-10 w-10 shrink-0 object-contain" />
+              <span>{brand.name}</span>
             </Link>
             <p className="mt-2 max-w-md text-sm leading-6 text-foreground/60">
               {brand.description}
