@@ -89,7 +89,7 @@ export default function Directory(){
     finally{setBusy(false)}
   }
   async function saveRecord(record){
-    if(!db || !authorized()){notify('Please sign in with an authorized admin account.');return}
+    if(!db || (record.id && !authorized())){notify('Please sign in with an authorized admin account.');return}
     if(!record.name.trim()||!record.location.trim()){notify('Name and location are required.');return}
     try{
       setBusy(true)
