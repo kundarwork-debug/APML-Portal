@@ -16,6 +16,12 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body><script>
-    (function(){var p=new URLSearchParams(window.location.search).get('p');if(p!==null){window.history.replaceState(null,'', '/APML-Portal/'+p);}})();
-  </script><div id="root"></div><script type="module" src="/src/main.jsx"></script></body>
+    (function(){
+      var p=new URLSearchParams(window.location.search).get('p');
+      if(p!==null){
+        var base='%BASE_URL%';
+        window.history.replaceState(null,'',base+p.replace(/^\\/+/, ''));
+      }
+    })();
+  </script><div id="root"></div><script type="module" src="%BASE_URL%src/main.jsx"></script></body>
 </html>
