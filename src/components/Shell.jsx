@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import PrivacyConsent from './PrivacyConsent'
 import { getApmlDatabase } from '../lib/firebase'
@@ -143,6 +143,7 @@ function FloatingMascot({pagePath}){
 export default function Shell(){
  const [menuOpen,setMenuOpen]=useState(false),[installEvent,setInstallEvent]=useState(null),[showInstall,setShowInstall]=useState(false)
  const location=useLocation()
+ useLayoutEffect(()=>{window.scrollTo(0,0)},[location.pathname,location.search,location.hash])
  useEffect(()=>{setMenuOpen(false)},[location.pathname])
  useEffect(()=>{const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile||window.matchMedia('(display-mode: standalone)').matches)return;let timer;const ready=e=>{e.preventDefault();setInstallEvent(e);timer=window.setTimeout(()=>setShowInstall(true),5000)};const installed=()=>{setShowInstall(false);setInstallEvent(null)};window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);window.clearTimeout(timer)}},[])
  async function installPortal(){if(!installEvent)return;await installEvent.prompt();await installEvent.userChoice;setShowInstall(false);setInstallEvent(null)}
