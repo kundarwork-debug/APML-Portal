@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useState} from 'react'
-import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,MessageCircle,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw} from 'lucide-react'
+import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw} from 'lucide-react'
 import {getApmlDatabase,getApmlAuth} from '../lib/firebase'
 import {driveAlert,driveConfirm,driveToast} from '../lib/sweetalert'
 import './FieldOfficer.css'
@@ -21,6 +21,16 @@ export default function FieldOfficer(){
  const availableBranches=[...new Set(activeRecords.map(x=>String(x.branch||'').trim().toUpperCase()).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
  const filtered=useMemo(()=>records.filter(x=>admin||!isDeleted(x)).filter(x=>statusFilter==='All'||(statusFilter==='Deleted'?isDeleted(x):!isDeleted(x)&&String(x.status||'Active').toLowerCase()===statusFilter.toLowerCase())).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))||String(a.name||'').localeCompare(String(b.name||''))),[records,query,admin,statusFilter])
  const notify=m=>{driveToast(m).catch(()=>{setToast(m);window.setTimeout(()=>setToast(''),2800)})}
+ async function copyNumber(number){
+  try{
+   if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(String(number));
+   else{
+    const field=document.createElement('textarea');field.value=String(number);field.style.position='fixed';field.style.opacity='0';document.body.appendChild(field);field.select();
+    const copied=document.execCommand('copy');field.remove();if(!copied)throw new Error('Copy was blocked by the browser.');
+   }
+   notify('Phone number copied');
+  }catch{notify('Could not copy number. Please select and copy it manually.')}
+ }
  async function toggleAdmin(){setBusy(true);try{const auth=await getApmlAuth();if(admin){await auth.signOut();setAdmin(false);notify('Admin view closed');return}const result=await auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider()),email=(result.user.email||'').toLowerCase().trim();if(!admins.includes(email)){await auth.signOut();throw new Error('This Google account is not authorized for admin access.')}setAdmin(true);notify('Admin access enabled')}catch(e){try{await driveAlert('Admin sign-in failed',e.message||'Please try again.','error')}catch{notify(e.message||'Admin sign-in failed')}}finally{setBusy(false)}}
  async function save(){if(!admin||!ref)return notify('Admin access required');const value={...edit,name:edit.name.trim(),branch:edit.branch.trim().toUpperCase(),apmCode:edit.apmCode.trim()||'N/A',mobile:edit.mobile.trim(),role:'BFO'};if(!value.name||!value.branch||!value.mobile)return notify('Name, branch and mobile are required.');setBusy(true);try{if(edit.id)await ref.child(edit.id).update(value);else await ref.push({...value,isDeleted:false});setEdit(null);notify(edit.id?'Officer details updated':'New field officer created')}catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}}
  async function update(id,patch){if(!admin||!ref)return;if(patch.isDeleted){const ok=await driveConfirm('Hide this officer?','The officer will be removed from the public directory but can be restored by an admin.','Move to deleted');if(!ok)return}setBusy(true);try{await ref.child(id).update(patch);notify(patch.isDeleted?'Officer hidden from directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
@@ -73,10 +83,9 @@ export default function FieldOfficer(){
      <span className="fo-contact-avatar">{(x.name||'?').trim().slice(0,1).toUpperCase()}</span>
      <div className="fo-contact-main"><strong>{x.name||'Unnamed officer'}</strong><span>{x.designation||x.role||'Field Officer'}{x.role?' · '+x.role:''}</span></div>
      <div className="fo-contact-branch"><span>BRANCH</span><strong>{x.branch||'—'}</strong></div>
-     <div className="fo-contact-phone"><span>PHONE</span>{x.mobile?<a href={'tel:'+String(x.mobile).replace(/[^+\\d]/g,'')}>{x.mobile}</a>:<em>Not available</em>}</div>
+     <div className="fo-contact-phone"><span>PHONE</span>{x.mobile?<button type="button" className="fo-copy-phone" onClick={()=>copyNumber(x.mobile)} title="Copy phone number" aria-label={'Copy phone number '+x.mobile}>{x.mobile}</button>:<em>Not available</em>}</div>
      <span className={'fo-contact-status '+(isDeleted(x)?'deleted':String(x.status||'Active').toLowerCase())}>{isDeleted(x)?'Deleted':x.status||'Active'}</span>
-     <div className="fo-contact-actions">{!isDeleted(x)&&x.mobile&&<a className="fo-contact-action" href={'https://wa.me/91'+String(x.mobile).replace(/\\D/g,'').slice(-10)} target="_blank" rel="noreferrer" title="WhatsApp"><MessageCircle size={16}/></a>}
-      {admin&&(isDeleted(x)?<><button onClick={()=>update(x.id,{isDeleted:false})} title="Restore"><RotateCcw size={16}/></button><button className="fo-danger" onClick={()=>permanentlyDelete(x.id)} title="Delete forever"><Trash2 size={16}/></button></>:<><button onClick={()=>setEdit({...empty,...x})} title="Edit"><Pencil size={16}/></button><button className="fo-danger" onClick={()=>update(x.id,{isDeleted:true})} title="Hide"><Trash2 size={16}/></button></>)}
+     <div className="fo-contact-actions">{admin&&(isDeleted(x)?<><button onClick={()=>update(x.id,{isDeleted:false})} title="Restore"><RotateCcw size={16}/></button><button className="fo-danger" onClick={()=>permanentlyDelete(x.id)} title="Delete forever"><Trash2 size={16}/></button></>:<><button onClick={()=>setEdit({...empty,...x})} title="Edit"><Pencil size={16}/></button><button className="fo-danger" onClick={()=>update(x.id,{isDeleted:true})} title="Hide"><Trash2 size={16}/></button></>)}
      </div>
     </article>)}
     {!filtered.length&&<div className="fo-empty"><Users size={28}/><strong>{status.includes('Connecting')?'Loading field officers…':'No matching field officers found'}</strong><span>Try another name, branch code or status filter.</span></div>}
