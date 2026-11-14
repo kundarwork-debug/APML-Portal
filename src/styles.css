@@ -121,3 +121,19 @@
 .apml-floating-mascot>button{width:116px;height:116px}
 .apml-floating-tip{max-width:290px;font-size:13px}
 @media(max-width:768px){.apml-floating-mascot{display:none}}
+
+/* Match the original APML floating Wobnimo widget: typewriter bubble, sprite face and legacy placement. */
+.apml-floating-mascot{position:fixed;right:32px;bottom:32px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:0;opacity:1;visibility:visible;pointer-events:none}
+.apml-floating-mascot-inner{display:flex;flex-direction:column;align-items:flex-end;gap:0;pointer-events:auto}
+.apml-floating-mascot>div>button{width:136px;height:136px;margin-right:-10px;padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none;overflow:visible;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:none}
+.apml-floating-mascot>div>button:hover{background:transparent;transform:none;box-shadow:none}
+.apml-floating-face{position:absolute;inset:4px;display:block;width:128px;height:128px;background-image:url('https://koboyo.com/page-mascot/mascots/beard-directions.webp');background-size:300% 300%;background-repeat:no-repeat;background-position:50% 50%;filter:none;transition:opacity .08s linear}
+.apml-floating-mascot>div>button{position:relative}
+.apml-floating-reaction{background-image:url('https://koboyo.com/page-mascot/mascots/beard-reactions.webp')}
+.apml-floating-tip{position:relative;top:20px;margin:0 12px 0 0;z-index:2;display:block;box-sizing:border-box;min-height:0;height:auto;max-width:260px;padding:4px 16px 10px;border:2px solid var(--text-main,#1c1917);border-radius:20px 20px 0 20px;background:#fff;color:var(--text-main,#1c1917);box-shadow:4px 4px 0 var(--text-main,#1c1917);font-size:14.5px;font-weight:600;line-height:1.5;opacity:0;transform:translateY(10px) scale(.9);transition:opacity .4s ease,transform .4s ease;pointer-events:auto}
+.apml-floating-tip.show{opacity:1;transform:translateY(0) scale(1)}
+.apml-floating-cursor{display:inline-block;width:2px;margin-left:2px;color:var(--text-main,#1c1917);animation:apml-floating-blink 1s step-end infinite}
+@keyframes apml-floating-blink{50%{opacity:0}}
+@media(max-width:768px){.apml-floating-mascot{display:none}}
+@media(max-width:600px){.apml-floating-mascot{right:14px;bottom:18px}.apml-floating-tip{margin-right:8px}.apml-floating-mascot>div>button{width:108px;height:108px;margin-right:-6px}.apml-floating-face{inset:2px;width:104px;height:104px}}
+@media(prefers-reduced-motion:reduce){.apml-floating-tip,.apml-floating-cursor{transition:none;animation:none}}
