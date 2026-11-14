@@ -114,9 +114,9 @@ function FloatingMascot(){
   const update=()=>{
    const hero=document.querySelector('.legacy-hero')
    const footer=document.querySelector('.portal-site-footer')
-   const heroStillVisible=hero&&hero.getBoundingClientRect().bottom>0
+   const heroPassed=!hero||hero.getBoundingClientRect().bottom<=0
    const footerNear=footer&&footer.getBoundingClientRect().top<window.innerHeight+80
-   setVisible(window.innerWidth>768&&window.scrollY>180&&!heroStillVisible&&!footerNear)
+   setVisible(window.innerWidth>768&&heroPassed&&!footerNear)
   }
   update()
   window.addEventListener('scroll',update,{passive:true})
