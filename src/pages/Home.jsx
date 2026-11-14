@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDown, ArrowUpRight, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
 import { modules } from '../data/modules'
+import { getApmlDatabase } from '../lib/firebase'
 
 const homeTools = [
   { id:'editor', title:'Quotation Drafting Studio', description:'Create official quotations with freight formulas, GST calculations and A4 PDF preview.', label:'Documentation', tags:['A4 PDF Export','Freight Matrix','GST Calculation'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/pencil-dynamic-color.png', wide:true },
@@ -44,22 +45,10 @@ function OperationalTelemetry(){
  const [counts,setCounts]=useState({users:0,pdf:0,media:0})
  useEffect(()=>{
   let active=true,db=null,refs=[]
-  const config={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
-  const load=src=>new Promise((resolve,reject)=>{
-   if([...document.scripts].some(s=>s.src===src&&s.dataset.apmlLoaded==='true'))return resolve()
-   let script=[...document.scripts].find(s=>s.src===src)
-   if(!script){script=document.createElement('script');script.src=src;script.async=true;document.head.appendChild(script)}
-   if(script.dataset.apmlLoaded==='true')return resolve()
-   script.addEventListener('load',()=>{script.dataset.apmlLoaded='true';resolve()},{once:true})
-   script.addEventListener('error',reject,{once:true})
-  })
   const start=async()=>{
    try{
-    if(!window.firebase?.apps)await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-    if(!window.firebase?.database)await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
+    db=await getApmlDatabase()
     if(!active)return
-    if(!window.firebase.apps.length)window.firebase.initializeApp(config)
-    db=window.firebase.database()
     const listen=(path,key,transform=value=>Number(value)||0)=>{
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
