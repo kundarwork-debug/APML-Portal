@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import PrivacyConsent from './PrivacyConsent'
-import { Menu, X, ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink } from 'lucide-react'
+import { Footer } from './ui/footer'
+import { Menu, X, ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale } from 'lucide-react'
 
 const links = [
  {to:'/',label:'Home',icon:Home},{to:'/editor',label:'Quotation Editor',icon:FileText},
@@ -39,21 +40,46 @@ export default function Shell(){
    <div className="portal-header-actions"><span className="portal-live"><i/> Operational</span><button type="button" className="portal-menu-toggle" onClick={()=>setMenuOpen(v=>!v)} aria-expanded={menuOpen} aria-controls="portal-main-navigation" aria-label={menuOpen?'Close navigation':'Open navigation'}>{menuOpen?<X size={21}/>:<Menu size={21}/>}</button></div>
   </div></header>
   <main className="page-content portal-page-content"><Outlet/></main>
-  <footer className="site-footer portal-site-footer">
-   <div className="footer-grid-layout">
-    <div className="footer-left-col">
-     <div className="footer-brand-group"><div className="footer-logo-box"><img src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal" className="rotating-logo"/></div><div><div className="footer-title">APML<span> Portal</span></div><div className="footer-subtitle">Independent Employee Utility Portal</div></div></div>
-     <p className="footer-desc">APML Portal is an independent, unofficial utility website built primarily to help APML employees with selected work tasks. It is not an official company website.</p>
-     <div className="footer-contact-details"><a href="mailto:Kundar.work@gmail.com">Kundar.work@gmail.com</a><a href="tel:+919910579530">+91 99105 79530</a></div>
-    </div>
-    <div className="footer-right-col"><div className="footer-links-heading">Links</div><div className="footer-links-list"><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms &amp; Conditions</Link><Link to="/cookies">Cookies &amp; Storage Policy</Link><Link to="/bug-report" className="footer-bug-link">Report a Bug</Link></div></div>
-   </div>
-   <div className="footer-mobile-links" aria-label="Footer navigation">
-    <div className="footer-mobile-link-group"><div className="footer-links-heading">Resources</div><div className="footer-links-list"><Link to="/directory">Directory</Link><Link to="/drive">Cloud Drive</Link><Link to="/gallery">Gallery</Link><Link to="/car-rate">Car Rate Calculator</Link><Link to="/local-rate">Local Rate Calculator</Link><Link to="/field-officer">Field Officer</Link></div></div>
-    <div className="footer-mobile-link-group"><div className="footer-links-heading">Legal</div><div className="footer-links-list"><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms &amp; Conditions</Link><Link to="/cookies">Cookies &amp; Storage Policy</Link></div></div>
-   </div>
-   <div className="footer-divider"></div>
-   <div className="footer-bottom-row"><div className="footer-copyright">© {new Date().getFullYear()} APML Portal. Unofficial operations workspace.</div><div className="footer-actions-group"><a href="https://github.com/kundarwork-debug" className="footer-author-pill" target="_blank" rel="noreferrer" title="About Developer"><img src="https://github.com/kundarwork-debug.png" alt="" className="footer-avatar"/><span>Prasad Kundar</span></a></div></div>
-  </footer>
+  <Footer
+   className="mt-12"
+   brand={{
+    name: 'APML Portal',
+    description: 'An independent, unofficial employee utility workspace built to make selected APML work tasks simpler and more accessible. Not an official company website.'
+   }}
+   socialLinks={[
+    { name: 'GitHub', href: 'https://github.com/kundarwork-debug/APML-Portal' },
+    { name: 'Email', href: 'mailto:Kundar.work@gmail.com' }
+   ]}
+   columns={[
+    {
+     title: 'Workspace',
+     links: [
+      { name: 'Quotation Editor', Icon: FileText, href: '/editor' },
+      { name: 'APML Drive', Icon: Cloud, href: '/drive' },
+      { name: 'Gallery', Icon: Images, href: '/gallery' },
+      { name: 'Analytics', Icon: ChartNoAxesCombined, href: '/analytics' }
+     ]
+    },
+    {
+     title: 'Resources',
+     links: [
+      { name: 'Branch Directory', Icon: MapPinned, href: '/directory' },
+      { name: 'Field Officers', Icon: Users, href: '/field-officer' },
+      { name: 'Calculators', Icon: Calculator, href: '/local-rate' },
+      { name: 'Report a Bug', Icon: LifeBuoy, href: '/bug-report' }
+     ]
+    },
+    {
+     title: 'Legal & About',
+     links: [
+      { name: 'About APML Portal', Icon: BookOpen, href: '/about' },
+      { name: 'Privacy Policy', Icon: ShieldCheck, href: '/privacy' },
+      { name: 'Terms & Conditions', Icon: Scale, href: '/terms' },
+      { name: 'Cookies Policy', Icon: ShieldCheck, href: '/cookies' }
+     ]
+    }
+   ]}
+   copyright={`© ${new Date().getFullYear()} APML Portal. Unofficial operations workspace.`}
+  />
  </div>
 }
