@@ -1,4 +1,4 @@
-const CACHE_NAME='apml-portal-shell-v1';
+const CACHE_NAME='apml-portal-shell-v2';
 const BASE_PATH=new URL('.',self.location.href).pathname;
 const CORE_ASSETS=[BASE_PATH,BASE_PATH+'index.html',BASE_PATH+'logo.svg',BASE_PATH+'pwa-192.svg',BASE_PATH+'pwa-512.svg',BASE_PATH+'manifest.webmanifest'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(CORE_ASSETS)).then(()=>self.skipWaiting()))});
