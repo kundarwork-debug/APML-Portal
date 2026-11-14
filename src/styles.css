@@ -116,3 +116,8 @@
  .apml-mascot-stage{width:132px;height:132px;margin-bottom:18px}
  .apml-hero-mascot{width:132px;height:132px;transform:translateY(8px)}
 }
+
+/* Larger floating Wobnimo assistant, shown after the homepage hero. */
+.apml-floating-mascot>button{width:116px;height:116px}
+.apml-floating-tip{max-width:290px;font-size:13px}
+@media(max-width:768px){.apml-floating-mascot{display:none}}
