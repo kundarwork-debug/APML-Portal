@@ -1,4 +1,5 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
+import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, File, Download, ExternalLink, Pencil, Trash2, RotateCcw, ChevronLeft, ChevronRight, Search, Upload, Plus, HardDrive, ShieldCheck, FolderPlus, Link2 } from 'lucide-react'
 import './Drive.css'
 const cfg={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
 const admins=['kundar701@gmail.com','kundar.work@gmail.com'],cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-work.workers.dev';const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
@@ -27,5 +28,75 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  async function restore(item,type){if(!admin)return;const p=item.prevParentId||'root';try{await window.firebase.database().ref((type==='folder'?'catbox_gdrive_folders':'catbox_gdrive_files')+'/'+item.key).update({parentId:p,prevParentId:null})}catch(e){alert(e.message)}}
  async function addLink(){const raw=prompt('Paste a Catbox or direct file URL:');if(!raw?.trim())return;let url;try{url=new URL(raw.trim());if(!['http:','https:'].includes(url.protocol))throw Error('Use a valid http or https link.')}catch(e){alert(e.message||'Please enter a valid full URL.');return}const name=decodeURIComponent(url.pathname.split('/').filter(Boolean).pop()||'file');try{await window.firebase.database().ref('catbox_gdrive_files').push({fileId:url.href,parentId:parent,name,size:0,timestamp:Date.now(),source:'link'})}catch(e){alert('Could not save link: '+e.message)}}async function dropFile(e,folderKey){e.preventDefault();const key=e.dataTransfer.getData('text/plain');if(!key)return;try{await window.firebase.database().ref('catbox_gdrive_files/'+key).update({parentId:folderKey})}catch(e){alert('Could not move file: '+e.message)}}async function permanent(item,type){if(!admin)return;if(!confirm('Permanently delete this item? This cannot be undone.'))return;try{await window.firebase.database().ref((type==='folder'?'catbox_gdrive_folders':'catbox_gdrive_files')+'/'+item.key).remove()}catch(e){alert(e.message)}}
  const crumbs=[];let p=parent;while(p&&p!=='root'&&p!=='deleted'){const f=folders.find(x=>x.key===p);if(!f)break;crumbs.unshift(f);p=f.parentId||'root'}
- return <main className="drive-page"><header className="drive-head"><div><div className="eyebrow">CLOUD STORAGE</div><h1>APML <span>Drive</span></h1><p>Organize shared files and folders in one place.</p></div><button className="drive-admin" onClick={adminToggle} disabled={busy}>{busy?'Please wait…':admin?'Exit admin':'Admin sign in'}</button></header><section className="drive-panel"><div className="drive-tools"><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search current folder…"/><button onClick={()=>{setParent('root');setPage(1)}}>Home</button><><button onClick={createFolder}>＋ New folder</button><button onClick={addLink}>＋ Catbox link</button><button onClick={()=>input.current?.click()} disabled={busy}>↑ Upload files</button><input ref={input} hidden type="file" multiple onChange={e=>upload(e.target.files)}/>{admin&&parent==='root'&&<button onClick={()=>{setParent('deleted');setPage(1)}}>🗑 Trash Archive</button>}</></div><div className="drive-crumb"><button onClick={()=>setParent('root')}>Drive</button>{crumbs.map(x=><span key={x.key}> / <button onClick={()=>{setParent(x.key);setPage(1)}}>{x.name}</button></span>)}{trash&&<b> / Trash Archive</b>}</div><div className="drive-status">{status} · {total} items</div><div className="drive-grid">{(trash?folders.filter(x=>x.parentId==='deleted'):hereFolders).map(x=><article className="drive-item folder" key={x.key} onDragOver={e=>e.preventDefault()} onDrop={e=>dropFile(e,x.key)}><button className="drive-open" onClick={()=>setParent(x.key)}><span>📁</span><strong>{x.name}</strong><small>Folder</small></button>{admin&&<div className="drive-item-actions">{trash?<><button onClick={()=>restore(x,'folder')}>Restore</button><button onClick={()=>permanent(x,'folder')}>Delete forever</button></>:<><button onClick={()=>rename(x,'folder')}>Rename</button><button onClick={()=>move(x,'folder')}>Move to trash</button></>}</div>}</article>)}{pagedFiles.map(x=><article className="drive-item" key={x.key} draggable onDragStart={e=>e.dataTransfer.setData('text/plain',x.key)}><a className="drive-open" href={x.fileId} target="_blank" rel="noreferrer"><div className="drive-preview">{isImage(x)?<img src={x.fileId} alt={x.name||'Drive image'} loading="lazy"/>:isVideo(x)?<video src={x.fileId} muted playsInline preload="metadata"/>:<span>{/\.pdf$/i.test(x.name||'')?'📕':/\.(xls|xlsx|csv)$/i.test(x.name||'')?'📊':/\.(doc|docx)$/i.test(x.name||'')?'📝':isVideo(x)?'🎬':'📄'}</span>}</div><strong>{x.name}</strong><small>{x.size?((x.size/1048576).toFixed(1)+' MB'):'File'} · {new Date(x.timestamp||Date.now()).toLocaleDateString()}</small></a><div className="drive-item-actions"><button onClick={()=>downloadFile(x)}>Download</button><a href={x.fileId} target="_blank" rel="noreferrer">Open</a>{admin&&(trash?<><button onClick={()=>restore(x,'file')}>Restore</button><button onClick={()=>permanent(x,'file')}>Delete forever</button></>:<><button onClick={()=>rename(x,'file')}>Rename</button><button onClick={()=>move(x,'file')}>Move to trash</button></>)}</div></article>)}{!hereFolders.length&&!hereFiles.length&&!trash&&<div className="drive-empty">This folder is empty. {admin?'Create a folder or upload files to get started.':'Files shared to this folder will appear here.'}</div>}</div>{pageCount>1&&<nav className="drive-pagination" aria-label="Drive file pages"><button disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}>Previous</button><span>Page {Math.min(page,pageCount)} of {pageCount}</span><button disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))}>Next</button></nav>}{trash&&<div className="drive-empty">Trash archive · {folders.filter(x=>x.parentId==='deleted').length+files.filter(x=>x.parentId==='deleted').length} items</div>}</section></main>
+ const trashFolders=folders.filter(x=>x.parentId==='deleted');
+ const trashFiles=files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+ const visibleFolders=trash?trashFolders:hereFolders;
+ const displayFolders=(!trash&&parent==='root'&&admin)?[...visibleFolders,{key:'deleted',name:'Trash Archive',isVirtualTrash:true}]:visibleFolders;
+ const activeFileCount=files.filter(x=>x.parentId!=='deleted').length;
+ const activeFolderCount=folders.filter(x=>x.parentId!=='deleted').length;
+ const folderBytes=files.filter(x=>x.parentId!=='deleted').reduce((n,x)=>n+(Number(x.size)||0),0);
+ const fileIcon=(item)=>{
+  const name=item.name||'',url=item.fileId||'';
+  if(isImage(item))return <FileImage size={31}/>;
+  if(isVideo(item))return <FileVideo size={31}/>;
+  if(/\.(xls|xlsx|csv)$/i.test(name+' '+url))return <FileSpreadsheet size={31}/>;
+  if(/\.pdf/i.test(name+' '+url))return <FileText size={31}/>;
+  if(/\.(zip|rar|7z|tar)/i.test(name+' '+url))return <FileArchive size={31}/>;
+  return <File size={31}/>;
+ };
+ const folderPath=[{key:'root',name:'My Drive'},...crumbs];
+ return <main className="drive-page">
+  <header className="drive-head">
+   <div className="drive-heading-copy">
+    <div className="drive-eyebrow"><HardDrive size={14}/> CLOUD STORAGE</div>
+    <h1 className="drive-title">APML <span>Drive</span></h1>
+    <p className="drive-subtitle">A central place for shared files, documents and media.</p>
+    <div className="drive-stats">
+     <span className="drive-stat"><Folder size={14}/> <strong>{activeFolderCount}</strong> Folders</span>
+     <span className="drive-stat"><File size={14}/> <strong>{activeFileCount}</strong> Files</span>
+     <span className="drive-stat"><HardDrive size={14}/> <strong>{(folderBytes/1048576).toFixed(1)} MB</strong> Stored</span>
+    </div>
+   </div>
+   <button className="drive-admin" onClick={adminToggle} disabled={busy}>{busy?'Please wait…':admin?<><ShieldCheck size={15}/> Exit admin</>:'Admin sign in'}</button>
+  </header>
+  <section className="drive-action-bar">
+   <nav className="drive-breadcrumb" aria-label="Drive location">
+    {folderPath.map((x,i)=><span className="drive-crumb-part" key={x.key}>{i>0&&<span className="drive-crumb-separator">/</span>}<button className={i===folderPath.length-1&&!trash?'current':''} onClick={()=>{setParent(x.key);setPage(1)}}>{i===0&&<Folder size={15}/>} {x.name}</button></span>)}
+    {trash&&<span className="drive-crumb-part"><span className="drive-crumb-separator">/</span><b>Trash Archive</b></span>}
+   </nav>
+   <div className="drive-action-buttons">
+    <label className="drive-search"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search current folder…"/></label>
+    <button className="drive-action" onClick={()=>{setParent('root');setPage(1)}}><HardDrive size={15}/> My Drive</button>
+    <button className="drive-action" onClick={createFolder}><FolderPlus size={15}/> New Folder</button>
+    <button className="drive-action" onClick={addLink}><Link2 size={15}/> Catbox Link</button>
+    <button className="drive-action drive-action-primary" onClick={()=>input.current?.click()} disabled={busy}><Upload size={15}/> Upload File</button>
+    <input ref={input} hidden type="file" multiple onChange={e=>upload(e.target.files)}/>
+   </div>
+  </section>
+  <div className="drive-live-status"><span className="drive-live-dot"/>{status}<span className="drive-status-count">{trash?trashFolders.length+trashFiles.length:total} items</span></div>
+  {displayFolders.length>0&&<section className="drive-folders-section">
+   <div className="drive-section-heading"><h2><Folder size={17}/> {trash?'Archived Folders':'Folders'}</h2><span>{displayFolders.length} {displayFolders.length===1?'folder':'folders'}</span></div>
+   <div className="drive-folders-grid">{displayFolders.map(x=><article className={'drive-folder-card'+(x.isVirtualTrash?' drive-trash-folder':'')} key={x.key} onDragOver={e=>e.preventDefault()} onDrop={e=>!x.isVirtualTrash&&dropFile(e,x.key)}>
+    <button className="drive-folder-open" onClick={()=>{setParent(x.key);setPage(1)}}><span className="drive-folder-icon">{x.isVirtualTrash?<Trash2 size={23}/>:<Folder size={23}/>}</span><span className="drive-folder-name">{x.name}</span><span className="drive-folder-caption">{x.isVirtualTrash?'Deleted items': 'Open folder'}</span></button>
+    {admin&&!x.isVirtualTrash&&<div className="drive-folder-actions">{trash?<><button title="Restore folder" onClick={()=>restore(x,'folder')}><RotateCcw size={14}/></button><button title="Delete permanently" onClick={()=>permanent(x,'folder')}><Trash2 size={14}/></button></>:<><button title="Rename folder" onClick={()=>rename(x,'folder')}><Pencil size={14}/></button><button title="Move to trash" onClick={()=>move(x,'folder')}><Trash2 size={14}/></button></>}</div>}
+   </article>)}</div>
+  </section>}
+  <section className="drive-files-section">
+   <div className="drive-section-heading"><h2><File size={17}/> {trash?'Archived Files':'Files'}</h2><span>{pageFiles.length} {pageFiles.length===1?'file':'files'}</span></div>
+   <div className="drive-files-grid">
+    {pagedFiles.map(x=><article className="drive-file-card" key={x.key} draggable onDragStart={e=>e.dataTransfer.setData('text/plain',x.key)}>
+     <a className={'drive-file-preview '+(isImage(x)?'image-preview':isVideo(x)?'video-preview':/\.pdf/i.test(x.name||'')?'pdf-preview':/\.(xls|xlsx|csv)/i.test(x.name||'')?'sheet-preview':'doc-preview')} href={x.fileId} target="_blank" rel="noreferrer">
+      {isImage(x)?<img src={x.fileId} alt={x.name||'Drive image'} loading="lazy"/>:isVideo(x)?<video src={x.fileId} muted playsInline preload="metadata"/>:<span className="drive-file-type-icon">{fileIcon(x)}<small>{(x.name||'FILE').split('.').pop().slice(0,6).toUpperCase()}</small></span>}
+     </a>
+     <div className="drive-file-body"><strong className="drive-file-name" title={x.name}>{x.name}</strong><span className="drive-file-date">{new Date(x.timestamp||Date.now()).toLocaleDateString()}</span><div className="drive-file-meta"><span className="drive-file-type">{(x.name||'FILE').split('.').pop().slice(0,6).toUpperCase()}</span><span>{x.size?((x.size/1048576).toFixed(1)+' MB'):'Size unavailable'}</span></div></div>
+     <div className="drive-file-footer"><button className="drive-download" onClick={()=>downloadFile(x)}><Download size={14}/> Download</button><a className="drive-open-link" href={x.fileId} target="_blank" rel="noreferrer" aria-label={'Open '+x.name}><ExternalLink size={15}/></a>
+      {admin&&<div className="drive-admin-actions">{trash?<><button title="Restore file" onClick={()=>restore(x,'file')}><RotateCcw size={14}/></button><button title="Delete permanently" onClick={()=>permanent(x,'file')}><Trash2 size={14}/></button></>:<><button title="Rename file" onClick={()=>rename(x,'file')}><Pencil size={14}/></button><button title="Move to trash" onClick={()=>move(x,'file')}><Trash2 size={14}/></button></>}</div>}
+     </div>
+    </article>)}
+    {!displayFolders.length&&!pagedFiles.length&&<div className="drive-empty-state"><Folder size={34}/><strong>This folder is empty</strong><span>{admin?'Create a folder or upload a file to get started.':'Files shared to this folder will appear here.'}</span></div>}
+   </div>
+   {pageCount>1&&<nav className="drive-pagination" aria-label="Drive file pages"><button disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}><ChevronLeft size={17}/> Previous</button><span>Page <b>{Math.min(page,pageCount)}</b> of {pageCount}</span><button disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))}>Next <ChevronRight size={17}/></button></nav>}
+  </section>
+  {trash&&<div className="drive-trash-note">Trash Archive · {trashFolders.length+trashFiles.length} items</div>}
+ </main>
 }
