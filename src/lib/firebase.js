@@ -43,3 +43,13 @@ export async function getApmlDatabase() {
   if (!window.firebase.apps.length) window.firebase.initializeApp(config)
   return window.firebase.database()
 }
+
+
+export async function getApmlAuth() {
+  await getApmlDatabase()
+  await loadFirebaseScript(
+    'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
+    () => !!window.firebase?.auth
+  )
+  return window.firebase.auth()
+}
