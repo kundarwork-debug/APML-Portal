@@ -1,35 +1,507 @@
-import {useEffect,useMemo,useRef,useState} from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Images, Image as ImageIcon, Video, Folder, FolderPlus, Search, Upload,
+  Link2, Download, ExternalLink, Pencil, Trash2, RotateCcw, ShieldCheck,
+  ChevronLeft, ChevronRight, HardDrive, Grid2X2, X, FileImage
+} from 'lucide-react'
+import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import './Gallery.css'
-const cfg={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
-const admins=['kundar701@gmail.com','kundar.work@gmail.com'],defaults=[['truck','Truck & Fleet','🚚'],['crockery','Crockery','🍽️'],['packing-images','Packing Images','📦'],['bike-packing','Bike Packing','🏍️'],['car-transportation','Car Transportation','🚗'],['solid-box','Solid Box','🗃️'],['tv-box','TV Box','📺'],['electronic','Electronic','💻'],['furniture','Furniture','🪑'],['miscellaneous','Miscellaneous','🧰'],['others','Others','📁']]
-function script(src){return new Promise((ok,no)=>{let s=[...document.scripts].find(x=>x.src===src);if(s){if(s.dataset.loaded==='1'||window.firebase?.database){ok();return}s.addEventListener('load',ok,{once:true});s.addEventListener('error',no,{once:true});return}s=document.createElement('script');s.src=src;s.onload=()=>{s.dataset.loaded='1';ok()};s.onerror=no;document.head.append(s)})}
-export default function Gallery(){const [items,setItems]=useState([]),[folders,setFolders]=useState(defaults.map(([id,label,icon])=>({id,label,icon}))),[active,setActive]=useState(''),[admin,setAdmin]=useState(false),[busy,setBusy]=useState(false),[status,setStatus]=useState('Connecting to gallery…'),[search,setSearch]=useState(''),[lightbox,setLightbox]=useState(null),[page,setPage]=useState(1);const input=useRef()
- useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem('apml_unlimited_gallery_folders_v7')||'null');if(Array.isArray(saved)){const merged=[...saved];for(const [id,label,icon] of defaults)if(!merged.some(x=>x.id===id))merged.push({id,label,icon});setFolders(merged)}}catch{}let ref,handler,live=true;(async()=>{try{await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');if(!window.firebase.apps.length)window.firebase.initializeApp(cfg);ref=window.firebase.database().ref('apml_ranked_gallery');handler=ref.on('value',s=>{if(!live)return;const d=s.val()||{};const rows=Object.entries(d).map(([key,v])=>({key,...v}));setItems(rows);try{localStorage.setItem('apml_gallery_cache_v1',JSON.stringify(rows))}catch{}setStatus('Live sync connected')},e=>setStatus('Gallery sync error: '+e.message))}catch(e){setStatus('Gallery unavailable: '+e.message)}})();try{setItems(JSON.parse(localStorage.getItem('apml_gallery_cache_v1')||'[]'))}catch{}return()=>{live=false;if(ref&&handler)ref.off('value',handler)}},[])
- const visible=useMemo(()=>items.filter(x=>active==='deleted'?x.folder==='deleted':active===''?x.folder!=='deleted'&&x.folder!=='others':x.folder===active).filter(x=>(x.name||'').toLowerCase().includes(search.toLowerCase())).sort((a,b)=>{const score=x=>(Number(x.downloadsCount)||0)*2+(Number(x.viewsCount)||0);return score(b)-score(a)||(b.timestamp||0)-(a.timestamp||0)}),[items,active,search])
- const activeItems=items.filter(x=>x.folder!=='deleted'),photoCount=activeItems.filter(x=>!x.isVideo).length,videoCount=activeItems.filter(x=>x.isVideo).length;
- const pageSize=24,pageCount=Math.max(1,Math.ceil(visible.length/pageSize)),pagedItems=visible.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);
- useEffect(()=>{setPage(1)},[active,search]);useEffect(()=>{window.scrollTo(0,0)},[page]);
- async function toggleAdmin(){setBusy(true);try{await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js');const auth=window.firebase.auth();if(admin){await auth.signOut();setAdmin(false);if(active==='deleted')setActive('')}else{const r=await auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider());const email=(r.user.email||'').toLowerCase().trim();if(!admins.includes(email)){await auth.signOut();throw Error('This Google account is not authorized.')}setAdmin(true)}}catch(e){alert(e.message)}finally{setBusy(false)}}
- function saveFolders(next){setFolders(next);try{localStorage.setItem('apml_unlimited_gallery_folders_v7',JSON.stringify(next))}catch{}}
- function addFolder(){if(!admin)return;const label=prompt('New gallery folder name:');if(!label?.trim())return;const id=label.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');if(folders.some(x=>x.id===id)){alert('Folder already exists');return}saveFolders([...folders,{id,label:label.trim(),icon:'📁'}])}
- function editFolder(f){if(!admin)return;const label=prompt('Rename folder:',f.label);if(label?.trim())saveFolders(folders.map(x=>x.id===f.id?{...x,label:label.trim()}:x))}
- function deleteFolder(f){if(!admin)return;if(!confirm('Delete this custom folder? Files inside will remain in the gallery.'))return;saveFolders(folders.filter(x=>x.id!==f.id));if(active===f.id)setActive('')}
- async function upload(files){if(!files?.length)return;if(!active||active==='deleted'){alert('Choose a destination folder first.');return}setBusy(true);for(const file of files){try{const video=file.type.startsWith('video/');if(!video&&!file.type.startsWith('image/'))throw Error('Only photos and videos are supported');if(file.size>(video?100:10)*1048576)throw Error('File exceeds upload size limit');const fd=new FormData();fd.append('file',file);fd.append('upload_preset','apml_drive');fd.append('folder','apml-drive');const res=await fetch('https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload',{method:'POST',body:fd});const data=await res.json();if(!res.ok||!data.secure_url)throw Error(data.error?.message||'Upload failed');await window.firebase.database().ref('apml_ranked_gallery').push({url:data.secure_url,folder:active,name:file.name,size:file.size,isVideo:video,viewsCount:0,downloadsCount:0,timestamp:Date.now()})}catch(e){alert(file.name+': '+e.message)}}if(input.current)input.current.value='';setBusy(false)}
- async function metric(item,field){try{const ref=window.firebase.database().ref('apml_ranked_gallery/'+item.key+'/'+field);await ref.transaction(v=>(Number(v)||0)+1)}catch{}}
- async function downloadMedia(item){
-  if(!item?.url){alert('Media URL is missing.');return}
-  const isVideo=!!item.isVideo,fileName=item.name||(isVideo?'apml-video.mp4':'apml-image.jpg');
-  await metric(item,'downloadsCount');
-  try{if(window.apmlHasAnalyticsConsent?.()){const db=window.firebase.database();await db.ref('analytics/totalMediaDownloads').transaction(v=>(Number(v)||0)+1)}}catch(e){console.warn('Media download analytics unavailable',e)}
-  try{window.APMNotify?.send?.({type:'gallery',title:isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:fileName,link:item.url,details:{Folder:folders.find(f=>f.id===item.folder)?.label||item.folder||'',Size:item.size?Math.round(item.size/1024)+' KB':''}})}catch{}
-  try{
-   if(window.ApmNativeDownload?.start){window.ApmNativeDownload.start(item.url,fileName)}
-   else{const response=await fetch(item.url);if(!response.ok)throw Error('Download request failed');const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=fileName;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
-   window.logDailyActivity?.('media');
-  }catch(e){console.warn('Direct media download fallback',e);const a=document.createElement('a');a.href=item.url;a.download=fileName;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();window.logDailyActivity?.('media')}
- }function openMedia(item){metric(item,'viewsCount');setLightbox(item)}function dropOnFolder(e,folder){e.preventDefault();const key=e.dataTransfer.getData('text/plain');const item=items.find(x=>x.key===key);if(item&&item.folder!==folder)move(item,folder)}useEffect(()=>{if(!lightbox)return;const close=e=>{if(e.key==='Escape')setLightbox(null)};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[lightbox]);
- async function move(item,folder){if(!admin)return;try{await window.firebase.database().ref('apml_ranked_gallery/'+item.key).update({folder})}catch(e){alert(e.message)}}
- async function remove(item){if(!admin)return;try{await move(item,'deleted')}catch{}}
- async function permanent(item){if(!admin||!confirm('Permanently delete this media item?'))return;try{await window.firebase.database().ref('apml_ranked_gallery/'+item.key).remove()}catch(e){alert(e.message)}}
- return <main className="gallery-page"><header className="gallery-head"><div><div className="eyebrow">MEDIA LIBRARY</div><h1>Standards & <span>Gallery</span></h1><p>Browse approved reference photos and videos.</p></div><button className="gallery-admin" onClick={toggleAdmin} disabled={busy}>{busy?'Please wait…':admin?'Exit admin':'Admin sign in'}</button></header><section className="gallery-panel"><div className="gallery-stats-pills"><span>Total: <strong>{activeItems.length}</strong></span><span>Photos: <strong>{photoCount}</strong></span><span>Videos: <strong>{videoCount}</strong></span></div><div className="gallery-controls"><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search media…"/>{admin&&<><button onClick={addFolder}>＋ Add folder</button><button onClick={()=>input.current?.click()} disabled={busy}>↑ Upload media</button><input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={e=>upload(e.target.files)}/></>}</div><div className="gallery-tabs"><button className={active===''?'selected':''} onDragOver={e=>admin&&e.preventDefault()} onDrop={e=>admin&&dropOnFolder(e,'')} onClick={()=>setActive('')}>All Media</button>{folders.map(f=><span key={f.id} onDragOver={e=>admin&&e.preventDefault()} onDrop={e=>admin&&dropOnFolder(e,f.id)}><button className={active===f.id?'selected':''} onClick={()=>setActive(f.id)}>{f.icon||'📁'} {f.label}</button>{admin&&!defaults.some(d=>d[0]===f.id)&&<><button className="mini" onClick={()=>editFolder(f)}>✎</button><button className="mini" onClick={()=>deleteFolder(f)}>×</button></>}</span>)}{admin&&<button className={active==='deleted'?'selected':''} onClick={()=>setActive('deleted')}>🗑 Trash Archive</button>}</div><div className="gallery-meta">{status} · {visible.length} items</div><div className="gallery-grid">{pagedItems.map(x=><article className="gallery-card" key={x.key} draggable={admin} onDragStart={e=>{if(admin)e.dataTransfer.setData('text/plain',x.key)}}><button type="button" className="gallery-media" onClick={()=>openMedia(x)}>{x.isVideo?<video src={x.url} muted playsInline preload="metadata"/>:<img src={x.url} loading="lazy" alt={x.name||'Gallery media'}/>}<span>{x.isVideo?'VIDEO':'IMAGE'}</span></button><div className="gallery-card-body"><strong>{x.name||'Untitled media'}</strong><small>{Number(x.viewsCount)||0} views · {Number(x.downloadsCount)||0} downloads</small><div className="gallery-actions"><button type="button" onClick={()=>downloadMedia(x)}>Download</button>{admin&&(active==='deleted'?<><button onClick={()=>move(x,'others')}>Restore</button><button onClick={()=>permanent(x)}>Delete forever</button></>:<><select aria-label="Move media to folder" value={x.folder||''} onChange={e=>move(x,e.target.value)}>{folders.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select><button onClick={()=>remove(x)}>Trash</button></>)}</div></div></article>)}{!visible.length&&<div className="gallery-empty">No media found in this view.</div>}{pageCount>1&&<nav className="gallery-pagination" aria-label="Gallery pages"><button disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}>Previous</button><span>Page {Math.min(page,pageCount)} of {pageCount} · {visible.length} items</span><button disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))}>Next</button></nav>}</div></section>{lightbox&&<div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.name||'Media preview'} onMouseDown={e=>{if(e.target===e.currentTarget)setLightbox(null)}}><button className="gallery-lightbox-close" onClick={()=>setLightbox(null)} aria-label="Close preview">×</button><div className="gallery-lightbox-content">{lightbox.isVideo?<video src={lightbox.url} controls autoPlay playsInline/>:<img src={lightbox.url} alt={lightbox.name||'Gallery media'}/>}<div><strong>{lightbox.name||'Untitled media'}</strong><button type="button" onClick={()=>downloadMedia(lightbox)}>Download original</button></div></div></div>}</main>
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
+  authDomain: 'apml-portal.firebaseapp.com',
+  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
+  projectId: 'apml-portal',
+  storageBucket: 'apml-portal.firebasestorage.app',
+  messagingSenderId: '479017159240',
+  appId: '1:479017159240:web:0853422718e6195b74a67d'
+}
+const ADMIN_EMAILS = ['kundar701@gmail.com', 'kundar.work@gmail.com']
+const CLOUDINARY_UPLOAD = 'https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload'
+const DRIVE_API_URL = 'https://apml-drive-api.kundar-work.workers.dev'
+const FOLDER_STORAGE_KEY = 'apml_unlimited_gallery_folders_v7'
+const MEDIA_CACHE_KEY = 'apml_gallery_cache_v1'
+const DEFAULT_FOLDERS = [
+  { id: 'truck', label: 'Truck & Fleet', icon: '🚚' },
+  { id: 'crockery', label: 'Crockery', icon: '🍽️' },
+  { id: 'packing-images', label: 'Packing Images', icon: '📦' },
+  { id: 'bike-packing', label: 'Bike Packing', icon: '🏍️' },
+  { id: 'car-transportation', label: 'Car Transportation', icon: '🚗' },
+  { id: 'solid-box', label: 'Solid Box', icon: '🗃️' },
+  { id: 'tv-box', label: 'TV Box', icon: '📺' },
+  { id: 'electronic', label: 'Electronic', icon: '💻' },
+  { id: 'furniture', label: 'Furniture', icon: '🪑' },
+  { id: 'miscellaneous', label: 'Miscellaneous', icon: '🧰' },
+  { id: 'others', label: 'Others', icon: '📁' }
+]
+const PROTECTED_FOLDERS = DEFAULT_FOLDERS.map(folder => folder.id)
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const existing = [...document.scripts].find(script => script.src === src)
+    if (existing) {
+      if (src.includes('firebase') && window.firebase?.database) return resolve()
+      if (existing.dataset.loaded === '1') return resolve()
+      existing.addEventListener('load', resolve, { once: true })
+      existing.addEventListener('error', reject, { once: true })
+      return
+    }
+    const script = document.createElement('script')
+    script.src = src
+    script.onload = () => { script.dataset.loaded = '1'; resolve() }
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
+function optimizedUrl(url, width = 420) {
+  if (!url || !url.includes('cloudinary.com')) return url
+  return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width},c_limit/`)
+}
+function formatBytes(bytes) {
+  if (!bytes) return '0 KB'
+  const units = ['Bytes', 'KB', 'MB', 'GB']
+  const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)))
+  return `${(bytes / Math.pow(1024, index)).toFixed(1)} ${units[index]}`
+}
+function fileSource(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host.includes('cloudinary.com')) return { label: 'Cloudinary', color: '#3b82f6' }
+    if (host.endsWith('catbox.moe')) return { label: 'Catbox', color: '#171717' }
+  } catch {}
+  return { label: 'External', color: '#64748b' }
+}
+function catboxInfo(raw) {
+  let url
+  try { url = new URL(raw) } catch { return { error: 'Please paste a complete HTTPS link.' } }
+  if (url.protocol !== 'https:' || url.hostname.toLowerCase() !== 'files.catbox.moe') {
+    return { error: 'Only links from files.catbox.moe are accepted.' }
+  }
+  let file = ''
+  try { file = decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() || '') } catch {}
+  const ext = file.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() || ''
+  const images = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp']
+  const videos = ['mp4', 'webm', 'mov', 'm4v', 'ogv']
+  if (images.includes(ext)) return { url: url.href, file, ext, isVideo: false }
+  if (videos.includes(ext)) return { url: url.href, file, ext, isVideo: true }
+  return { error: 'Supported formats: JPG, PNG, GIF, WEBP, AVIF, BMP, MP4, WEBM, MOV, M4V and OGV.' }
+}
+
+export default function Gallery() {
+  const [items, setItems] = useState([])
+  const [folders, setFolders] = useState(DEFAULT_FOLDERS)
+  const [activeFolder, setActiveFolder] = useState('')
+  const [uploadFolder, setUploadFolder] = useState('')
+  const [admin, setAdmin] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState('Connecting to gallery…')
+  const [search, setSearch] = useState('')
+  const [lightbox, setLightbox] = useState(null)
+  const [page, setPage] = useState(1)
+  const [uploadStatus, setUploadStatus] = useState('Select destination category and choose photos or videos')
+  const input = useRef(null)
+  const dbRef = useRef(null)
+  const pageSize = Math.max(16, (window.innerWidth <= 359 ? 1 : window.innerWidth <= 760 ? 2 : window.innerWidth <= 1100 ? 3 : 4) * 5)
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(FOLDER_STORAGE_KEY) || 'null')
+      if (Array.isArray(saved)) {
+        const merged = [...saved]
+        for (const folder of DEFAULT_FOLDERS) if (!merged.some(item => item.id === folder.id)) merged.push(folder)
+        setFolders(merged)
+      }
+    } catch {}
+    try { setItems(JSON.parse(localStorage.getItem(MEDIA_CACHE_KEY) || '[]')) } catch {}
+    let live = true
+    let ref
+    let handler
+    ;(async () => {
+      try {
+        await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
+        await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
+        if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseConfig)
+        ref = window.firebase.database().ref('apml_ranked_gallery')
+        dbRef.current = ref
+        handler = ref.on('value', snapshot => {
+          if (!live) return
+          const rows = Object.entries(snapshot.val() || {}).map(([key, value]) => ({ key, ...value }))
+          setItems(rows)
+          try { localStorage.setItem(MEDIA_CACHE_KEY, JSON.stringify(rows)) } catch {}
+          setStatus('Live sync connected')
+        }, error => setStatus(`Gallery sync error: ${error.message}`))
+      } catch (error) {
+        if (live) setStatus(`Gallery unavailable: ${error.message}`)
+      }
+    })()
+    return () => {
+      live = false
+      if (ref && handler) ref.off('value', handler)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!lightbox) return
+    const close = event => { if (event.key === 'Escape') setLightbox(null) }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [lightbox])
+
+  const activeItems = items.filter(item => item.folder !== 'deleted')
+  const photos = activeItems.filter(item => !item.isVideo).length
+  const videos = activeItems.filter(item => item.isVideo).length
+  const visible = useMemo(() => items
+    .filter(item => activeFolder === 'deleted'
+      ? item.folder === 'deleted'
+      : activeFolder === ''
+        ? item.folder !== 'deleted' && item.folder !== 'others'
+        : item.folder === activeFolder)
+    .filter(item => (item.name || '').toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => (Number(b.downloadsCount) * 2 + Number(b.viewsCount)) - (Number(a.downloadsCount) * 2 + Number(a.viewsCount)) || (b.timestamp || 0) - (a.timestamp || 0)),
+  [items, activeFolder, search])
+  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize))
+  const currentPage = Math.min(page, pageCount)
+  const pageItems = visible.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  useEffect(() => { setPage(1) }, [activeFolder, search])
+
+  function saveFolders(next) {
+    setFolders(next)
+    try { localStorage.setItem(FOLDER_STORAGE_KEY, JSON.stringify(next)) } catch {}
+  }
+  function selectFolder(id) {
+    setActiveFolder(id)
+    setPage(1)
+    if (id && id !== 'deleted') setUploadFolder(id)
+  }
+  async function toggleAdmin() {
+    setBusy(true)
+    try {
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
+      const auth = window.firebase.auth()
+      if (admin) {
+        await auth.signOut()
+        setAdmin(false)
+        if (activeFolder === 'deleted') setActiveFolder('')
+        await driveToast('Admin mode closed')
+      } else {
+        const result = await auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider())
+        const email = (result.user.email || '').toLowerCase().trim()
+        if (!ADMIN_EMAILS.includes(email)) {
+          await auth.signOut()
+          throw new Error('This Google account is not authorized to manage the gallery.')
+        }
+        setAdmin(true)
+        await driveToast('Admin access granted')
+      }
+    } catch (error) {
+      await driveAlert('Admin sign-in failed', error.message || 'Please try again.', 'error')
+    } finally { setBusy(false) }
+  }
+  async function addFolder() {
+    if (!admin) return
+    const label = await driveInput('Create gallery folder', { placeholder: 'e.g. Fragile Items' })
+    if (!label) return
+    const id = label.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    if (!id) return driveAlert('Invalid folder name', 'Use letters or numbers in the folder name.', 'error')
+    if (folders.some(folder => folder.id === id)) return driveAlert('Folder already exists', 'Choose a different folder name.', 'warning')
+    saveFolders([...folders, { id, label, icon: '📁' }])
+    selectFolder(id)
+    await driveToast('Folder created')
+  }
+  async function editFolder(folder) {
+    if (!admin) return
+    const label = await driveInput('Rename folder', { value: folder.label, placeholder: 'Folder name' })
+    if (!label || label === folder.label) return
+    saveFolders(folders.map(item => item.id === folder.id ? { ...item, label } : item))
+    await driveToast('Folder renamed')
+  }
+  async function deleteFolder(folder) {
+    if (!admin) return
+    const confirmed = await driveConfirm('Delete this folder?', 'Media inside will remain in the gallery and will not be deleted.', 'Delete folder')
+    if (!confirmed) return
+    saveFolders(folders.filter(item => item.id !== folder.id))
+    if (activeFolder === folder.id) setActiveFolder('')
+    if (uploadFolder === folder.id) setUploadFolder('')
+    await driveToast('Folder deleted')
+  }
+  function requireDestination() {
+    const folder = activeFolder && activeFolder !== 'deleted' ? activeFolder : uploadFolder
+    if (!folder || folder === 'deleted') {
+      driveAlert('Folder required', 'Please select a destination folder before adding media.', 'warning')
+      return null
+    }
+    return folder
+  }
+  async function upload(files) {
+    if (!files?.length) return
+    const folder = requireDestination()
+    if (!folder) { if (input.current) input.current.value = ''; return }
+    setBusy(true)
+    let successes = 0
+    const failures = []
+    try {
+      for (let index = 0; index < files.length; index++) {
+        const file = files[index]
+        const isVideo = file.type.startsWith('video/')
+        if (!isVideo && !file.type.startsWith('image/')) { failures.push(`${file.name}: only photos and videos are supported`); continue }
+        const limit = (isVideo ? 100 : 10) * 1024 * 1024
+        if (file.size > limit) { failures.push(`${file.name}: exceeds ${isVideo ? '100 MB' : '10 MB'} limit`); continue }
+        setUploadStatus(`Uploading ${index + 1} of ${files.length}: ${file.name}`)
+        try {
+          const form = new FormData()
+          form.append('file', file)
+          form.append('upload_preset', 'apml_drive')
+          form.append('folder', 'apml-drive')
+          const response = await fetch(CLOUDINARY_UPLOAD, { method: 'POST', body: form })
+          const data = await response.json().catch(() => ({}))
+          if (!response.ok || !data.secure_url) throw new Error(data.error?.message || `HTTP ${response.status}`)
+          await window.firebase.database().ref('apml_ranked_gallery').push({
+            url: data.secure_url, folder, name: file.name, size: file.size, isVideo,
+            viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
+          })
+          successes++
+        } catch (error) { failures.push(`${file.name}: ${error.message}`) }
+      }
+    } finally {
+      if (input.current) input.current.value = ''
+      setBusy(false)
+      setUploadStatus(successes ? `Successfully uploaded ${successes} media file${successes === 1 ? '' : 's'}` : 'Select destination category and choose photos or videos')
+    }
+    if (successes) await driveToast(`${successes} media file${successes === 1 ? '' : 's'} uploaded`)
+    if (failures.length) await driveAlert('Some files were not uploaded', failures.join('\n'), 'warning')
+  }
+  async function addCatboxLink() {
+    const folder = requireDestination()
+    if (!folder) return
+    const Swal = await getSwal()
+    const result = await Swal.fire({
+      title: 'Add media from Catbox',
+      input: 'url',
+      inputLabel: 'Catbox file link',
+      inputPlaceholder: 'https://files.catbox.moe/example.jpg',
+      inputAttributes: { autocapitalize: 'off', autocorrect: 'off' },
+      showCancelButton: true,
+      confirmButtonText: 'Add to Gallery',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#b4232c',
+      reverseButtons: true,
+      showLoaderOnConfirm: true,
+      preConfirm: async value => {
+        const info = catboxInfo(String(value || '').trim())
+        if (info.error) { Swal.showValidationMessage(info.error); return false }
+        if (items.some(item => item.url === info.url && item.folder === folder)) {
+          Swal.showValidationMessage('This link is already in this folder.')
+          return false
+        }
+        return info
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+    })
+    if (!result.isConfirmed || !result.value) return
+    const info = result.value
+    const name = info.file.replace(/['"`<>\\]/g, '').trim() || info.file
+    try {
+      await window.firebase.database().ref('apml_ranked_gallery').push({
+        url: info.url, folder, name, size: 0, isVideo: info.isVideo,
+        viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
+      })
+      await driveToast('Catbox media added')
+    } catch (error) { await driveAlert('Could not add Catbox link', error.message, 'error') }
+  }
+  async function metric(item, field) {
+    try {
+      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}/${field}`).transaction(value => (Number(value) || 0) + 1)
+    } catch {}
+  }
+  function openMedia(item) {
+    metric(item, 'viewsCount')
+    setLightbox(item)
+  }
+  async function downloadMedia(item) {
+    if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
+    const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
+    await metric(item, 'downloadsCount')
+    try {
+      if (window.apmlHasAnalyticsConsent?.()) {
+        await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+      }
+    } catch {}
+    try {
+      window.APMNotify?.send?.({
+        type: 'gallery',
+        title: item.isVideo ? 'Gallery video downloaded' : 'Gallery photo downloaded',
+        file: name, link: item.url,
+        details: {
+          Folder: folders.find(folder => folder.id === item.folder)?.label || item.folder || '',
+          Stored_on: fileSource(item.url).label,
+          Size: item.size ? formatBytes(item.size) : ''
+        }
+      })
+    } catch {}
+    try {
+      if (window.ApmNativeDownload?.start) {
+        window.ApmNativeDownload.start(item.url, name)
+      } else {
+        let blob
+        try {
+          const response = await fetch(item.url)
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          blob = await response.blob()
+        } catch (error) {
+          if (!item.url.includes('catbox.moe')) throw error
+          const response = await fetch(`${DRIVE_API_URL}/dl?url=${encodeURIComponent(item.url)}`)
+          if (!response.ok) throw error
+          blob = await response.blob()
+        }
+        const blobUrl = URL.createObjectURL(blob)
+        const anchor = document.createElement('a')
+        anchor.href = blobUrl
+        anchor.download = name
+        document.body.append(anchor)
+        anchor.click()
+        anchor.remove()
+        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000)
+      }
+      window.logDailyActivity?.('media')
+      window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
+    } catch (error) {
+      const anchor = document.createElement('a')
+      anchor.href = item.url
+      anchor.download = name
+      anchor.target = '_blank'
+      anchor.rel = 'noopener'
+      document.body.append(anchor)
+      anchor.click()
+      anchor.remove()
+      window.logDailyActivity?.('media')
+      console.warn('Gallery download fallback:', error)
+    }
+  }
+  async function move(item, folder) {
+    if (!admin) return
+    try {
+      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
+      await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
+    } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
+  }
+  async function permanentDelete(item) {
+    if (!admin) return
+    const confirmed = await driveConfirm('Delete permanently?', `“${item.name || 'This media'}” will be permanently deleted. This cannot be undone.`, 'Delete permanently', 'error')
+    if (!confirmed) return
+    try {
+      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).remove()
+      await driveToast('Media permanently deleted')
+    } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
+  }
+  function handleDrop(event, folderId) {
+    event.preventDefault()
+    const key = event.dataTransfer.getData('text/plain')
+    const item = items.find(entry => entry.key === key)
+    if (admin && item && item.folder !== folderId) move(item, folderId)
+  }
+  function renderPagination() {
+    if (pageCount <= 1) return null
+    const start = Math.max(1, Math.min(currentPage - 1, pageCount - 2))
+    const end = Math.min(pageCount, Math.max(currentPage + 1, 3))
+    const pages = []
+    for (let value = start; value <= end; value++) pages.push(value)
+    return <nav className="gallery-pagination" aria-label="Gallery pages">
+      <button disabled={currentPage <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}><ChevronLeft size={16}/> Previous</button>
+      <span>Page <b>{currentPage}</b> of {pageCount} · {visible.length} items</span>
+      <button disabled={currentPage >= pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))}>Next <ChevronRight size={16}/></button>
+      {pageCount > 3 && <label className="gallery-page-jump">Go to <input type="number" min="1" max={pageCount} aria-label="Page number" onKeyDown={event => { if (event.key === 'Enter') { const value = Number(event.currentTarget.value); if (value >= 1 && value <= pageCount) setPage(value); else driveAlert('Invalid page', `Enter a page from 1 to ${pageCount}.`, 'warning') } }}/> <button onClick={event => { const input = event.currentTarget.parentElement.querySelector('input'); const value = Number(input.value); if (value >= 1 && value <= pageCount) setPage(value); else driveAlert('Invalid page', `Enter a page from 1 to ${pageCount}.`, 'warning') }}>Go</button></label>}
+    </nav>
+  }
+
+  return <main className="gallery-page">
+    <header className="gallery-head">
+      <div className="gallery-heading-copy">
+        <div className="gallery-eyebrow"><Images size={14}/> MEDIA LIBRARY</div>
+        <h1 className="gallery-title">Standards &amp; <span>Gallery</span></h1>
+        <p className="gallery-subtitle">Cloud-synced visual packaging assets and operational video documentation.</p>
+        <div className="gallery-stats">
+          <span><Images size={14}/><strong>{activeItems.length}</strong> Media</span>
+          <span><ImageIcon size={14}/><strong>{photos}</strong> Photos</span>
+          <span><Video size={14}/><strong>{videos}</strong> Videos</span>
+        </div>
+      </div>
+      <button className="gallery-admin" onClick={toggleAdmin} disabled={busy}>
+        {admin ? <ShieldCheck size={15}/> : null}{busy ? 'Please wait…' : admin ? 'Exit admin' : 'Admin sign in'}
+      </button>
+    </header>
+
+    <section className="gallery-action-bar">
+      <div className="gallery-action-heading">
+        <span className="gallery-upload-icon"><Upload size={20}/></span>
+        <div><strong>Upload Media Assets</strong><small>{uploadStatus}</small></div>
+      </div>
+      <div className="gallery-action-buttons">
+        <label className="gallery-folder-select"><Folder size={15}/><select aria-label="Select destination folder" value={uploadFolder} onChange={event => setUploadFolder(event.target.value)}>
+          <option value="">Select destination folder…</option>
+          {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}
+        </select></label>
+        <button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={!admin || busy}><Upload size={15}/> Upload Media</button>
+        <button className="gallery-action" onClick={addCatboxLink} disabled={!admin || busy}><Link2 size={15}/> Catbox Link</button>
+        <button className="gallery-action" onClick={addFolder} disabled={!admin || busy}><FolderPlus size={15}/> Add Folder</button>
+        <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/>
+      </div>
+    </section>
+
+    <section className="gallery-toolbar">
+      <div className="gallery-folder-tabs">
+        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><Grid2X2 size={15}/> All Media</button>
+        {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
+          <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><span>{folder.icon || '📁'}</span>{folder.label}</button>
+          {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><Pencil size={12}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><X size={13}/></button></>}
+        </span>)}
+        {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><Trash2 size={14}/> Trash Archive</button>}
+      </div>
+      <label className="gallery-search"><Search size={16}/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search media…"/></label>
+    </section>
+
+    <div className="gallery-live-status"><span className="gallery-live-dot"/>{status}<span>{visible.length} items</span></div>
+
+    <section className="gallery-media-section">
+      <div className="gallery-section-heading"><h2><FileImage size={17}/>{activeFolder === 'deleted' ? 'Archived Media' : activeFolder ? folders.find(folder => folder.id === activeFolder)?.label || 'Media' : 'All Media'}</h2><span>{visible.length} {visible.length === 1 ? 'item' : 'items'}</span></div>
+      <div className="gallery-grid">
+        {pageItems.map(item => {
+          const source = fileSource(item.url)
+          return <article className="gallery-card" key={item.key} draggable={admin} onDragStart={event => event.dataTransfer.setData('text/plain', item.key)}>
+            <button className="gallery-media-preview" type="button" onClick={() => openMedia(item)} aria-label={`Preview ${item.name || 'media'}`}>
+              {item.isVideo ? <video src={item.url} muted playsInline preload="metadata"/> : <img src={optimizedUrl(item.url)} loading="lazy" decoding="async" alt={item.name || 'Gallery media'}/>}
+              {item.isVideo && <span className="gallery-video-mark"><Video size={13}/> VIDEO</span>}
+              {!item.isVideo && <span className="gallery-image-mark">PHOTO</span>}
+            </button>
+            <div className="gallery-card-body">
+              <strong className="gallery-card-name" title={item.name}>{item.name || 'Untitled media'}</strong>
+              <div className="gallery-card-meta"><span><i style={{ background: source.color }}/> {source.label}</span><span>{formatBytes(item.size)}</span></div>
+              <div className="gallery-card-stats"><span>{Number(item.viewsCount) || 0} views</span><span>{Number(item.downloadsCount) || 0} downloads</span></div>
+              <div className="gallery-card-footer">
+                <button className="gallery-download" onClick={() => downloadMedia(item)}><Download size={14}/> Download</button>
+                <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><ExternalLink size={15}/></a>
+                {admin && <div className="gallery-admin-actions">{activeFolder === 'deleted' ? <>
+                  <button title="Restore media" onClick={() => move(item, 'others')}><RotateCcw size={14}/></button>
+                  <button title="Delete permanently" onClick={() => permanentDelete(item)}><Trash2 size={14}/></button>
+                </> : <>
+                  <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>
+                  <button title="Move to trash" onClick={() => move(item, 'deleted')}><Trash2 size={14}/></button>
+                </>}</div>}
+              </div>
+            </div>
+          </article>
+        })}
+        {!pageItems.length && <div className="gallery-empty"><Images size={34}/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
+      </div>
+      {renderPagination()}
+    </section>
+
+    {lightbox && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.name || 'Media preview'} onMouseDown={event => { if (event.target === event.currentTarget) setLightbox(null) }}>
+      <button className="gallery-lightbox-close" onClick={() => setLightbox(null)} aria-label="Close preview"><X size={23}/></button>
+      <div className="gallery-lightbox-content">
+        {lightbox.isVideo ? <video src={lightbox.url} controls autoPlay playsInline/> : <img src={lightbox.url} alt={lightbox.name || 'Gallery media'}/>}
+        <div><strong>{lightbox.name || 'Untitled media'}</strong><button onClick={() => downloadMedia(lightbox)}><Download size={14}/> Download original</button></div>
+      </div>
+    </div>}
+  </main>
 }
