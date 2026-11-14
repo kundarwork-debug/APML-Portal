@@ -150,3 +150,22 @@
  .legacy-hero{padding-top:22px}
  .apml-mascot-stage{margin-bottom:8px}
 }
+
+
+/* Compact, full-width React portal footer: remove stacked whitespace and distribute links. */
+.portal-site-footer{
+  width:100%;
+  max-width:none;
+  margin-top:22px;
+  padding:28px clamp(18px,2.6vw,48px) 20px;
+  gap:18px;
+}
+.portal-site-footer>.mx-auto{
+  width:100%;
+  max-width:none;
+  padding-left:0;
+  padding-right:0;
+}
+@media(max-width:768px){
+  .portal-site-footer{margin-top:18px;padding:20px 16px 16px;gap:0}
+}
