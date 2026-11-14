@@ -12,7 +12,7 @@ const links = [
  {to:'/analytics',label:'Analytics',icon:ChartNoAxesCombined},{to:'/system-health',label:'System Health',icon:Activity},
  {to:'/apml-lite',label:'APML Lite',icon:BriefcaseBusiness},{to:'/about',label:'About',icon:CircleHelp}
 ]
-function FloatingMascot(){
+function FloatingMascot({pagePath}){
  const [visible,setVisible]=useState(false)
  const [bubbleVisible,setBubbleVisible]=useState(false)
  const [typedText,setTypedText]=useState('')
@@ -23,13 +23,21 @@ function FloatingMascot(){
  const typing=useRef(false)
  const token=useRef(0)
  const boops=useRef({count:0,last:0})
- const tips=[
-  'Welcome to APML Portal! Select any module below to get started. 🚀',
-  'Tip: Use the hamburger menu on top to quickly navigate anywhere.',
-  'All telemetry systems and personnel metrics are live and synced!',
-  'Need a quotation? Open the Quotation Editor, and your PDF is saved to the Drive automatically. 📄',
-  'Click my avatar anytime for another quick hint!'
- ]
+ const pageKey=(pagePath||'/').split('/').filter(Boolean).pop()||'index'
+ const pageTips={
+  index:['Welcome to APML Portal! Select any module below to get started. 🚀','Tip: Use the hamburger menu on top to quickly navigate anywhere.','All telemetry systems and personnel metrics are live and synced!','Need a quotation? Open the Quotation Editor, and your PDF is saved to the Drive automatically. 📄','Click my avatar anytime for another quick hint!'],
+  editor:['💡 Pro Tip: Fill out quotation line items and click Preview A4 to generate an official PDF.','You can save your drafts locally right from this studio.','Freight calculations compute automatically based on your inputs.','Every PDF you download is also saved to Drive in the Quotation folder. 📁','Delete any charge line you do not need and totals update instantly.'],
+  gallery:['💡 Tip: Select a folder category and click Upload Media to add photos or videos instantly.','Click any asset card to preview it in the full-screen lightbox.','Deleted items are safely archived into the Trash Archive.','You can select several photos or videos and upload them in one go. 📸','Views and downloads are counted for every media item.'],
+  drive:['💡 Tip: Use Upload File to add documents, images and videos straight into the current folder.','Create folders with New Folder to keep your files organised.','Deleted files are routed to the Trash Archive for recovery.','Quotation PDFs from the editor land in the Quotation folder automatically. 📁'],
+  directory:['💡 Tip: Use the search bar to look up branch HODs and direct phone contacts.','Click location pins to open exact addresses in Google Maps.','Search works on city, in-charge name, phone number or designation.','Use the hamburger menu to jump to any other module quickly.','Click my avatar anytime for another quick hint!'],
+  'apml-lite':['💡 Tip: Enter volume dimensions to calculate CFT up to the 450 CFT ceiling limit.','Destination pricing and floor constraints compute automatically.','This calculator covers the Mumbai & Pune hub rates.','Enter a CFT volume between 1 and 450 to see the rate straight away.','Click my avatar anytime for another quick hint!'],
+  'local-rate':['💡 Tip: Enter the volume in CFT to calculate the local shifting rate.','Rates update instantly as you change the values.','Double-check the volume, since it drives the whole estimate.','Use the hamburger menu to switch to the other calculators.','Click my avatar anytime for another quick hint!'],
+  'car-rate':['💡 Tip: Type the vehicle model, for example Nexon, Creta or Brezza, to pick the car.','Enter the distance in KM to get the transport estimate.','Vehicle type and distance together decide the final rate.','Use the hamburger menu to switch to the other calculators.','Click my avatar anytime for another quick hint!'],
+  'field-officer':['💡 Tip: Search by name, branch (MUM, PUN, AHMD), APM code, designation or phone.','Type a branch code like MUM or PUN to see its field officers.','Every field officer’s APM code is listed for quick reference.','Use the hamburger menu to jump to other modules.','Click my avatar anytime for another quick hint!'],
+  about:['Hi! This page tells the story behind the APML Portal. 👋','Scroll down to see how the portal is built and what powers it.','Everything is synced in real-time with Firebase and Supabase.','Use the hamburger menu to explore the other modules.','Click my avatar anytime for another quick hint!']
+ }
+ const tips=pageTips[pageKey]||['Welcome to the APML Enterprise workspace! 💼','Everything is synced in real-time with Firebase and Supabase.','Use the hamburger menu to jump between modules.','Quotation PDFs are saved to the Drive automatically. 📁','Click my avatar anytime for another quick hint!']
+ const isIndexPage=pageKey==='index'
  const directionNames=['up-left','up','up-right','left','center','right','down-left','down','down-right']
  const reactionNames=['blink','heart','sparkle','surprised','starry','blush','sleepy','dizzy','delighted']
  const position=(name,names)=>{const i=names.indexOf(name);return i<0?'50% 50%':((i%3)*50)+'% '+(Math.floor(i/3)*50)+'%'}
@@ -71,7 +79,7 @@ function FloatingMascot(){
    const bodyHeight=document.body.offsetHeight
    const footerHeight=footer?footer.offsetHeight:0
    const nearBottom=scrollPosition>(bodyHeight-footerHeight+20)
-   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&scrollY>250&&!nearBottom)
+   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&(!isIndexPage||scrollY>250)&&!nearBottom)
    if(nearBottom){clearTimeout(timers.current.hide);setBubbleVisible(false)}
   }
   update()
@@ -97,10 +105,10 @@ function FloatingMascot(){
  },[visible,reaction])
  useEffect(()=>{
   const initial=setTimeout(()=>{
-   if(!typing.current&&!bubbleVisible&&window.scrollY>250)playTip(tips[tipIndex])
+   if(!typing.current&&!bubbleVisible&&(!isIndexPage||window.scrollY>250))playTip(tips[tipIndex])
   },1000)
   return()=>clearTimeout(initial)
- },[])
+ },[pagePath])
  useEffect(()=>()=>{clearTimers();token.current++},[])
  const interact=()=>{
   if(typing.current)return
