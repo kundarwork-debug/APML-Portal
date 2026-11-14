@@ -40,6 +40,63 @@ function HeroMascot(){
  useEffect(()=>()=>clearTimeout(timer.current),[])
  return <div className="apml-mascot-stage"><div className="apml-mascot-halo"/><button ref={button} className="apml-hero-mascot" onClick={boop} aria-label="Interact with Wobnimo"><span className="apml-mascot-squash"><span className="apml-mascot-sprite directions" style={{backgroundPosition:spritePos(directions.indexOf(direction)),opacity:reaction?0:1}}/><span className="apml-mascot-sprite reactions" style={{backgroundPosition:spritePos(reactions.indexOf(reaction)),opacity:reaction?1:0}}/></span></button>{bubble&&<span className="apml-hero-mascot-bubble">Hey there! 👋</span>}</div>
 }
+function OperationalTelemetry(){
+ const [counts,setCounts]=useState({users:0,pdf:0,media:0})
+ useEffect(()=>{
+  let active=true,db=null,refs=[]
+  const config={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
+  const load=src=>new Promise((resolve,reject)=>{
+   if([...document.scripts].some(s=>s.src===src&&s.dataset.apmlLoaded==='true'))return resolve()
+   let script=[...document.scripts].find(s=>s.src===src)
+   if(!script){script=document.createElement('script');script.src=src;script.async=true;document.head.appendChild(script)}
+   if(script.dataset.apmlLoaded==='true')return resolve()
+   script.addEventListener('load',()=>{script.dataset.apmlLoaded='true';resolve()},{once:true})
+   script.addEventListener('error',reject,{once:true})
+  })
+  const start=async()=>{
+   try{
+    await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
+    await load('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
+    if(!active)return
+    if(!window.firebase.apps.length)window.firebase.initializeApp(config)
+    db=window.firebase.database()
+    const listen=(path,key,transform=value=>Number(value)||0)=>{
+     const ref=db.ref(path);refs.push(ref)
+     ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
+    }
+    listen('presence','users',snap=>snap.numChildren()||1)
+    listen('analytics/totalPdfDownloads','pdf')
+    listen('analytics/totalMediaDownloads','media')
+    const startPresence=()=>{
+     try{
+      if(!window.apmlHasAnalyticsConsent?.())return
+      const id='user_'+Math.random().toString(36).slice(2,9)
+      const own=db.ref('presence/'+id)
+      db.ref('.info/connected').on('value',snap=>{
+       if(snap.val()===true){own.onDisconnect().remove();own.set({online:true,timestamp:Date.now()})}
+      })
+     }catch(error){console.warn('APML presence unavailable',error)}
+    }
+    startPresence()
+    window.addEventListener('apml-analytics-consent-granted',startPresence)
+    refs.push({off:()=>window.removeEventListener('apml-analytics-consent-granted',startPresence)})
+   }catch(error){console.warn('APML homepage telemetry could not connect',error)}
+  }
+  start()
+  return()=>{active=false;refs.forEach(ref=>ref.off?.('value')??ref.off?.())}
+ },[])
+ const number=value=>Number(value||0).toLocaleString('en-IN')
+ return <section className="legacy-telemetry">
+  <Link to="/analytics">
+   <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across Western Central Regional Office &amp; nationwide hubs.</p></div><span><i/> All operational systems monitored</span></div>
+   <div className="legacy-telemetry-stats">
+    <div><small>Live Active Personnel</small><strong>{number(counts.users)}</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
+    <div><small>PDF Quotations Drafted</small><strong>{number(counts.pdf)}+</strong><em>Exact Container &amp; Maxcare</em></div>
+    <div><small>Cloud Files &amp; Media Downloads</small><strong>{number(counts.media)}+</strong><em>Drive &amp; gallery archives</em></div>
+   </div>
+  </Link>
+ </section>
+}
 function FloatingMascot(){
  const [visible,setVisible]=useState(false)
  const [tip,setTip]=useState(false)
@@ -107,14 +164,14 @@ export default function Home(){
    <p className="legacy-hero-note">One portal for all solutions.</p>
   </section>
   <section className="legacy-workspace" id="workspace">
-   <div className="legacy-section-bar"><div><h2><Grid2X2 size={21}/> Your workspace</h2><p>Everything you need to keep daily operations moving.</p></div><span>{activeCount} Active Tools</span></div>
+   <div className="legacy-section-bar"><div><h2><Grid2X2 size={21}/> Operational workspace</h2><p>Everything you need to keep daily operations moving.</p></div><span>{activeCount} Active Tools</span></div>
    <div className="legacy-tool-grid">{filtered.map((tool,i)=><Link key={tool.id} to={modules.find(m=>m.id===tool.id)?.path||'/'} className={`legacy-tool-card ${tool.wide?'wide':''}`} style={{'--tool-delay':`${i*45}ms`}}>
     <div><div className="legacy-card-head"><img src={tool.image} alt="" loading="lazy"/><span>{tool.label}</span></div><h3>{tool.title}</h3><p>{tool.description}</p><div className="legacy-tags">{tool.tags.map(tag=><small key={tag}>{tag}</small>)}</div></div>
     <div className="legacy-card-footer"><span>✦ Interactive Tool</span><b>Launch <ArrowUpRight size={18}/></b></div>
    </Link>)}</div>
    {filtered.length===0&&<p className="legacy-empty">No tools match your search.</p>}
   </section>
-  <section className="legacy-telemetry"><Link to="/analytics"><div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across regional offices and nationwide hubs.</p></div><span><i/> All systems monitored</span></div><div className="legacy-telemetry-stats"><div><small>Live Active Personnel</small><strong>—</strong><em>Concurrent field officers &amp; HODs</em></div><div><small>PDF Quotations Drafted</small><strong>—</strong><em>Exact Container &amp; Maxcare</em></div><div><small>Cloud Files &amp; Media Downloads</small><strong>—</strong><em>Drive &amp; gallery archives</em></div></div></Link></section>
+  <OperationalTelemetry/>
   <FloatingMascot/>
  </div>
 }
