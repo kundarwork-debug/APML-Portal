@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
+import PrivacyConsent from './PrivacyConsent'
 import { Menu, X, ChevronRight, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, ShieldCheck, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink } from 'lucide-react'
 
 const links = [
@@ -27,6 +28,7 @@ export default function Shell(){
   const location=useLocation()
   const active=links.find(x=>x.to===location.pathname)?.label || (location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
   return <div className="app-shell">
+    <PrivacyConsent/>
     <aside className={`sidebar ${open?'sidebar-open':''}`}>
       <div className="brand"><img src={import.meta.env.BASE_URL + "logo.svg"} alt="APML" /><div><strong>APML <span>Portal</span></strong><small>EMPLOYEE WORKSPACE</small></div><button className="icon-btn close-nav" onClick={()=>setOpen(false)} aria-label="Close menu"><X size={19}/></button></div>
       <div className="side-caption">WORKSPACE</div>
