@@ -107,3 +107,12 @@
  .legacy-workspace,.legacy-telemetry{padding:0 15px}
  .legacy-hero{padding-left:18px;padding-right:18px}
 }
+
+/* Homepage hero mascot: larger, while keeping the floating assistant out of hero/footer. */
+.apml-mascot-stage{width:148px;height:148px;margin-bottom:20px}
+.apml-hero-mascot{width:140px;height:140px}
+.apml-mascot-halo{inset:-24px}
+@media(max-width:600px){
+ .apml-mascot-stage{width:132px;height:132px;margin-bottom:18px}
+ .apml-hero-mascot{width:132px;height:132px;transform:translateY(8px)}
+}
