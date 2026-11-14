@@ -9,12 +9,13 @@ function Component({ open, onToggle }: HamburgerButtonProps) {
   return (
     <Button
       type="button"
-      className="group"
+      className="portal-menu-toggle group"
       variant="outline"
       size="icon"
       onClick={onToggle}
       aria-expanded={open}
       aria-label={open ? "Close menu" : "Open menu"}
+      aria-controls="portal-main-navigation"
     >
       <svg
         className="pointer-events-none"
