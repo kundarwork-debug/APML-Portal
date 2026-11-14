@@ -40,3 +40,14 @@
 .quote-document.maxcare .doc-footer{margin-top:12px}
 .quote-document.maxcare .doc-sign{text-align:right;font-weight:800;margin-top:30px}
 @media(max-width:1050px){.preview-paper{width:794px}}
+
+
+/* Match the original legacy editor's full-width workspace; remove React-only gutters. */
+@media (min-width: 761px) {
+  .editor-page { width: 100%; max-width: none; margin: 0; }
+  .editor-layout { grid-template-columns: 460px minmax(0, 1fr); gap: 0; }
+  .editor-panel { border-radius: 0 14px 0 0; }
+  .editor-preview { min-width: 0; padding-left: 0; }
+  .preview-scroll { padding-left: 16px; padding-right: 16px; }
+  .preview-paper { margin: 0; }
+}
