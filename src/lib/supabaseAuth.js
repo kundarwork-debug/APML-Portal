@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { driveAlert } from './sweetalert'
 
 const ADMIN_EMAILS = new Set(['kundar701@gmail.com', 'kundar.work@gmail.com'])
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -10,6 +11,26 @@ export const supabase = supabaseUrl && supabaseKey
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     })
   : null
+
+let unauthorizedNoticeInProgress = false
+
+async function rejectUnauthorizedUser() {
+  if (unauthorizedNoticeInProgress) return
+  unauthorizedNoticeInProgress = true
+  try {
+    await supabase.auth.signOut()
+  } catch (error) {
+    console.error('Unable to clear unauthorized APML session:', error)
+  }
+  const message = 'Your sign-in was successful, but this Google account is not approved for APML Portal administration. Your access has been denied.'
+  try {
+    await driveAlert('Login Restricted', message, 'error')
+  } catch {
+    window.alert(`Login Restricted. ${message}`)
+  } finally {
+    unauthorizedNoticeInProgress = false
+  }
+}
 
 function allowedUser(user) {
   const email = String(user?.email || '').toLowerCase().trim()
@@ -30,8 +51,8 @@ export function useApmlAdminAuth() {
     const applySession = async (session) => {
       const nextUser = session?.user || null
       if (nextUser && !allowedUser(nextUser)) {
-        await supabase.auth.signOut()
         if (active) setUser(null)
+        await rejectUnauthorizedUser()
         return
       }
       if (active) setUser(nextUser)
@@ -51,7 +72,7 @@ export function useApmlAdminAuth() {
       const nextUser = session?.user || null
       if (nextUser && !allowedUser(nextUser)) {
         setUser(null)
-        queueMicrotask(() => supabase.auth.signOut())
+        queueMicrotask(() => rejectUnauthorizedUser())
         return
       }
       setUser(nextUser)
