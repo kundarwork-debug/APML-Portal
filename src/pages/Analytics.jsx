@@ -304,6 +304,15 @@ export default function Analytics() {
       {customOpen && <div className="analytics-custom-range"><label>From<input type="date" value={customStart} max={dateKey(new Date())} onChange={e => setCustomStart(e.target.value)}/></label><label>To<input type="date" value={customEnd} max={dateKey(new Date())} onChange={e => setCustomEnd(e.target.value)}/></label><button className="analytics-btn analytics-btn-primary" onClick={applyCustomRange}>Apply range</button></div>}
     </section>
 
+    {busy && <div className="analytics-loading-indicator" role="status" aria-live="polite">
+      <div className="spinnerContainer">
+        <div className="spinner" aria-hidden="true"><span/><span/></div>
+        <div className="loader"><p>Updating</p><div className="words">
+          <span className="word">visitors</span><span className="word">quotations</span><span className="word">downloads</span><span className="word">insights</span><span className="word">visitors</span>
+        </div></div>
+      </div>
+      <span className="analytics-loading-hint">Your current report stays visible while the new range loads.</span>
+    </div>}
     {error && <div className="analytics-error"><span>{error}</span><button onClick={() => setError('')}>Dismiss</button></div>}
 
     <section className="analytics-kpis">
