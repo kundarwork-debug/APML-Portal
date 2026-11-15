@@ -461,3 +461,44 @@
  box-shadow:0 8px 20px rgba(125,35,35,.13);color:#861b22!important;
 }
 .portal-site-footer .footer-play-link svg{color:#b4232c}
+
+
+/* APML accessible light theme: shared tokens and readable contrast */
+:root{
+  color-scheme:light;
+  --canvas:#f5f1ec;
+  --paper:#ffffff;
+  --ink:#292524;
+  --muted:#625b56;
+  --line:#e8e0d8;
+  --red:#b4232c;
+  --red-dark:#941c25;
+  --text-main:#292524;
+  --text:#292524;
+  --text-muted:#625b56;
+  --surface:#ffffff;
+  --surface-card:#ffffff;
+  --surface-raised:#f1ece6;
+  --border:#e8e0d8;
+  --border-subtle:#e8e0d8;
+  --bg-subtle:#f5f1ec;
+  --shadow:0 12px 36px rgba(74,47,35,.065);
+}
+html,body{background:var(--canvas);color:var(--text-main)}
+::selection{background:rgba(180,35,44,.16);color:var(--text-main)}
+input,textarea,select{color:var(--text-main)}
+input::placeholder,textarea::placeholder{color:#706761;opacity:1}
+:where(.portal-brand small,.side-caption,.side-foot,.crumb,.top-link,.portal-nav a,.footer,.footer a,.welcome-copy p,.quick-strip small,.section-heading p,.count-label span,.search-box,.search-box input::placeholder,.category-tab,.module-category,.module-card p,.empty-state,.bottom-note p,.back-link,.subpage-head p,.migration-card p,.info-lead,.info-grid p,.info-link,.disclaimer){color:#625b56}
+:where(.nav-item,.btn-quiet,.status-pill,.portal-live){color:#625b56}
+:where(.nav-item.active,.portal-nav a.active,.portal-nav a:hover){color:#941c25}
+:where(.search-box,.category-tab,.module-card,.quick-strip>div,.bottom-note,.migration-card,.info-grid article,.other-project-card,.install-prompt,.policy-card,.health-overall,.health-service,.health-panel){border-color:var(--border)}
+:where(.search-box,.category-tab,.module-card,.quick-strip>div,.migration-card,.info-grid article,.other-project-card,.install-prompt,.policy-card,.health-overall,.health-service,.health-panel){background-color:var(--surface)}
+:where(.welcome-panel){background:linear-gradient(110deg,#fff 0%,#fffaf7 58%,#f8e9e4 100%);border-color:#e8dcd3}
+:where(.bottom-note,.help-card){background:#f1ece6;border-color:#e5dbd2}
+:where(.quick-strip small,.module-category,.count-label span,.footer,.disclaimer,.side-foot){font-size:10px}
+:where(.module-card p,.bottom-note p,.info-grid p,.migration-card p,.subpage-head p,.info-lead,.policy-card p,.health-service p,.health-disclaimer){color:#625b56}
+:where(.search-box input,.search-box input::placeholder){font-size:12px}
+:where(input,textarea,select){accent-color:var(--red)}
+:where(input,textarea,select):focus-visible{outline:2px solid rgba(180,35,44,.55);outline-offset:2px}
+:where(button,a):focus-visible{outline:2px solid rgba(180,35,44,.65);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
