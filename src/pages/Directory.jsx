@@ -145,9 +145,31 @@ export default function Directory(){
     }catch(e){await driveAlert('Import failed',e.message,'error').catch(()=>notify(e.message))}
     finally{event.target.value=''}
   }
+  async function copyNumber(number){
+    try{
+      if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(String(number))
+      else{
+        const field=document.createElement('textarea')
+        field.value=String(number);field.style.position='fixed';field.style.opacity='0'
+        document.body.appendChild(field);field.select()
+        const copied=document.execCommand('copy');field.remove()
+        if(!copied)throw new Error('Copy was blocked')
+      }
+      notify('Phone number copied')
+    }catch{notify('Could not copy number. Please select and copy it manually.')}
+  }
   async function copyAddress(address){
-    try{await navigator.clipboard.writeText(address);notify('Address copied')}
-    catch{notify('Clipboard unavailable on this browser')}
+    try{
+      if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(String(address))
+      else{
+        const field=document.createElement('textarea')
+        field.value=String(address);field.style.position='fixed';field.style.opacity='0'
+        document.body.appendChild(field);field.select()
+        const copied=document.execCommand('copy');field.remove()
+        if(!copied)throw new Error('Copy was blocked')
+      }
+      notify('Address copied')
+    }catch{notify('Clipboard unavailable on this browser')}
   }
   return <div className="directory-page">
     <div className="directory-heading">
@@ -175,7 +197,7 @@ export default function Directory(){
           return <article className={'directory-record '+(isDeleted?'is-deleted':'')} key={item.id}>
             <div className="directory-person"><div className="directory-avatar">{initials}</div><div><b>{name}{isDeleted?' · DELETED':''}</b><small>{item.designation||item.category||'Record'}</small></div></div>
             <div className="directory-location"><b>{item.location||'N/A'}</b><small>{item.region||''}</small></div>
-            <a className="directory-phone" href={item.contact?'tel:'+String(item.contact).replace(/[^+\d]/g,''):undefined}><Phone size={14}/>{item.contact||'No number'}</a>
+            {item.contact?<button type="button" className="directory-phone directory-copy-phone" onClick={()=>copyNumber(item.contact)} title="Copy phone number" aria-label={'Copy phone number '+item.contact}><Phone size={14}/>{item.contact}</button>:<span className="directory-phone"><Phone size={14}/>No number</span>}
             <div className="directory-address"><span>{item.address||'No address specified'}</span><div><a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(item.address||item.location||'')} target="_blank" rel="noreferrer"><MapPin size={13}/> Maps <ExternalLink size={11}/></a><button onClick={()=>copyAddress(item.address||'')}><Copy size={13}/> Copy</button></div></div>
             <div className="directory-row-actions">{isDeleted?(admin?<><button title="Restore contact" onClick={()=>updateFlag(item.id,{isDeleted:false})}><RotateCcw size={16}/></button><button className="danger" title="Delete permanently" onClick={()=>permanentlyDelete(item.id)}><Trash2 size={16}/></button></>:null):<><button title="Edit contact" onClick={()=>setEdit({...item})}><Pencil size={16}/></button>{admin&&<button className="danger" title="Delete contact" onClick={()=>updateFlag(item.id,{isDeleted:true})}><Trash2 size={16}/></button>}</>}</div>
           </article>
