@@ -269,3 +269,5 @@
 .legacy-telemetry-head h2 svg{color:#b4232c}
 .legacy-telemetry-stats strong{color:#202124}
 @media(max-width:600px){.legacy-tool-card,.legacy-tool-card.wide{border-radius:15px}.legacy-telemetry>a{border-radius:15px}}
+
+.portal-site-footer .portal-footer-brand-name{font:800 17px Manrope,sans-serif;letter-spacing:-.6px;color:var(--ink)}.portal-site-footer .portal-footer-brand-name i{font-style:normal;color:var(--red)}
