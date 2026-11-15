@@ -174,7 +174,7 @@ export default function Shell(){
   const hasConsent=()=>{try{const choice=JSON.parse(localStorage.getItem('apml-privacy-consent')||'null');return !!(choice&&choice.analytics===true)||localStorage.getItem('apml-analytics-consent')==='yes'}catch(_){return false}}
   const indiaDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
   window.apmlHasAnalyticsConsent=hasConsent
-  window.logDailyActivity=async(type)=>{if(!hasConsent())return;try{const db=await getApmlDatabase();await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1)}catch(error){console.warn('APML daily analytics unavailable',error)}}
+  window.logDailyActivity=async(type)=>{if(!hasConsent())return false;try{const db=await getApmlDatabase();const result=await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1);return !!result.committed}catch(error){console.warn('APML daily analytics unavailable',error);return false}}
   const recordVisitor=()=>{if(!hasConsent())return;const today=indiaDate();try{if(localStorage.getItem('apml_last_visit_date')===today)return;localStorage.setItem('apml_last_visit_date',today)}catch(_){}window.logDailyActivity('visitors')}
   window.addEventListener('apml-analytics-consent-granted',recordVisitor);recordVisitor()
   return()=>window.removeEventListener('apml-analytics-consent-granted',recordVisitor)
