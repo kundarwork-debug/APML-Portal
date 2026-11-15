@@ -23,3 +23,22 @@
 @media(prefers-reduced-motion:reduce){.drive-file-card,.drive-folder-card,.drive-action{transition:none!important}}
 
 .drive-admin.drive-google-admin,.drive-admin.drive-admin-active,.gallery-admin.gallery-google-admin,.gallery-admin.gallery-admin-active{width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;flex:none}.drive-admin.drive-google-admin,.gallery-admin.gallery-google-admin{border:1px solid #dadce0;background:#fff;color:#3c4043;box-shadow:0 1px 3px #20212420}.drive-admin.drive-google-admin:hover,.gallery-admin.gallery-google-admin:hover{background:#fff;box-shadow:0 2px 7px #20212426}.apml-google-mark{display:block;width:22px;height:22px}.admin-button-spinner{width:17px;height:17px;border:2px solid #dadce0;border-top-color:#4285f4;border-radius:50%;animation:admin-button-spin .75s linear infinite}@keyframes admin-button-spin{to{transform:rotate(360deg)}}
+
+/* Compact Drive cards */
+.drive-folders-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr));gap:10px}
+.drive-folder-card{min-height:60px;padding:9px 11px;border-radius:11px}
+.drive-folder-icon{width:34px;height:34px}
+.drive-files-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.drive-file-card{border-radius:13px}
+.drive-file-preview{height:145px}
+.drive-file-body{gap:5px;padding:10px 11px 8px}
+.drive-file-footer{padding:0 11px 10px}
+@media(max-width:1200px){.drive-files-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){
+ .drive-folder-card{min-height:54px;padding:8px}
+ .drive-files-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .drive-file-preview{height:clamp(88px,25vw,118px)}
+ .drive-file-body{padding:8px 8px 7px}
+ .drive-file-footer{padding:0 7px 8px}
+}
+@media(max-width:360px){.drive-files-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.drive-file-preview{height:105px}}
