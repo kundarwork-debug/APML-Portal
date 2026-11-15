@@ -235,7 +235,7 @@ export default function Shell(){
      ]
     }
    ]}
-   copyright={`© ${new Date().getFullYear()} APML Portal. Unofficial operations workspace.`}
+   copyright={`${new Date().getFullYear()} APML Portal. Unofficial operations workspace.`}
   />
  </div>
 }
