@@ -34,9 +34,11 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Audit npm dependencies
+        id: dependency_audit
+        continue-on-error: true
         shell: bash
         run: |
-          npm audit --json > npm-audit.json || true
+          npm audit --audit-level=high --json > npm-audit.json
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const report = JSON.parse(fs.readFileSync('npm-audit.json', 'utf8'));
@@ -56,6 +58,12 @@ jobs:
 
       - name: Build React portal
         run: npm run build
+
+      - name: Mark high or critical dependency vulnerabilities
+        if: always() && steps.dependency_audit.outcome == 'failure'
+        run: |
+          echo 'High or critical dependency vulnerabilities were detected, or the npm audit could not complete. Review the dependency audit artifact.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
 
       - name: Upload dependency audit report
         if: always()
@@ -90,6 +98,7 @@ jobs:
             'https://apmlportal.vercel.app/about'
           output: ./lychee-report.md
           format: markdown
+          jobSummary: true
           fail: true
 
       - name: Run Lighthouse audits
