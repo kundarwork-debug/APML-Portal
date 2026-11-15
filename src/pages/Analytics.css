@@ -37,5 +37,5 @@
 .analytics-kpi.tone-blue .analytics-kpi-trend{color:#3977c8}
 .analytics-kpi.tone-amber .analytics-kpi-trend{color:#b7791f}
 .analytics-sparkline{display:block;width:100%;height:34px;overflow:visible}
-.analytics-sparkline-area{fill:currentColor;opacity:.11}
+.analytics-sparkline-area{fill:currentColor;opacity:.12}.analytics-sparkline-line{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .analytics-sparkline-empty{height:34px;border-bottom:1px dashed #e5e1d9;opacity:.7}
