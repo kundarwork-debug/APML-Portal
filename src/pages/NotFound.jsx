@@ -1,12 +1,10 @@
-import './NotFound.css'
+import { useEffect } from 'react'
 
 export default function NotFound() {
-  return (
-    <iframe
-      className="legacy-not-found-frame"
-      src="/legacy-404.html"
-      title="APML Portal — Signal Lost"
-      allow="fullscreen"
-    />
-  )
+  useEffect(() => {
+    // Load the migrated standalone 404 document directly, not inside the React shell.
+    window.location.replace('/404.html')
+  }, [])
+
+  return null
 }
