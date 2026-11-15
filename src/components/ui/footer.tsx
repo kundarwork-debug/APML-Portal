@@ -46,7 +46,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
           <div className="md:col-span-4 lg:col-span-3">
             <Link to="/" className="inline-flex items-center gap-3 text-xl font-semibold tracking-tight text-foreground">
               <img src="/logo.svg" alt="" aria-hidden="true" className="apml-rotating-logo h-10 w-10 shrink-0 object-contain" />
-              <span>{brand.name}</span>
+              <span className="portal-footer-brand-name">APML <i>Portal</i></span>
             </Link>
             <p className="mt-2 max-w-md text-sm leading-6 text-foreground/60">
               {brand.description}
