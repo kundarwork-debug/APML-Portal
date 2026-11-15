@@ -1,0 +1,5080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>(function(){var theme='light';try{var saved=localStorage.getItem('apml-theme');if(saved==='dark'||saved==='light')theme=saved;}catch(error){}document.documentElement.setAttribute('data-theme',theme);})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>404 - Signal Lost | APML Portal</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="manifest" href="./manifest.json">
+  <style>
+/* =========================================================
+   APML UNIFIED COMMON CSS (GOOGLE MATERIAL DESIGN 3)
+   ========================================================= */
+:root {
+  --md-sys-color-primary: #b91c1c;
+  --md-sys-color-primary-container: #fef2f2;
+  --md-sys-color-on-primary-container: #991b1b;
+  --md-sys-color-surface: #f8fafc;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f1f5f9;
+  --md-sys-color-surface-container: #e2e8f0;
+  --md-sys-color-outline-variant: #e2e8f0;
+  --md-sys-color-on-surface: #0f172a;
+  --md-sys-color-on-surface-variant: #64748b;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 14px;
+  --md-sys-shape-corner-full: 9999px;
+  --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.08), 0px 1px 2px rgba(0, 0, 0, 0.04);
+  --md-elevation-2: 0px 6px 16px rgba(0, 0, 0, 0.1), 0px 2px 6px rgba(0, 0, 0, 0.05);
+  --md-elevation-3: 0px 12px 32px rgba(0, 0, 0, 0.15);
+  --transition-m3: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* =========================================================
+   INSTALLED PWA TOUCH SUPPORT
+   Keep native browser gesture handling intact. Do not globally
+   disable selection or apply touch-action to every element.
+   ========================================================= */
+@media (display-mode: standalone) {
+  html, body {
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  a, button, [role="button"], [role="tab"], summary,
+  input[type="button"], input[type="submit"], input[type="reset"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, textarea, select, [contenteditable="true"] {
+    touch-action: auto;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Decorative layers must never intercept taps. */
+  .ambient-bg, .ambient-glow, .cursor-glow {
+    pointer-events: none !important;
+  }
+}
+
+/* =========================================================
+   NATIVE APK JS FALLBACK
+   ========================================================= */
+.is-native-apk, 
+.is-native-apk *, 
+.is-native-apk *::before, 
+.is-native-apk *::after {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.is-native-apk input, 
+.is-native-apk textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+.is-native-apk,
+.is-native-apk body {
+  overscroll-behavior-y: auto !important;
+  touch-action: auto !important;
+  padding-top: env(safe-area-inset-top) !important;
+  padding-bottom: env(safe-area-inset-bottom) !important;
+}
+
+.is-native-apk button,
+.is-native-apk .btn-action,
+.is-native-apk .module-card,
+.is-native-apk .tech-chip,
+.is-native-apk .nav-link,
+.is-native-apk .m3-about-btn,
+.is-native-apk .hamburger-btn,
+.is-native-apk .support-btn,
+.is-native-apk .cta-arrow {
+  touch-action: manipulation !important;
+}
+
+.is-native-apk button:active, 
+.is-native-apk .btn-action:active, 
+.is-native-apk .module-card:active, 
+.is-native-apk .tech-chip:active, 
+.is-native-apk .nav-link:active,
+.is-native-apk .m3-about-btn:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.06s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  filter: brightness(0.92) !important;
+}
+
+/* =========================================================
+   COMMON HEADER STYLING
+   ========================================================= */
+#header-container {
+  width: 100%;
+}
+
+/* Default state: Static & visible on all pages */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 60px;
+  /* Solid page-coloured surface; never transparent. */
+  background: var(--apml-color-page, #f7f5f0);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.65s ease;
+  will-change: transform, opacity;
+}
+
+/* Homepage-only scroll reveal. Inner-page header behaviour is unchanged. */
+.site-header.home-scroll-header {
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.45s ease;
+}
+
+.site-header.home-scroll-header.home-header-hidden {
+  transform: translateY(-105%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header.home-scroll-header { transition: none; }
+}
+
+/* Shared header remains visible on the homepage and all inner pages. */
+
+.header-inner {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand Logo */
+.site-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--md-sys-color-on-surface);
+  user-select: none;
+}
+
+ .logo-badge {
+  width: 34px;
+  height: 34px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+  border: 1.5px solid rgba(185, 28, 28, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.site-header .logo-badge img {
+  animation: unifiedLogoSpin 12s linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+@keyframes unifiedLogoSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--md-sys-color-on-surface);
+  letter-spacing: -0.02em;
+}
+
+.logo-text span {
+  color: var(--md-sys-color-primary);
+}
+
+/* =========================================================
+   ANIMATED SVG HAMBURGER BUTTON
+   ========================================================= */
+.burger-checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hamburger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  cursor: pointer;
+  z-index: 1002;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 50%;
+  background: var(--md-sys-color-surface-container-low);
+  transition: background-color .2s ease, border-color .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hamburger svg {
+  width: 30px;
+  height: 30px;
+  overflow: visible;
+  transition: transform 600ms cubic-bezier(.4, 0, .2, 1);
+}
+
+.hamburger .line {
+  fill: none;
+  stroke: var(--md-sys-color-on-surface);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.7;
+  transition: stroke-dasharray 600ms cubic-bezier(.4, 0, .2, 1),
+              stroke-dashoffset 600ms cubic-bezier(.4, 0, .2, 1);
+}
+
+.hamburger .line-top-bottom {
+  stroke-dasharray: 12 63;
+}
+
+.hamburger:has(input:checked),
+.hamburger:hover {
+  background: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+}
+
+.hamburger input:checked + svg {
+  transform: rotate(-45deg);
+}
+
+.hamburger input:checked + svg .line-top-bottom {
+  stroke-dasharray: 20 300;
+  stroke-dashoffset: -32.42;
+}
+
+.hamburger input:focus-visible + svg {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 5px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hamburger svg,
+  .hamburger .line { transition-duration: .01ms !important; }
+}
+
+/* =========================================================
+   UNIVERSAL DROPDOWN MENU
+   ========================================================= */
+.nav-menu {
+  position: fixed;
+  top: 66px;
+  right: 32px;
+  width: 260px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  background: #ffffff;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--md-elevation-3);
+  transform: translateY(-10px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  z-index: 1001;
+}
+
+.nav-menu.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-small);
+  transition: var(--transition-m3);
+}
+
+.nav-link:hover {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+  transform: translateX(3px);
+}
+
+.nav-link.active {
+  background: var(--md-sys-color-primary);
+  color: #ffffff;
+}
+
+.nav-link .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* =========================================================
+   COMMON FOOTER STYLING
+   ========================================================= */
+#footer-container {
+  width: 100%;
+  margin-top: auto;
+}
+
+.site-footer {
+  /* Solid page-coloured surface matching the shared page canvas. */
+  background: var(--apml-color-page, #f7f5f0);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  padding: 18px 0;
+  width: 100%;
+}
+
+.footer-inner {
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-credit-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface-variant);
+  letter-spacing: -0.01em;
+}
+
+.footer-credit-text span {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 800;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.m3-about-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 6px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary-container);
+  border: 1px solid rgba(185, 28, 28, 0.2);
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  transition: var(--transition-m3);
+}
+
+.about-github-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  display: block;
+}
+
+.m3-about-btn:hover {
+  background: var(--md-sys-color-primary);
+  color: #ffffff;
+  border-color: var(--md-sys-color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25);
+}
+
+/* =========================================================
+   THEMED BACK TO TOP BUTTON STYLING (Resized & Page-Themed)
+   ========================================================= */
+.footer-back-to-top-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--primary, #b91c1c);
+  border: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.3);
+  cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+  z-index: 10;
+}
+
+.footer-back-to-top-btn .svgIcon {
+  width: 12px;
+  transition-duration: 0.3s;
+}
+
+.footer-back-to-top-btn .svgIcon path {
+  fill: white;
+}
+
+.footer-back-to-top-btn:hover {
+  width: 130px;
+  border-radius: 50px;
+  transition-duration: 0.3s;
+  background-color: var(--text-main, #1c1917);
+  box-shadow: 0 6px 16px rgba(28, 25, 23, 0.3);
+  align-items: center;
+}
+
+.footer-back-to-top-btn:hover .svgIcon {
+  transition-duration: 0.3s;
+  transform: translateY(-200%);
+}
+
+.footer-back-to-top-btn::before {
+  position: absolute;
+  bottom: -20px;
+  content: "Back to Top";
+  color: white;
+  font-size: 0px;
+}
+
+.footer-back-to-top-btn:hover::before {
+  font-size: 13px;
+  opacity: 1;
+  bottom: unset;
+  transition-duration: 0.3s;
+}
+
+/* FOOTER FUN BUTTON STYLING (Matched to About Me Pill Size) */
+.footer-fun-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 12px;
+  height: 36px;
+  color: var(--text-main, #292524);
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1.5px solid var(--text-main, #292524);
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  font-size: 11.5px;
+  background-color: hsl(49deg 98% 60%);
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  text-decoration: none;
+  z-index: 10;
+}
+
+.footer-fun-btn:active {
+  transform: scale(0.95);
+}
+
+.footer-fun-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: all 0.4s ease;
+  z-index: 2;
+}
+
+.footer-fun-btn .play {
+  transition: all 0.4s ease;
+  transition-delay: 200ms;
+}
+
+.footer-fun-btn:hover svg {
+  transform: scale(2.2) translate(35%);
+}
+
+.footer-fun-btn .now {
+  position: absolute;
+  left: 0;
+  transform: translateX(-100%);
+  transition: all 0.4s ease;
+  z-index: 2;
+  color: #111;
+}
+
+.footer-fun-btn:hover .now {
+  transform: translateX(8px);
+  transition-delay: 200ms;
+}
+
+.footer-fun-btn:hover .play {
+  transform: translateX(180%);
+  transition-delay: 200ms;
+}
+
+@media (max-width: 768px) {
+  .header-inner,
+  .footer-inner {
+    padding: 0 16px;
+  }
+  .nav-menu {
+    right: 16px;
+    width: calc(100vw - 32px);
+  }
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    gap: 12px;
+  }
+}
+
+
+/* =========================================================
+   APML PORTAL GLOBAL DARK THEME
+   Theme is applied on <html> before first paint by each page.
+   ========================================================= */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --md-sys-color-primary: #f87171;
+  --md-sys-color-primary-container: #3b1820;
+  --md-sys-color-on-primary-container: #fecaca;
+  --md-sys-color-surface: #111827;
+  --md-sys-color-surface-container-lowest: #111827;
+  --md-sys-color-surface-container-low: #1e293b;
+  --md-sys-color-surface-container: #334155;
+  --md-sys-color-outline-variant: #334155;
+  --md-sys-color-on-surface: #f8fafc;
+  --md-sys-color-on-surface-variant: #cbd5e1;
+  --bg-base: #0b1120;
+  --surface-card: #151e2e;
+  --surface: #151e2e;
+  --surface-glass: rgba(21, 30, 46, .94);
+  --surface-raised: #1e293b;
+  --surface-subtle: #1e293b;
+  --surface-border: #334155;
+  --border-subtle: #334155;
+  --text-main: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #a8b5c7;
+  --text-faint: #8493a8;
+  --shadow-soft: 0 8px 28px rgba(0,0,0,.28);
+  --shadow-subtle: 0 8px 28px rgba(0,0,0,.28);
+  --shadow-sm: 0 8px 24px rgba(0,0,0,.24);
+  --shadow-md: 0 14px 36px rgba(0,0,0,.32);
+}
+html[data-theme="dark"] body {
+  background: #0b1120 !important;
+  background-color: #0b1120 !important;
+  background-image: radial-gradient(circle at 50% 12%, rgba(127,29,29,.16), transparent 58%) !important;
+  color: #f8fafc !important;
+}
+html[data-theme="dark"] .site-header,
+html[data-theme="dark"] .site-footer {
+  background: var(--apml-color-page, #10141d) !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+html[data-theme="dark"] .nav-menu,
+html[data-theme="dark"] .footer-grid-container,
+html[data-theme="dark"] .footer-links-columns {
+  background: rgba(15,23,42,.96) !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+html[data-theme="dark"] .nav-link,
+html[data-theme="dark"] .site-logo,
+html[data-theme="dark"] .logo-text,
+html[data-theme="dark"] .footer-item-link,
+html[data-theme="dark"] .footer-title-text,
+html[data-theme="dark"] .footer-brand-desc,
+html[data-theme="dark"] .footer-col-title {
+  color: #e2e8f0 !important;
+}
+html[data-theme="dark"] .header-live-clock,
+html[data-theme="dark"] .hamburger-btn,
+html[data-theme="dark"] .nav-menu,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .table-section,
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .banner,
+html[data-theme="dark"] .module-card,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .info-card,
+html[data-theme="dark"] .content-card,
+html[data-theme="dark"] .feature-card,
+html[data-theme="dark"] .glass-card,
+html[data-theme="dark"] .surface-card,
+html[data-theme="dark"] .quick-pricing-card,
+html[data-theme="dark"] #sharedFieldGroup,
+html[data-theme="dark"] .footer-card {
+  background-color: #151e2e !important;
+  color: #e2e8f0;
+  border-color: #334155 !important;
+}
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .field input,
+html[data-theme="dark"] .field textarea {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: #94a3b8 !important; }
+html[data-theme="dark"] table th,
+html[data-theme="dark"] .suggestion-cat,
+html[data-theme="dark"] .tabs,
+html[data-theme="dark"] .tab-btn:not(.active),
+html[data-theme="dark"] .seg button:not([aria-pressed="true"]) {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+html[data-theme="dark"] table td,
+html[data-theme="dark"] table th,
+html[data-theme="dark"] .price-row,
+html[data-theme="dark"] .suggestion-item { border-color: #334155 !important; }
+html[data-theme="dark"] .suggestion-item { color: #e2e8f0 !important; }
+html[data-theme="dark"] .suggestions-dropdown { background: #151e2e !important; border-color: #334155 !important; }
+html[data-theme="dark"] .ambient-bg,
+html[data-theme="dark"] .ambient-glow,
+html[data-theme="dark"] .ambient-mesh { opacity: .22; }
+html[data-theme="dark"] .support-msg-bubble { background: #151e2e !important; color: #f8fafc !important; }
+html[data-theme="dark"] .swal2-popup { background: #151e2e !important; color: #f8fafc !important; }
+html[data-theme="dark"] .swal2-title,
+html[data-theme="dark"] .swal2-html-container { color: #e2e8f0 !important; }
+html[data-theme="dark"] .theme-toggle {
+  width: 40px; height: 40px; flex: 0 0 40px; display: inline-flex;
+  align-items: center; justify-content: center; border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface); cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+.theme-toggle:hover { transform: translateY(-1px); border-color: var(--md-sys-color-primary); }
+.theme-toggle .material-symbols-outlined { font-size: 20px; }
+html[data-theme="dark"] .theme-toggle { background: #1e293b; color: #f8fafc; border-color: #475569; }
+@media (prefers-reduced-motion: reduce) {
+  html, html *, html *::before, html *::after { transition-duration: 0s !important; animation-duration: .01ms !important; }
+}
+
+/* =========================================================
+   FULL-WIDTH PAGE LAYOUT
+   Let each page use the available viewport instead of leaving
+   large empty gutters, while keeping comfortable edge padding.
+   ========================================================= */
+.workspace-section,
+.about-container,
+.analytics-main,
+.bug-card,
+.calculator-shell,
+.policy-card,
+.main-container,
+.drive-container,
+.gallery-container,
+body > main > .container,
+body > .container {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.workspace-section,
+.about-container,
+.analytics-main,
+.main-container,
+.drive-container,
+.gallery-container,
+body > main > .container,
+body > .container {
+  padding-left: clamp(16px, 2.2vw, 36px) !important;
+  padding-right: clamp(16px, 2.2vw, 36px) !important;
+}
+
+.bug-card,
+.calculator-shell,
+.policy-card {
+  max-width: none !important;
+}
+
+.footer-inner {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+@media (max-width: 768px) {
+  .workspace-section,
+  .about-container,
+  .analytics-main,
+  .main-container,
+  .drive-container,
+  .gallery-container,
+  body > main > .container,
+  body > .container {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
+/* Page-level content surfaces: fill the viewport on desktop too. */
+main {
+  width: 100% !important;
+  max-width: none !important;
+}
+main > .bug-card,
+main > .policy-card,
+main > .calculator-shell,
+main > .about-container,
+main > .container,
+main > .drive-container,
+main > .gallery-container,
+main > .main-container,
+main > .app {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+main > .bug-card,
+main > .policy-card,
+main > .calculator-shell,
+main > .about-container,
+main > .container,
+main > .drive-container,
+main > .gallery-container,
+main > .main-container,
+main > .app {
+  padding-left: clamp(16px, 2.2vw, 36px) !important;
+  padding-right: clamp(16px, 2.2vw, 36px) !important;
+}
+@media (max-width: 768px) {
+  main > .bug-card,
+  main > .policy-card,
+  main > .calculator-shell,
+  main > .about-container,
+  main > .container,
+  main > .drive-container,
+  main > .gallery-container,
+  main > .main-container,
+  main > .app {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
+
+/* =========================================================
+   APML PREMIUM ENTERPRISE DESIGN SYSTEM
+   Shared tokens for the staged portal refresh.
+   These namespaced tokens are additive: existing page styles
+   and legacy Material variables remain unchanged for now.
+   ========================================================= */
+:root {
+  /* Brand */
+  --apml-color-brand: #b4232c;
+  --apml-color-brand-hover: #941c24;
+  --apml-color-brand-soft: #f8e9e9;
+
+  /* Surfaces */
+  --apml-color-page: #f7f5f0;
+  --apml-color-surface: #ffffff;
+  --apml-color-surface-subtle: #f0eee8;
+  --apml-color-border: #e5e1d9;
+
+  /* Text */
+  --apml-color-text: #202124;
+  --apml-color-text-secondary: #55565a;
+  --apml-color-text-muted: #777a80;
+  --apml-color-text-inverse: #ffffff;
+
+  /* Typography */
+  --apml-font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --apml-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* Shape and spacing */
+  --apml-radius-sm: 8px;
+  --apml-radius-md: 12px;
+  --apml-radius-lg: 18px;
+  --apml-radius-xl: 24px;
+  --apml-radius-pill: 9999px;
+  --apml-space-1: 4px;
+  --apml-space-2: 8px;
+  --apml-space-3: 12px;
+  --apml-space-4: 16px;
+  --apml-space-5: 20px;
+  --apml-space-6: 24px;
+  --apml-space-8: 32px;
+
+  /* Elevation and motion */
+  --apml-shadow-soft: 0 2px 8px rgba(32, 33, 36, 0.04), 0 12px 28px rgba(32, 33, 36, 0.035);
+  --apml-shadow-raised: 0 8px 24px rgba(32, 33, 36, 0.09);
+  --apml-shadow-focus: 0 0 0 3px rgba(180, 35, 44, 0.16);
+  --apml-transition: 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+html[data-theme="dark"] {
+  --apml-color-brand: #f0787e;
+  --apml-color-brand-hover: #ff9297;
+  --apml-color-brand-soft: #3b2025;
+  --apml-color-page: #10141d;
+  --apml-color-surface: #171d29;
+  --apml-color-surface-subtle: #202838;
+  --apml-color-border: #303a4b;
+  --apml-color-text: #f2f3f5;
+  --apml-color-text-secondary: #d0d4dc;
+  --apml-color-text-muted: #a2aab8;
+  --apml-color-text-inverse: #171d29;
+  --apml-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.18), 0 12px 28px rgba(0, 0, 0, 0.12);
+  --apml-shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --apml-shadow-focus: 0 0 0 3px rgba(240, 120, 126, 0.2);
+}
+
+/* Accessible defaults for shared controls when adopted by a page. */
+.apml-focus-ring:focus-visible {
+  outline: 2px solid var(--apml-color-brand);
+  outline-offset: 3px;
+  box-shadow: var(--apml-shadow-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --apml-transition: 0ms;
+  }
+}
+
+
+/* =========================================================
+   SHARED ADMIN GOOGLE BUTTON — consistent across admin pages
+   ========================================================= */
+#adminToggleBtn {
+  position: fixed !important;
+  top: 76px !important;
+  right: 22px !important;
+  z-index: 1201 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 1.5px solid var(--apml-color-border, var(--md-sys-color-outline-variant, #e5e1d9)) !important;
+  background: var(--apml-color-surface, #ffffff) !important;
+  box-shadow: 0 2px 9px rgba(0,0,0,.12) !important;
+  cursor: pointer !important;
+  flex: 0 0 42px !important;
+}
+#adminToggleBtn svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px !important;
+}
+#adminToggleBtn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--apml-color-brand, #c21d1d) 45%, transparent) !important;
+  outline-offset: 3px !important;
+}
+@media (max-width: 600px) {
+  #adminToggleBtn {
+    top: 72px !important;
+    right: 14px !important;
+  }
+}
+
+
+/* Directory-specific hard override: keep the admin Google control perfectly circular. */
+html body.apml-directory-page button#adminToggleBtn {
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  clip-path: circle(50%) !important;
+  flex: 0 0 42px !important;
+}
+
+/* PWA standalone: do not globally restrict touch gestures or tap targets. */
+@media (display-mode: standalone) {
+  html, body { touch-action: auto !important; }
+  a, button, input, textarea, select, label, summary, [role="button"], [role="tab"], [onclick] { touch-action: manipulation !important; }
+  input, textarea, select, [contenteditable="true"] { touch-action: auto !important; -webkit-user-select: text !important; user-select: text !important; }
+}
+
+
+/* =========================================================
+   PILL THEME SWITCH — SHARED HEADER
+   Checked = dark theme; unchecked = light theme.
+   ========================================================= */
+.header-controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  flex: 0 0 auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-switch-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+}
+.theme-switch-track {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 41px;
+  height: 22px;
+  background: #080808;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 15px;
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+.theme-switch-thumb {
+  position: absolute;
+  top: 1.5px;
+  left: 1.3px;
+  width: 27px;
+  height: 17px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.35),
+    0 6px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-switch-input:checked + .theme-switch-track .theme-switch-thumb {
+  transform: translateX(9px);
+}
+.theme-switch-input:focus-visible + .theme-switch-track {
+  outline: 2px solid var(--apml-color-brand, #b4232c);
+  outline-offset: 4px;
+}
+.theme-switch:active .theme-switch-thumb {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 3px 7px rgba(0, 0, 0, 0.16);
+}
+@media (max-width: 420px) {
+  .header-controls { gap: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch-track, .theme-switch-thumb { transition-duration: 0.01ms !important; }
+}
+
+
+/* =========================================================
+   APML SHARED MOBILE CONSISTENCY PASS
+   Header, navigation, footer and admin control safeguards.
+   ========================================================= */
+.site-header,
+.site-header .header-inner,
+.site-header .header-controls,
+.site-header .site-logo,
+.site-footer-extended,
+.site-footer-extended * {
+  box-sizing: border-box;
+}
+.site-header .header-inner {
+  min-width: 0;
+}
+.site-header .header-controls {
+  min-width: 0;
+}
+.site-header .site-logo {
+  min-width: 0;
+}
+.site-header .logo-text {
+  overflow-wrap: anywhere;
+}
+.nav-menu {
+  right: max(14px, env(safe-area-inset-right));
+  width: min(280px, calc(100vw - 28px));
+  max-height: calc(100dvh - 82px);
+}
+.site-footer-extended {
+  min-width: 0;
+  overflow: hidden;
+}
+.footer-grid-container,
+.footer-brand-col,
+.footer-links-columns,
+.footer-link-col,
+.footer-bottom-bar {
+  min-width: 0;
+}
+.footer-brand-desc,
+.footer-item-link,
+.footer-developer-tag,
+.footer-bottom-bar > span {
+  overflow-wrap: anywhere;
+}
+#adminToggleBtn {
+  aspect-ratio: 1 / 1 !important;
+  flex: 0 0 42px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+#adminToggleBtn > *,
+#adminToggleBtn svg {
+  flex-shrink: 0 !important;
+}
+@media (max-width: 768px) {
+  .site-header .header-inner {
+    padding-left: 16px;
+    padding-right: 16px;
+    gap: 12px;
+  }
+  .site-header .header-controls {
+    gap: 10px;
+  }
+  .nav-menu {
+    top: calc(60px + 8px);
+    right: 14px;
+  }
+  .site-footer-extended {
+    padding: 34px 20px 22px;
+  }
+  .footer-grid-container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding-bottom: 24px;
+  }
+  .footer-links-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 16px;
+  }
+  .footer-bottom-bar {
+    align-items: flex-start;
+    gap: 14px;
+  }
+}
+@media (max-width: 480px) {
+  .site-header .header-inner {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .site-header .logo-text {
+    font-size: 16px;
+  }
+  .site-header .logo-badge {
+    width: 32px;
+    height: 32px;
+  }
+  .site-header .header-controls {
+    gap: 8px;
+  }
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+  .nav-menu {
+    right: 10px;
+    width: min(300px, calc(100vw - 20px));
+  }
+  .site-footer-extended {
+    padding: 30px 16px 20px;
+  }
+  .footer-links-columns {
+    gap: 18px 12px;
+  }
+  .footer-item-link {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .footer-about-pill {
+    max-width: 100%;
+  }
+}
+@media (max-width: 350px) {
+  .site-header .logo-text {
+    font-size: 14px;
+  }
+  .site-header .header-inner {
+    gap: 8px;
+  }
+  .footer-links-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+/* =========================================================
+   APML DARK FOOTER REFINEMENT
+   Keep the footer visually continuous with the page surface.
+   ========================================================= */
+html[data-theme="dark"] .site-footer-extended {
+  background: var(--bg-base, #0b1120) !important;
+  color: var(--text-main, #f8fafc) !important;
+  border-top-color: var(--surface-border, #334155) !important;
+}
+html[data-theme="dark"] .site-footer-extended .footer-grid-container,
+html[data-theme="dark"] .site-footer-extended .footer-links-columns {
+  background: transparent !important;
+  border-color: var(--surface-border, #334155) !important;
+}
+html[data-theme="dark"] .site-footer-extended .footer-grid-container {
+  border-bottom-color: var(--surface-border, #334155) !important;
+}
+html[data-theme="dark"] .site-footer-extended .footer-col-title,
+html[data-theme="dark"] .site-footer-extended .footer-title-text,
+html[data-theme="dark"] .site-footer-extended .footer-item-link,
+html[data-theme="dark"] .site-footer-extended .footer-brand-desc,
+html[data-theme="dark"] .site-footer-extended .footer-developer-tag,
+html[data-theme="dark"] .site-footer-extended .footer-bottom-bar {
+  color: #cbd5e1 !important;
+}
+html[data-theme="dark"] .site-footer-extended .footer-about-pill {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #f8fafc !important;
+}
+html[data-theme="dark"] .site-footer-extended .footer-about-pill span {
+  color: #f8fafc !important;
+}
+html[data-theme="dark"] .site-footer-extended .footer-about-pill:hover {
+  background: #27364b !important;
+  border-color: #64748b !important;
+}
+
+
+/* =========================================================
+   APML PORTAL — SHARED VISUAL LANGUAGE FOUNDATION
+   A conservative shared baseline for inner pages. Existing page
+   layouts and component-specific styles remain in control.
+   ========================================================= */
+:root {
+  /* Bridge legacy Material tokens to the APML brand system. */
+  --md-sys-color-primary: var(--apml-color-brand);
+  --md-sys-color-primary-container: var(--apml-color-brand-soft);
+  --md-sys-color-on-primary-container: var(--apml-color-brand-hover);
+  --md-sys-color-surface: var(--apml-color-page);
+  --md-sys-color-surface-container-lowest: var(--apml-color-surface);
+  --md-sys-color-surface-container-low: var(--apml-color-surface-subtle);
+  --md-sys-color-outline-variant: var(--apml-color-border);
+  --md-sys-color-on-surface: var(--apml-color-text);
+  --md-sys-color-on-surface-variant: var(--apml-color-text-muted);
+  --md-sys-shape-corner-small: var(--apml-radius-sm);
+  --md-sys-shape-corner-medium: var(--apml-radius-md);
+  --md-elevation-1: var(--apml-shadow-soft);
+  --md-elevation-2: var(--apml-shadow-raised);
+}
+
+html[data-theme="dark"] {
+  --md-sys-color-primary: var(--apml-color-brand);
+  --md-sys-color-primary-container: var(--apml-color-brand-soft);
+  --md-sys-color-on-primary-container: #ffd8da;
+  --md-sys-color-surface: var(--apml-color-page);
+  --md-sys-color-surface-container-lowest: var(--apml-color-surface);
+  --md-sys-color-surface-container-low: var(--apml-color-surface-subtle);
+  --md-sys-color-outline-variant: var(--apml-color-border);
+  --md-sys-color-on-surface: var(--apml-color-text);
+  --md-sys-color-on-surface-variant: var(--apml-color-text-muted);
+}
+
+/* Shared typography defaults; page-specific typography can still override. */
+body {
+  font-family: var(--apml-font-sans);
+  color: var(--apml-color-text);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select {
+  font-family: inherit;
+}
+
+/* Common content surfaces share the same restrained shape and elevation. */
+.card,
+.panel,
+.content-card,
+.info-card,
+.feature-card,
+.surface-card,
+.stat-card,
+.kpi,
+.table-section,
+.quick-pricing-card,
+.policy-card,
+.bug-card {
+  border-radius: var(--apml-radius-lg);
+  border-color: var(--apml-color-border);
+  box-shadow: var(--apml-shadow-soft);
+}
+
+/* Consistent keyboard focus without changing normal resting appearance. */
+:where(a, button, input, textarea, select, summary, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--apml-color-brand);
+  outline-offset: 3px;
+  box-shadow: var(--apml-shadow-focus);
+}
+
+/* Keep browser motion preferences respected throughout the portal. */
+@media (prefers-reduced-motion: reduce) {
+  :where(*, *::before, *::after) {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* =========================================================
+   APML PORTAL — RESTRAINED SHARED MICRO-INTERACTIONS
+   Feedback only; no layout movement or changes to page logic.
+   ========================================================= */
+@media (hover: hover) and (pointer: fine) {
+  :where(
+    .card,
+    .panel,
+    .content-card,
+    .info-card,
+    .feature-card,
+    .surface-card,
+    .stat-card,
+    .kpi,
+    .table-section
+  ) {
+    transition:
+      box-shadow var(--apml-transition),
+      border-color var(--apml-transition),
+      background-color var(--apml-transition);
+  }
+
+  :where(
+    .card,
+    .panel,
+    .content-card,
+    .info-card,
+    .feature-card,
+    .surface-card,
+    .stat-card,
+    .kpi,
+    .table-section
+  ):hover {
+    box-shadow: var(--apml-shadow-raised);
+    border-color: color-mix(in srgb, var(--apml-color-brand) 18%, var(--apml-color-border));
+  }
+
+  :where(button, [role="button"], .btn, .button) {
+    transition:
+      box-shadow var(--apml-transition),
+      border-color var(--apml-transition),
+      background-color var(--apml-transition),
+      color var(--apml-transition),
+      filter var(--apml-transition);
+  }
+
+  :where(a:not(.site-logo), .footer-item-link) {
+    transition: color var(--apml-transition);
+  }
+}
+
+/* A restrained press response, without shifting surrounding content. */
+:where(button, [role="button"], .btn, .button):not(:disabled):active {
+  filter: brightness(0.97);
+}
+
+/* Keep disabled controls visually stable and avoid implying interactivity. */
+:where(button, [role="button"], .btn, .button):disabled {
+  cursor: not-allowed;
+}
+
+/* Avoid hover/press effects on touch-first devices. */
+@media (hover: none), (pointer: coarse) {
+  :where(
+    .card,
+    .panel,
+    .content-card,
+    .info-card,
+    .feature-card,
+    .surface-card,
+    .stat-card,
+    .kpi,
+    .table-section
+  ):hover {
+    box-shadow: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(button, [role="button"], .btn, .button, a, .card, .panel, .content-card,
+    .info-card, .feature-card, .surface-card, .stat-card, .kpi, .table-section) {
+    transition: none !important;
+  }
+}
+
+
+/* =========================================================
+   APML PORTAL — HUMAN, HELPFUL EMPTY STATES
+   Shared presentation for genuinely empty and no-result views.
+   ========================================================= */
+.apml-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 180px;
+  padding: 30px 22px;
+  text-align: center;
+  color: var(--apml-color-text-secondary);
+  background: var(--apml-color-surface);
+  border: 1px dashed var(--apml-color-border);
+  border-radius: var(--apml-radius-lg);
+}
+.apml-empty-state__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 3px;
+  color: var(--apml-color-brand);
+  background: var(--apml-color-brand-soft);
+  border-radius: 14px;
+}
+.apml-empty-state__icon .material-symbols-outlined {
+  font-size: 23px;
+}
+.apml-empty-state__title {
+  margin: 0;
+  color: var(--apml-color-text);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+.apml-empty-state__description {
+  max-width: 390px;
+  margin: 0;
+  color: var(--apml-color-text-muted);
+  font-size: 12.5px;
+  font-weight: 450;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   APML ORIGINAL EMPTY-STATE ARTWORK
+   Self-hosted SVGs; decorative only and independent of third-party CDNs.
+   ========================================================= */
+.apml-empty-state {
+  min-height: 260px;
+  gap: 10px;
+}
+.apml-empty-state__art {
+  display: block;
+  width: clamp(132px, 26vw, 174px);
+  height: auto;
+  max-height: 122px;
+  object-fit: contain;
+  margin: 0 auto 2px;
+}
+.apml-empty-state__icon:has(+ .apml-empty-state__title) {
+  /* Retain the compact icon treatment for empty states not yet illustrated. */
+}
+@media (max-width: 600px) {
+  .apml-empty-state { min-height: 230px; padding: 24px 16px; }
+  .apml-empty-state__art { width: 148px; max-height: 108px; }
+}
+
+/* =========================================================
+   APML SHARED PAGE HERO
+   One compact, consistent heading system for internal pages.
+   Homepage mascot hero intentionally remains independent.
+   ========================================================= */
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 13px;
+  row-gap: 5px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > img.apml-3d-page-icon {
+  grid-column: 1;
+  grid-row: 1 / span 8;
+  align-self: start;
+  display: block;
+  width: 42px !important;
+  height: 42px !important;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 1px 0 0 !important;
+  filter: drop-shadow(0 5px 7px rgba(120, 70, 50, .12));
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > :not(img.apml-3d-page-icon) {
+  grid-column: 2;
+  min-width: 0;
+  text-align: left;
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > :is(h1, h2, .page-title, .drive-title) {
+  margin: 0 !important;
+  color: var(--apml-color-text, #292524);
+  font-size: clamp(23px, 2.8vw, 30px) !important;
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: -.035em;
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > :is(.header-badge, .eyebrow) {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 1px !important;
+  padding: 4px 10px;
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: .075em;
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > :is(p, .drive-sub-row) {
+  margin: 1px 0 0 !important;
+  color: var(--apml-color-text-muted, #78716c);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > .status-badge {
+  justify-self: start;
+  margin: 3px 0 0 !important;
+}
+
+:where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > .drive-stats-pills {
+  justify-self: start;
+  margin-top: 3px;
+}
+
+@media (max-width: 600px) {
+  :where(main) :is(div, header, section):has(> img.apml-3d-page-icon) {
+    grid-template-columns: 36px minmax(0, 1fr);
+    column-gap: 9px;
+    row-gap: 4px;
+    margin-bottom: 14px;
+  }
+  :where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > img.apml-3d-page-icon {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  :where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > :is(h1, h2, .page-title, .drive-title) {
+    font-size: clamp(20px, 5.4vw, 25px) !important;
+  }
+  :where(main) :is(div, header, section):has(> img.apml-3d-page-icon) > :is(p, .drive-sub-row) {
+    font-size: 12px;
+  }
+}
+
+/* Quotation Editor uses a compact inline title row rather than a stacked hero. */
+.brand-title-wrap:has(> .brand-title-icon) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.brand-title-wrap > .brand-title-icon {
+  width: 36px !important;
+  height: 36px !important;
+  flex: 0 0 36px;
+  object-fit: contain;
+  margin: 0 !important;
+  filter: drop-shadow(0 5px 7px rgba(120, 70, 50, .12));
+}
+.brand-title-wrap > h1 {
+  margin: 0 !important;
+  font-size: clamp(22px, 2.7vw, 29px) !important;
+  line-height: 1.16;
+  letter-spacing: -.035em;
+}
+@media (max-width: 600px) {
+  .brand-title-wrap { gap: 8px; }
+  .brand-title-wrap > .brand-title-icon {
+    width: 30px !important;
+    height: 30px !important;
+    flex-basis: 30px;
+  }
+  .brand-title-wrap > h1 { font-size: 21px !important; }
+}
+
+/* =========================================================
+   MOBILE TOUCH TARGET REFINEMENT
+   Keep the shared header comfortable to use on narrow phones.
+   ========================================================= */
+@media (max-width: 480px) {
+  .site-header .hamburger {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .site-header .theme-switch {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .nav-menu {
+    max-width: calc(100vw - 20px);
+  }
+
+  .nav-link {
+    min-height: 44px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+
+
+/* Canonical opaque footer surface: exactly the same page-colour token as the header. */
+#footer-container {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  background-color: var(--apml-color-page, #f7f5f0) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+#footer-container .site-footer-extended,
+#footer-container .apml-tw-footer,
+#footer-container > .site-footer {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  background-color: var(--apml-color-page, #f7f5f0) !important;
+  background-image: none !important;
+  opacity: 1 !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-theme="dark"] #footer-container,
+html[data-theme="dark"] #footer-container .site-footer-extended,
+html[data-theme="dark"] #footer-container .apml-tw-footer,
+html[data-theme="dark"] #footer-container > .site-footer {
+  background-color: var(--apml-color-page, #10141d) !important;
+  background-image: none !important;
+  color: var(--apml-color-text, #f2f3f5) !important;
+}
+
+</style>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+
+  <style>
+    :root {
+      --primary: #b91c1c;
+      --primary-dark: #881337;
+      --primary-soft: rgba(185, 28, 28, 0.08);
+      --primary-glow: rgba(185, 28, 28, 0.28);
+      --bg-base: #FDF8F5;
+      --surface-card: rgba(255, 255, 255, 0.95);
+      --surface-card-subtle: #f8fafc;
+      --surface-border: rgba(226, 232, 240, 0.9);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --radius-pill: 9999px;
+      --shadow-subtle: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+      --shadow-hover: 0 20px 35px -10px rgba(185, 28, 28, 0.14), 0 1px 3px rgba(0, 0, 0, 0.04);
+      --theme-transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    /* =========================================================
+       PAGE-SPECIFIC DARK MODE TOKENS
+       ========================================================= */
+    html[data-theme="dark"] {
+      --primary: #ef4444;
+      --primary-dark: #dc2626;
+      --primary-soft: rgba(239, 68, 68, 0.12);
+      --primary-glow: rgba(239, 68, 68, 0.35);
+      --bg-base: #090d16;
+      --surface-card: rgba(15, 23, 42, 0.92);
+      --surface-card-subtle: #131b2e;
+      --surface-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --shadow-subtle: 0 10px 30px -4px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: var(--theme-transition);
+    }
+
+    /* HIDE FOOTER COMPLETELY ON THIS PAGE */
+    #footer-container {
+      display: none !important;
+    }
+
+    /* =========================================================
+       HIDE MOUSE COMPLETELY DURING GAMEPLAY
+       ========================================================= */
+    body.game-active, 
+    body.game-active * {
+      cursor: none !important;
+    }
+
+    /* FULLSCREEN GAME CANVAS */
+    #game-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* COMPACT MINI ROCKET CURSOR */
+    #failed-rocket-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 24px;
+      height: 24px;
+      margin-top: -12px;
+      margin-left: -12px;
+      pointer-events: none;
+      z-index: 999999;
+      will-change: transform, opacity;
+      transform: translate3d(-100px, -100px, 0);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+    }
+
+    /* Ambient Light Mesh Background */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(circle at 50% 18%, rgba(254, 215, 202, 0.35) 0%, transparent 60%),
+        radial-gradient(circle at 85% 85%, rgba(254, 226, 226, 0.25) 0%, transparent 55%);
+      transition: background 0.6s ease;
+    }
+
+    html[data-theme="dark"] .ambient-bg {
+      background: 
+        radial-gradient(circle at 50% 20%, rgba(239, 68, 68, 0.12) 0%, transparent 65%),
+        radial-gradient(circle at 85% 85%, rgba(15, 23, 42, 0.8) 0%, transparent 60%);
+    }
+
+    /* 3D Perspective Matrix Floor */
+    .perspective-grid-layer {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      perspective: 1000px;
+      overflow: hidden;
+      opacity: 0.6;
+      transition: opacity 0.6s ease;
+    }
+
+    .matrix-plane {
+      position: absolute;
+      top: -20%;
+      left: -20%;
+      width: 140%;
+      height: 140%;
+      background-image: 
+        linear-gradient(to right, rgba(185, 28, 28, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+      background-size: 50px 50px;
+      transform: rotateX(45deg) scale(1.1);
+      transform-origin: center top;
+      transition: background-image 0.6s ease;
+    }
+
+    html[data-theme="dark"] .matrix-plane {
+      background-image: 
+        linear-gradient(to right, rgba(239, 68, 68, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* HEADER BLAST ANIMATION */
+    #header-container {
+      position: relative;
+      z-index: 20;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+      will-change: opacity, transform, filter;
+    }
+
+    #header-container.fired-up {
+      opacity: 0 !important;
+      transform: translateY(-40px) scale(0.96) !important;
+      filter: blur(4px) brightness(1.6);
+      pointer-events: none !important;
+    }
+
+    /* SCREEN VIEWS */
+    .screen-view {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .screen-view.hidden-view {
+      display: none !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       FIXED TOP ARCADE SCOREBOARD (ALWAYS VISIBLE DURING GAME)
+       ========================================================= */
+    .arcade-scoreboard {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px 8px 20px;
+      background: var(--surface-card);
+      border: 1.5px solid var(--surface-border);
+      border-radius: var(--radius-pill);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      z-index: 99999;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      color: var(--text-main);
+    }
+
+    body.game-active .arcade-scoreboard {
+      opacity: 1 !important;
+      transform: translateX(-50%) translateY(0) !important;
+      pointer-events: auto !important;
+    }
+
+    .score-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .score-label {
+      color: var(--text-muted);
+    }
+
+    .score-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    .score-divider {
+      width: 1px;
+      height: 14px;
+      background: var(--surface-border);
+    }
+
+    .level-badge {
+      color: #0284c7;
+    }
+
+    html[data-theme="dark"] .level-badge {
+      color: #38bdf8;
+    }
+
+    .lives-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      color: #e11d48;
+    }
+
+    .lives-badge .material-symbols-outlined {
+      font-size: 16px;
+      font-variation-settings: 'FILL' 1;
+    }
+
+    .btn-scoreboard-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface-card-subtle);
+      border: 1px solid var(--surface-border);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-scoreboard-toggle:hover {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-quit-game {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 12px;
+      background: var(--primary-soft);
+      border: 1px solid rgba(185, 28, 28, 0.3);
+      color: var(--primary);
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: all 0.2s ease;
+    }
+
+    .btn-quit-game:hover {
+      background: var(--primary);
+      color: #ffffff;
+      transform: scale(1.04);
+    }
+
+    .level-toast {
+      position: fixed;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: linear-gradient(135deg, #b91c1c 0%, #ea580c 100%);
+      color: #ffffff;
+      padding: 6px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(234, 88, 12, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 10000;
+    }
+
+    .level-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* OPEN SPACE LOTTIE STAGE (BIGGER SIZE ON MAIN PAGE, COMPACT IN GAME) */
+    .open-space-stage {
+      position: relative;
+      width: 360px;
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      margin-bottom: 2px;
+      transition: transform 0.3s ease;
+    }
+
+    body.game-active .open-space-stage {
+      transform: scale(0.65);
+    }
+
+    .broken-planet-center {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 8;
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .crt-mascot {
+      width: 280px;
+      height: 280px;
+      flex: 0 0 auto;
+      background-image: url("https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-directions.webp");
+      background-repeat: no-repeat;
+      background-size: 300% 300%;
+      background-position: 50% 50%;
+      pointer-events: none;
+      filter: drop-shadow(0 12px 24px rgba(15, 23, 42, 0.18));
+      transform-origin: center;
+      transition: transform 180ms ease, filter 180ms ease;
+      will-change: background-position, transform;
+    }
+
+    .crt-mascot.is-reacting {
+      transform: translateY(-5px) scale(1.035);
+      filter: drop-shadow(0 14px 28px rgba(185, 28, 28, 0.2));
+    }
+
+    @media (max-width: 640px) {
+      .crt-mascot {
+        width: min(72vw, 250px);
+        height: min(72vw, 250px);
+      }
+    }
+
+    .blast-ui-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      transition: opacity 0.3s ease, transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+      will-change: opacity, transform, filter;
+    }
+
+    .blast-ui-group.blasted {
+      opacity: 0 !important;
+      transform: scale(0.6) translateY(32px) !important;
+      filter: blur(4px) brightness(1.8);
+      pointer-events: none !important;
+    }
+
+    .badge-capsule {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-subtle);
+      margin-bottom: 4px;
+    }
+
+    .error-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(18px, 2.8vw, 22px);
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .error-description {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      max-width: 380px;
+      margin-bottom: 14px;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 15px;
+      border-radius: var(--radius-pill);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border: 1px solid var(--primary);
+      box-shadow: 0 3px 10px rgba(185, 28, 28, 0.22);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface-card);
+      color: var(--text-main);
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: var(--primary-soft);
+      border-color: rgba(185, 28, 28, 0.25);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* SCORE / LEADERBOARD VIEW */
+    #scoreView {
+      z-index: 1000;
+      pointer-events: auto !important;
+    }
+
+    .score-page-container {
+      max-width: 520px;
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1001;
+      pointer-events: auto !important;
+      animation: scorePageFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes scorePageFadeIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .score-card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .score-headline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .metric-card {
+      background: var(--surface-card-subtle);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .metric-card span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .metric-card b {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      color: var(--text-main);
+    }
+
+    .save-score-form {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1002;
+    }
+
+    .pilot-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid var(--surface-border);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+      color: var(--text-main);
+      background: var(--surface-card-subtle);
+    }
+
+    .pilot-input:focus {
+      border-color: var(--primary);
+      background: var(--surface-card);
+    }
+
+    .btn-submit-score {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-submit-score:hover {
+      background: var(--primary-dark);
+    }
+
+    .status-toast {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #16a34a;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 14px;
+      display: none;
+      width: 100%;
+      text-align: center;
+    }
+
+    .leaderboard-wrap {
+      width: 100%;
+      background: var(--surface-card-subtle);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .leaderboard-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      border-bottom: 1px dashed var(--surface-border);
+      padding-bottom: 4px;
+    }
+
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mission-hints { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:0 0 18px; max-width:620px; }
+    .mission-hints span { display:inline-flex; gap:5px; align-items:center; padding:7px 10px; border:1px solid var(--surface-border); border-radius:999px; background:var(--surface-card); color:var(--text-muted); font-size:10px; box-shadow:var(--shadow-subtle); }
+    .mission-hints b { color:var(--primary); font-weight:800; }
+    .leaderboard-row.top-rank { padding:7px 8px; border-radius:9px; background:rgba(245,158,11,.08); }
+    .leaderboard-row.rank-1 .rank-num { color:#d97706; }
+    .leaderboard-row.rank-2 .rank-num { color:#64748b; }
+    .leaderboard-row.rank-3 .rank-num { color:#b45309; }
+    .leaderboard-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      padding: 2px 0;
+    }
+
+    .leaderboard-row .rank-name {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      text-align: left;
+    }
+
+    .leaderboard-row .rank-num {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--primary);
+      width: 18px;
+    }
+
+    .entry-badge {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      background: rgba(148, 163, 184, 0.15);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .entry-date {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-family: 'Space Grotesk', monospace;
+    }
+
+    .leaderboard-row .entry-score {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 13px;
+      margin-left: 8px;
+    }
+
+    .esc-prompt-bar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      background: var(--surface-card-subtle);
+      border: 1px solid var(--surface-border);
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-subtle);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .esc-prompt-bar:hover {
+      background: var(--primary-soft);
+      border-color: rgba(185, 28, 28, 0.3);
+      color: var(--primary);
+    }
+
+    .esc-key {
+      background: var(--surface-card);
+      border: 1px solid var(--surface-border);
+      border-bottom: 2px solid var(--text-muted);
+      border-radius: 5px;
+      padding: 2px 5px;
+      font-size: 10px;
+      font-family: monospace;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    @media (max-width: 768px) {
+      .open-space-stage { transform: scale(0.9); margin-bottom: 0; }
+      .perspective-grid-layer { opacity: 0.35; }
+      #failed-rocket-cursor { display: none !important; }
+      body.game-active, 
+      body.game-active a, 
+      body.game-active button { cursor: none !important; }
+      .error-description { max-width: 270px; }
+      .arcade-scoreboard { gap: 6px; padding: 6px 10px; top: 12px; }
+      .score-page-container { padding: 18px 16px; }
+      .metrics-row { gap: 6px; }
+      .leaderboard-wrap { max-height: 200px; }
+    }
+
+    .error-code {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(64px, 12vw, 112px);
+      line-height: .9;
+      letter-spacing: -.09em;
+      font-weight: 800;
+      color: var(--primary);
+      text-shadow: 0 12px 36px rgba(185,28,28,.16);
+      margin: -12px 0 10px;
+    }
+    html, body { min-height: 100%; height: auto; }
+    body { min-height: 100svh; overflow-x: hidden; overflow-y: auto; }
+    .screen-view { min-height: calc(100svh - 76px); padding: clamp(18px,4vh,42px) 18px; }
+    .open-space-stage { width: min(360px,82vw); height: min(300px,42svh); min-height: 190px; }
+    .broken-planet-center, dotlottie-wc { width: min(320px,78vw); height: min(320px,78vw); max-height: 300px; }
+    .blast-ui-group { max-width: 720px; }
+    .error-description { max-width: 480px; font-size: 13px; line-height: 1.65; }
+    .btn-action { min-height: 42px; padding: 10px 17px; font-size: 12px; }
+    .score-page-container { max-height: calc(100svh - 28px); overflow-y: auto; }
+    @media (max-width: 600px) {
+      .screen-view { justify-content: flex-start; padding-top: 22px; padding-bottom: 30px; }
+      .open-space-stage { margin-top: 12px; height: 220px; min-height: 180px; }
+      .broken-planet-center, dotlottie-wc { width: 230px; height: 230px; }
+      .error-code { font-size: clamp(68px,19vw,92px); margin-top: -8px; }
+      .error-title { font-size: 20px; }
+      .action-group { width: 100%; max-width: 360px; gap: 10px; }
+      .btn-action { flex: 1 1 calc(50% - 8px); justify-content: center; }
+      .arcade-scoreboard { top: max(8px,env(safe-area-inset-top)); padding: 7px 9px; gap: 6px; }
+      .score-item { font-size: 9px; gap: 3px; }
+      .score-val { font-size: 12px; }
+      .score-divider { height: 12px; }
+      .btn-quit-game { padding: 5px 8px; font-size: 9px; }
+      .score-page-container { padding: 16px 12px; max-height: calc(100svh - 20px); }
+      .save-score-form { flex-direction: column; }
+      .btn-submit-score { justify-content: center; min-height: 42px; }
+    }
+    .btn-action, .btn-submit-score, .btn-quit-game, .btn-scoreboard-toggle, .esc-prompt-bar { min-height:44px; }
+    .pilot-input { min-height:48px; font-size:16px; }
+    .btn-action:focus-visible, .btn-submit-score:focus-visible, .btn-quit-game:focus-visible,
+    .btn-scoreboard-toggle:focus-visible, .esc-prompt-bar:focus-visible, .pilot-input:focus-visible {
+      outline:3px solid color-mix(in srgb, var(--primary) 48%, transparent); outline-offset:3px;
+    }
+    #scoreView { padding-left:max(14px,env(safe-area-inset-left)); padding-right:max(14px,env(safe-area-inset-right)); }
+    .leaderboard-wrap { overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+    @media (max-width:380px) {
+      .arcade-scoreboard { gap:4px; padding:6px 7px; }
+      .score-item { font-size:8px; } .score-val { font-size:11px; }
+      .btn-quit-game { padding:4px 6px; font-size:8px; }
+      .score-page-container { padding:14px 10px; border-radius:18px; }
+      .metrics-row { grid-template-columns:1fr 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
+    }
+
+  </style>
+
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+
+  <!-- GAME INTERACTION CANVAS -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- FIXED TOP ARCADE SCOREBOARD (ALWAYS VISIBLE DURING GAME) -->
+  <div class="arcade-scoreboard">
+    <div class="score-item">
+      <span class="score-label">Score:</span>
+      <span class="score-val" id="currentScore">0</span>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <span class="score-label">High:</span>
+      <span class="score-val" id="globalHighScore">0</span>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <span class="score-label">Lvl:</span>
+      <span class="score-val level-badge" id="currentLevel">1</span>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <span class="score-label">Lives:</span>
+      <span class="score-val lives-badge" id="livesDisplay">
+        <span class="material-symbols-outlined">favorite</span>
+        <span id="livesCountText">5</span>
+      </span>
+    </div>
+    <div class="score-divider"></div>
+
+    <button type="button" class="btn-quit-game" id="btnQuitLiveGame" title="Exit session and return to 404 hub">
+      <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+      <span>Close</span>
+    </button>
+  </div>
+
+  <!-- LEVEL UP TOAST -->
+  <div class="level-toast" id="levelToast">Level 1 • Velocity Increased!</div>
+
+  <!-- MINI FAILING ENGINE ROCKET CURSOR (24px) -->
+  <div id="failed-rocket-cursor">
+    <svg width="24" height="24" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
+      <path d="M19 3C19 3 26 9.5 26 22.5L22.5 25.5L19 23.5L15.5 25.5L12 22.5C12 9.5 19 3 19 3Z" fill="#b91c1c" stroke="#0f172a" stroke-width="1.3"/>
+      <circle cx="19" cy="11.5" r="2.8" fill="#e2e8f0" stroke="#0f172a" stroke-width="0.9"/>
+      <path d="M17.8 10.5L20.2 12.5M19 9.5L18.5 13.5" stroke="#0f172a" stroke-width="0.7"/>
+      <path d="M12 18L6 23.5V27L12 25.5V18Z" fill="#334155" stroke="#0f172a" stroke-width="1"/>
+      <path d="M26 18L32 23.5V27L26 25.5V18Z" fill="#0f172a" stroke="#0f172a" stroke-width="1"/>
+      <path d="M16 25.5L19 31L22 25.5H16Z" fill="#475569"/>
+      <path d="M17.5 25.5L19 28.5L20.5 25.5H17.5Z" fill="#f59e0b"/>
+    </svg>
+  </div>
+
+  <!-- Ambient Light Mesh Background -->
+  <div class="ambient-bg"></div>
+
+  <!-- 3D Perspective Matrix Floor -->
+  <div class="perspective-grid-layer" aria-hidden="true">
+    <div class="matrix-plane" id="matrixPlane"></div>
+  </div>
+
+  <!-- Header Injected via common.js -->
+  <div id="header-container"></div>
+
+  <!-- =========================================================
+       VIEW 1: PRIMARY 404 ORBIT & GAME STAGE
+       ========================================================= -->
+  <main class="screen-view" id="gameView">
+    
+    <!-- OPEN SPACE LOTTIE STAGE (BIGGER SIZE) -->
+    <div class="open-space-stage" id="spaceStage">
+      <div class="broken-planet-center" id="planetCenter">
+        <div class="crt-mascot" id="crtMascot" role="img" aria-label="Friendly CRT mascot"></div>
+      </div>
+    </div>
+
+    <div class="blast-ui-group" id="blastUiGroup">
+      
+      <div class="error-code" aria-label="Error 404">404</div>
+      <h1 class="error-title">This destination is off the map</h1>
+
+      <p class="error-description" id="gameDescText">
+        The page you’re looking for doesn’t exist or may have moved. Head back to the portal, or launch the optional asteroid-defense mission.
+      </p>
+      <div class="mission-hints" aria-label="Mini game instructions">
+        <span><b>Move</b> Move your pointer or finger</span>
+        <span><b>Fire</b> Click or tap to shoot</span>
+        <span><b>Goal</b> Protect the planet for as long as you can</span>
+      </div>
+
+      <div class="action-group" id="actionGroupBar">
+        <button type="button" class="btn-action btn-primary" id="btnStartGame">
+          <span class="material-symbols-outlined" style="font-size: 16px;">play_arrow</span>
+          <span>Launch Mini Game</span>
+        </button>
+        <button type="button" class="btn-action btn-secondary" id="btnCheckScores">
+          <span class="material-symbols-outlined" style="font-size: 16px;">leaderboard</span>
+          <span>Check Scores</span>
+        </button>
+        <a href="/" class="btn-action btn-secondary">
+          <span class="material-symbols-outlined" style="font-size: 15px;">hub</span>
+          <span>Home Hub</span>
+        </a>
+        <button type="button" onclick="window.history.back()" class="btn-action btn-secondary">
+          <span class="material-symbols-outlined" style="font-size: 15px;">history</span>
+          <span>Return</span>
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- =========================================================
+       VIEW 2: DEDICATED SCORE & GLOBAL LEADERBOARD PAGE
+       ========================================================= -->
+  <main class="screen-view hidden-view" id="scoreView">
+    <div class="score-page-container">
+      
+      <div class="score-card-header">
+        <div class="badge-capsule">
+          <span class="material-symbols-outlined" style="font-size: 13px;">military_tech</span>
+          <span id="scoreCardBadge">Mission Debrief</span>
+        </div>
+        <h2 class="score-headline" id="scoreCardHeading">Defense Over</h2>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <span>Current Score</span>
+          <b id="pageFinalScore">0</b>
+        </div>
+        <div class="metric-card">
+          <span>Wave Level</span>
+          <b id="pageFinalLevel">1</b>
+        </div>
+      </div>
+
+      <!-- FORM TO SAVE CURRENT SCORE GLOBALLY TO FIREBASE -->
+      <form class="save-score-form" id="saveScoreForm">
+        <input type="text" id="pilotCallsignInput" class="pilot-input" placeholder="Enter pilot callsign..." maxlength="18" required autocomplete="off">
+        <button type="submit" id="btnSubmitScore" class="btn-submit-score">
+          <span class="material-symbols-outlined" style="font-size: 16px;">cloud_upload</span>
+          <span>Save Score</span>
+        </button>
+      </form>
+
+      <div class="status-toast" id="globalStatusToast">✓ Score saved! Reloading mission...</div>
+
+      <!-- GLOBAL REAL-TIME LEADERBOARD (TOP 30) -->
+      <div class="leaderboard-wrap">
+        <div class="leaderboard-title">
+          <span>Top 30 Global Scoreboard</span>
+          <span>Score</span>
+        </div>
+        <div class="leaderboard-list" id="leaderboardList">
+          <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 0;">Syncing scoreboard...</div>
+        </div>
+      </div>
+
+      <!-- ESC RETURN CONTROLLER -->
+      <div class="esc-prompt-bar" id="pageEscBtn">
+        <span>Press</span>
+        <kbd class="esc-key">Esc</kbd>
+        <span>to replay 404 mission</span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer Injected via common.js (Hidden via CSS) -->
+  <div id="footer-container"></div>
+
+  <!-- FIREBASE SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8",
+      authDomain: "apml-portal.firebaseapp.com",
+      databaseURL: "https://apml-portal-default-rtdb.firebaseio.com",
+      projectId: "apml-portal",
+      storageBucket: "apml-portal.firebasestorage.app",
+      messagingSenderId: "479017159240",
+      appId: "1:479017159240:web:0853422718e6195b74a67d",
+      measurementId: "G-4H1HT31DYB"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+  </script>
+
+  <!-- Common Navigation Scripts -->
+  <script>
+// =========================================================
+// SHARED APML PAGE LOADER — lightweight CSS spinner
+// =========================================================
+(function initSharedPageLoader() {
+  const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+  const isHomePage = !currentPage || currentPage === 'index.html' || currentPage === 'index';
+  const isAnalyticsPage = currentPage === 'analytics.html' || currentPage === 'analytics';
+  const isEditorPage = currentPage === 'editor.html' || currentPage === 'editor';
+  const isGalleryPage = currentPage === 'gallery.html' || currentPage === 'gallery';
+  const isDrivePage = currentPage === 'drive.html' || currentPage === 'drive';
+  const isDirectoryPage = currentPage === 'directory.html' || currentPage === 'directory';
+  const isFieldOfficerPage = currentPage === 'field-officer.html' || currentPage === 'field-officer';
+  if (isHomePage || isAnalyticsPage || isEditorPage) return;
+  const keepPageLoader = isDirectoryPage || isFieldOfficerPage || isDrivePage || isGalleryPage;
+  if (!keepPageLoader || document.getElementById('pageLoadingOverlay')) return;
+
+  const pageCopy = isDrivePage
+    ? ['files','folders','documents','uploads','files']
+    : isGalleryPage
+      ? ['images','media','standards','albums','images']
+      : isDirectoryPage
+        ? ['contacts','records','branches','details','contacts']
+        : ['officers','records','branches','details','officers'];
+
+  const style = document.createElement('style');
+  style.id = 'apml-shared-page-loader-style';
+  style.textContent = `
+    #pageLoadingOverlay.apml-shared-page-loader { position:fixed; inset:0; z-index:999999; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(253,248,245,.48); -webkit-backdrop-filter:blur(12px) saturate(115%); backdrop-filter:blur(12px) saturate(115%); opacity:1; visibility:visible; transition:opacity .35s ease,visibility .35s ease; }
+    #pageLoadingOverlay.apml-shared-page-loader.hide { opacity:0; visibility:hidden; pointer-events:none; }
+    #pageLoadingOverlay .loader-card-box { display:flex; flex-direction:column; align-items:center; padding:1.5rem 2rem; border-radius:1.25rem; background:rgba(255,255,255,.82); border:1px solid rgba(255,255,255,.78); box-shadow:0 18px 48px rgba(45,35,30,.12); }
+    #pageLoadingOverlay .spinnerContainer { display:flex; flex-direction:column; align-items:center; }
+    #pageLoadingOverlay .spinner { width:56px; height:56px; display:grid; border:4px solid transparent; border-radius:50%; border-right-color:var(--primary,#b4232c); animation:apml-tri-spinner 1s infinite linear; }
+    #pageLoadingOverlay .spinner::before,#pageLoadingOverlay .spinner::after { content:""; grid-area:1/1; margin:2px; border:inherit; border-radius:50%; animation:apml-tri-spinner 2s infinite; }
+    #pageLoadingOverlay .spinner::after { margin:8px; animation-duration:3s; }
+    @keyframes apml-tri-spinner { to { transform:rotate(1turn); } }
+    #pageLoadingOverlay .loader { color:var(--text-main,#4a4a4a); font-family:var(--font-sans,'Plus Jakarta Sans',sans-serif); font-weight:600; font-size:22px; box-sizing:content-box; height:40px; padding:8px 10px; display:flex; border-radius:8px; }
+    #pageLoadingOverlay .words { overflow:hidden; color:var(--primary,#b4232c); }
+    #pageLoadingOverlay .word { display:block; height:100%; padding-left:6px; animation:apml-cycle-words 5s infinite; }
+    @keyframes apml-cycle-words { 10%{transform:translateY(-105%)} 25%{transform:translateY(-100%)} 35%{transform:translateY(-205%)} 50%{transform:translateY(-200%)} 60%{transform:translateY(-305%)} 75%{transform:translateY(-300%)} 85%{transform:translateY(-405%)} 100%{transform:translateY(-400%)} }
+    @media(max-width:480px) { #pageLoadingOverlay .loader-card-box { padding:1.35rem 1.5rem; } #pageLoadingOverlay .loader { font-size:20px; } }
+    @media(prefers-reduced-motion:reduce) { #pageLoadingOverlay .spinner,#pageLoadingOverlay .spinner::before,#pageLoadingOverlay .spinner::after,#pageLoadingOverlay .word { animation:none; } #pageLoadingOverlay.apml-shared-page-loader { transition:none; } }
+  `;
+  (document.head || document.documentElement).appendChild(style);
+
+  const overlay=document.createElement('div');
+  overlay.id='pageLoadingOverlay';
+  overlay.className='apml-shared-page-loader';
+  overlay.setAttribute('role','status');
+  overlay.setAttribute('aria-live','polite');
+  overlay.innerHTML=`
+    <div class="loader-card-box"><div class="spinnerContainer">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loader"><p>loading</p><div class="words">${pageCopy.map(word => `<span class="word">${word}</span>`).join('')}</div></div>
+    </div></div>`;
+  if(document.body) document.body.insertBefore(overlay,document.body.firstChild);
+  else document.addEventListener('DOMContentLoaded',()=>document.body.insertBefore(overlay,document.body.firstChild),{once:true});
+
+  let dismissed=false;
+  const dismiss=()=>{
+    if(dismissed)return;
+    dismissed=true;
+    window.setTimeout(()=>{ overlay.classList.add('hide'); window.setTimeout(()=>overlay.remove(),450); },250);
+  };
+  if(document.readyState==='complete') window.setTimeout(dismiss,500);
+  else window.addEventListener('load',dismiss,{once:true});
+  window.setTimeout(dismiss,12000);
+})();
+
+// =========================================================
+// SORTABLEJS - SHARED DRAG-AND-DROP LIBRARY
+// Available on every page that loads common.js.
+// Pages can await window.APMLSortableReady before creating sortable lists.
+// =========================================================
+(function loadSortableJS() {
+  const currentPage = window.location.pathname.split('/').pop().toLowerCase();
+  if (currentPage === 'analytics.html' || currentPage === 'analytics' || currentPage === 'editor.html' || currentPage === 'editor' || currentPage === 'gallery.html' || currentPage === 'gallery' || currentPage === 'drive.html' || currentPage === 'drive') return;
+  if (window.Sortable) {
+    window.APMLSortableReady = Promise.resolve(window.Sortable);
+    return;
+  }
+  if (window.APMLSortableReady) return;
+
+  window.APMLSortableReady = new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-apml-sortablejs]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(window.Sortable), { once: true });
+      existing.addEventListener('error', reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js';
+    script.async = true;
+    script.dataset.apmlSortablejs = 'true';
+    script.onload = () => {
+      if (window.Sortable) resolve(window.Sortable);
+      else reject(new Error('SortableJS loaded but window.Sortable is unavailable.'));
+    };
+    script.onerror = () => reject(new Error('Unable to load SortableJS.'));
+    document.head.appendChild(script);
+  });
+  window.APMLSortableReady.catch((error) => {
+    console.warn('APML SortableJS load failed:', error);
+  });
+})();
+
+// =========================================================
+// APML STANDALONE APK DETECTION
+// =========================================================
+(function detectStandaloneApp() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+                    || window.navigator.standalone 
+                    || document.referrer.includes('android-app://');
+
+  if (isStandalone) {
+    document.documentElement.classList.add('is-native-apk');
+  }
+})();
+
+// =========================================================
+// APML WEB APP INSTALL PROMOTION (PWA SHORTCUT)
+// =========================================================
+(function initPwaInstallPromotion() {
+  // Make the install manifest available on every portal page.
+  if (!document.querySelector('link[rel="manifest"]')) {
+    const manifest = document.createElement('link');
+    manifest.rel = 'manifest';
+    manifest.href = '/manifest.json';
+    document.head.appendChild(manifest);
+  }
+
+  // iOS home-screen icon; Android/Chrome uses the PNG entries in manifest.json.
+  if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+    const appleIcon = document.createElement('link');
+    appleIcon.rel = 'apple-touch-icon';
+    appleIcon.href = '/icon-192.png';
+    document.head.appendChild(appleIcon);
+  }
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone
+    || document.referrer.includes('android-app://');
+  if (isStandalone) return;
+
+  // Show the install suggestion on phones only; never on desktop or tablets.
+  const userAgent = navigator.userAgent || '';
+  const isPhone = /iPhone|iPod|Android.*Mobile|Windows Phone|IEMobile|BlackBerry|Opera Mini/i.test(userAgent);
+  if (!isPhone) return;
+
+  let deferredInstallPrompt = null;
+  let dismissedUntil = 0;
+  try {
+    dismissedUntil = Number(localStorage.getItem('apml-pwa-promo-dismissed-until') || 0);
+  } catch (error) {}
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .apml-app-promo-backdrop{position:fixed;inset:0;z-index:100500;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.58);backdrop-filter:blur(7px);opacity:0;animation:apmlPromoFade .24s ease forwards}
+    .apml-app-promo-card{position:relative;width:min(100%,410px);overflow:hidden;border:1px solid rgba(255,255,255,.72);border-radius:24px;background:var(--surface-card,#fff);color:var(--text-main,#1c1917);box-shadow:0 28px 90px rgba(0,0,0,.28);padding:30px 26px 24px;text-align:center;font-family:var(--font-sans,Arial,sans-serif)}
+    .apml-app-promo-top{height:5px;position:absolute;inset:0 0 auto;background:linear-gradient(90deg,#991b1b,#dc2626,#fb7185)}
+    .apml-app-promo-logo{width:66px;height:66px;object-fit:contain;margin:4px auto 16px;display:block}
+    .apml-app-promo-kicker{font-size:11px;letter-spacing:.16em;font-weight:800;color:#b91c1c;text-transform:uppercase;margin-bottom:8px}
+    .apml-app-promo-title{font-size:24px;line-height:1.2;font-weight:800;letter-spacing:-.04em;margin:0 0 10px;color:var(--text-main,#1c1917)}
+    .apml-app-promo-copy{font-size:14px;line-height:1.65;color:var(--text-secondary,#57534e);margin:0 auto 22px;max-width:320px}
+    .apml-app-promo-actions{display:grid;gap:10px}
+    .apml-app-promo-install{display:flex;align-items:center;justify-content:center;min-height:48px;border:0;border-radius:13px;background:#b91c1c;color:#fff!important;font:800 14px inherit;text-decoration:none!important;cursor:pointer;box-shadow:0 7px 18px rgba(185,28,28,.2)}
+    .apml-app-promo-dismiss{min-height:44px;border:0;background:transparent;color:var(--text-muted,#78716c);font:700 13px inherit;cursor:pointer}
+    .apml-app-promo-note{font-size:11px;line-height:1.55;color:var(--text-muted,#78716c);margin-top:13px}
+    .apml-app-promo-close{position:absolute;right:13px;top:13px;width:34px;height:34px;border:0;border-radius:50%;background:var(--surface-subtle,#f5f5f4);color:var(--text-secondary,#57534e);font-size:21px;line-height:1;cursor:pointer}
+    @keyframes apmlPromoFade{to{opacity:1}}
+    @media(prefers-reduced-motion:reduce){.apml-app-promo-backdrop{animation:none;opacity:1}}
+  `;
+  document.head.appendChild(style);
+
+  let backdrop = null;
+  let installButton = null;
+  let note = null;
+  let hasBeenShown = false;
+
+  function closePromo(saveDismissal = true) {
+    if (!backdrop) return;
+    if (saveDismissal) {
+      try { localStorage.setItem('apml-pwa-promo-dismissed-until', String(Date.now() + 7 * 24 * 60 * 60 * 1000)); } catch (error) {}
+    }
+    backdrop.remove();
+    backdrop = null;
+  }
+
+  function showPromo() {
+    if (hasBeenShown || Date.now() < dismissedUntil || window.matchMedia('(display-mode: standalone)').matches) return;
+    hasBeenShown = true;
+    backdrop = document.createElement('div');
+    backdrop.className = 'apml-app-promo-backdrop';
+    backdrop.setAttribute('role','dialog');
+    backdrop.setAttribute('aria-modal','true');
+    backdrop.setAttribute('aria-labelledby','apml-app-promo-title');
+    backdrop.innerHTML = `
+      <section class="apml-app-promo-card">
+        <div class="apml-app-promo-top"></div>
+        <button class="apml-app-promo-close" type="button" aria-label="Close install prompt">×</button>
+        <img class="apml-app-promo-logo" src="logo.svg" alt="APML Portal">
+        <div class="apml-app-promo-kicker">Your workspace, one tap away</div>
+        <h2 class="apml-app-promo-title" id="apml-app-promo-title">Add APML Portal to your home screen</h2>
+        <p class="apml-app-promo-copy">Open your portal like an app — quickly, in its own window, without searching for the website every time.</p>
+        <div class="apml-app-promo-actions">
+          <button class="apml-app-promo-install" type="button">Add APML Shortcut</button>
+          <button class="apml-app-promo-dismiss" type="button">Continue in Browser</button>
+        </div>
+        <div class="apml-app-promo-note">Free · No APK · Uses your browser</div>
+      </section>`;
+    document.body.appendChild(backdrop);
+    installButton = backdrop.querySelector('.apml-app-promo-install');
+    note = backdrop.querySelector('.apml-app-promo-note');
+
+    installButton.addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        if (choice && choice.outcome === 'accepted') closePromo(false);
+        else if (note) note.textContent = 'No problem — you can add APML Portal later from your browser menu.';
+        return;
+      }
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      if (note) note.textContent = isIOS
+        ? 'In Safari, tap Share, then choose “Add to Home Screen”.'
+        : 'Open your browser menu (⋮) and choose “Install app” or “Add to Home screen”.';
+      installButton.textContent = 'Got it';
+      installButton.onclick = () => closePromo();
+    });
+
+    backdrop.querySelector('.apml-app-promo-close').addEventListener('click', () => closePromo());
+    backdrop.querySelector('.apml-app-promo-dismiss').addEventListener('click', () => closePromo());
+    backdrop.addEventListener('click', event => { if (event.target === backdrop) closePromo(); });
+    document.addEventListener('keydown', function onEscape(event) {
+      if (event.key === 'Escape' && backdrop) {
+        closePromo();
+        document.removeEventListener('keydown', onEscape);
+      }
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    closePromo(false);
+  });
+
+  // Give the page time to load before showing the install suggestion.
+  window.addEventListener('load', () => {
+    window.setTimeout(showPromo, 5000);
+  }, { once: true });
+})();
+ 
+// =========================================================
+// HISTORICAL DAILY ANALYTICS TRACKER
+// =========================================================
+// Keep analytics date keys aligned with the dashboard's Asia/Kolkata calendar.
+function getIndiaDateKey() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+}
+
+function hasAnalyticsConsent() {
+  try {
+    const choice = JSON.parse(localStorage.getItem('apml-privacy-consent') || 'null');
+    return !!(choice && choice.analytics === true) || localStorage.getItem('apml-analytics-consent') === 'yes';
+  } catch (_) { return false; }
+}
+window.apmlHasAnalyticsConsent = hasAnalyticsConsent;
+
+function logDailyActivity(type) {
+  try {
+    if (!hasAnalyticsConsent() || typeof firebase === 'undefined' || !firebase.database) return;
+    const db = firebase.database();
+    const today = getIndiaDateKey();
+    const logRef = db.ref(`analytics/daily_logs/${today}/${type}`);
+    logRef.transaction((currentValue) => (currentValue || 0) + 1);
+  } catch (err) {
+    console.warn("Daily log error:", err);
+  }
+}
+
+function recordDailyVisitorIfAllowed() {
+  if (!hasAnalyticsConsent()) return;
+  try {
+    const today = getIndiaDateKey();
+    if (localStorage.getItem('apml_last_visit_date') !== today) {
+      logDailyActivity('visitors');
+      localStorage.setItem('apml_last_visit_date', today);
+    }
+  } catch (_) {}
+}
+window.addEventListener('DOMContentLoaded', recordDailyVisitorIfAllowed);
+window.addEventListener('apml-analytics-consent-granted', recordDailyVisitorIfAllowed);
+
+// --- TRACK PEAK CONCURRENT ONLINE USERS PER DAY ---
+let dailyPeakTrackingStarted = false;
+function initDailyPeakTracker() {
+  if (dailyPeakTrackingStarted || !hasAnalyticsConsent()) return;
+  try {
+    if (!hasAnalyticsConsent() || typeof firebase === 'undefined' || !firebase.database) return;
+    const db = firebase.database();
+    dailyPeakTrackingStarted = true;
+    const today = getIndiaDateKey();
+    const peakRef = db.ref(`analytics/daily_logs/${today}/peak_online`);
+
+    // Monitor active presence nodes in real-time
+    db.ref("presence").on("value", (snap) => {
+      const currentActive = snap.numChildren() || 0;
+      if (currentActive > 0) {
+        // Atomically update peak if current online count exceeds today's previous high
+        peakRef.transaction((currentPeak) => {
+          return Math.max(currentPeak || 0, currentActive);
+        });
+      }
+    });
+  } catch (err) {
+    console.warn("Peak online tracking error:", err);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', initDailyPeakTracker);
+window.addEventListener('apml-analytics-consent-granted', initDailyPeakTracker);
+
+// =========================================================
+// EMAIL ALERTS REMOVED
+// Alerts now go to Telegram through notify.js. This empty function stays only so that any page
+// that still calls window.sendPortalNotification(...) keeps working: it sends nothing anywhere.
+// =========================================================
+window.sendPortalNotification = function () {};
+
+// =========================================================
+// APML COMMON HEADER, FOOTER & ROUTE DETECTION SCRIPT
+// =========================================================
+(function initCommonLayout() {
+  function renderHeaderAndFooter() {
+    const currentPage = window.location.pathname.split("/").pop() || "index.html";
+    const isHomePage = (currentPage === "index.html" || currentPage === "" || currentPage === "index");
+
+    // Shared header stays visible on every page.
+
+    // 1. INJECT HEADER (Rotating Hub Logo + Navigation)
+    const headerContainer = document.getElementById("header-container");
+    if (headerContainer) {
+      headerContainer.innerHTML = `
+        <header class="site-header" id="siteHeader">
+          <div class="header-inner">
+            <div style="display: flex; align-items: center; gap: 20px;">
+              <a href="/index.html" class="site-logo">
+                <div class="logo-badge">
+                  <img src="logo.svg" alt="APML Hub" style="width: 24px; height: 24px; display: block; object-fit: contain;">
+                </div>
+                <div class="logo-text">APML <span>Portal</span></div>
+              </a>
+
+            </div>
+
+<div class="header-controls">
+              <!-- Compact light/dark theme switch -->
+              <label class="theme-switch" for="themeToggle" title="Switch theme">
+                <input id="themeToggle" class="theme-switch-input" type="checkbox" role="switch" aria-label="Switch to dark theme">
+                <span class="theme-switch-track" aria-hidden="true">
+                  <span class="theme-switch-thumb"></span>
+                </span>
+              </label>
+              <!-- Animated SVG hamburger toggle -->
+              <label class="hamburger hamburger-btn" id="hamburgerBtn">
+              <input id="burger-checkbox" class="burger-checkbox" type="checkbox" aria-label="Toggle navigation menu" aria-controls="navMenu">
+              <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+                <path class="line" d="M7 16 27 16"></path>
+              </svg>
+              </label>
+            </div>
+
+            <!-- Navigation Menu Dropdown -->
+            <nav class="nav-menu" id="navMenu">
+              <a href="/index.html" class="nav-link ${isHomePage ? 'active' : ''}">
+                <span class="material-symbols-outlined">home</span>
+                <span>Home</span>
+              </a>
+              <a href="/modules/editor.html" class="nav-link ${currentPage === 'editor.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">edit_note</span>
+                <span>Quotation Editor</span>
+              </a>
+              <a href="/modules/gallery.html" class="nav-link ${currentPage === 'gallery.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">photo_library</span>
+                <span>Gallery</span>
+              </a>
+              <a href="/modules/drive.html" class="nav-link ${currentPage === 'drive.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">cloud</span>
+                <span>Cloud Drive</span>
+              </a>
+              <a href="/modules/directory.html" class="nav-link ${currentPage === 'directory.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">location_city</span>
+                <span>Hub &amp; Branch Directory</span>
+              </a>
+              <a href="/modules/field-officer.html" class="nav-link ${currentPage === 'field-officer.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">badge</span>
+                <span>Field Officer Directory WCRO</span>
+              </a>
+              <a href="/modules/APML-Lite.html" class="nav-link ${currentPage === 'APML-Lite.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">grid_view</span>
+                <span>APML Lite</span>
+              </a>
+              <a href="/modules/car-rate.html" class="nav-link ${currentPage === 'car-rate.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">directions_car</span>
+                <span>Car Rate</span>
+              </a>
+              <a href="/modules/local-rate.html" class="nav-link ${currentPage === 'local-rate.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">local_shipping</span>
+                <span>APML Local Rate</span>
+              </a>
+              <a href="/modules/system-health.html" class="nav-link ${currentPage === 'system-health.html' ? 'active' : ''}">
+                <span class="material-symbols-outlined">monitor_heart</span>
+                <span>System Health</span>
+              </a>
+            </nav>
+          </div>
+        </header>
+      `;
+
+      // Shared light/dark theme switch. Keep the saved preference in sync across every page.
+      const themeToggle = document.getElementById("themeToggle");
+      function syncThemeToggle() {
+        if (!themeToggle) return;
+        const dark = document.documentElement.getAttribute("data-theme") === "dark";
+        themeToggle.checked = dark;
+        themeToggle.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+        themeToggle.title = dark ? "Switch to light theme" : "Switch to dark theme";
+      }
+      syncThemeToggle();
+      themeToggle?.addEventListener("change", () => {
+        const nextTheme = themeToggle.checked ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", nextTheme);
+        try { localStorage.setItem("apml-theme", nextTheme); } catch (error) {}
+        syncThemeToggle();
+      });
+
+      // Event Listeners for Hamburger Toggle & Outside Clicks
+      const hamburgerBtn = document.getElementById("hamburgerBtn");
+      const burgerCheckbox = document.getElementById("burger-checkbox");
+      const navMenu = document.getElementById("navMenu");
+      const siteHeader = document.getElementById("siteHeader");
+
+      function setMenuOpen(isOpen) {
+        if (!hamburgerBtn || !burgerCheckbox || !navMenu) return;
+        burgerCheckbox.checked = isOpen;
+        hamburgerBtn.classList.toggle("is-active", isOpen);
+        navMenu.classList.toggle("open", isOpen);
+        hamburgerBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+
+      if (hamburgerBtn && burgerCheckbox && navMenu) {
+        burgerCheckbox.addEventListener("change", () => {
+          setMenuOpen(burgerCheckbox.checked);
+        });
+
+        navMenu.querySelectorAll(".nav-link").forEach((link) => {
+          link.addEventListener("click", () => setMenuOpen(false));
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!navMenu.contains(e.target) && !hamburgerBtn.contains(e.target) && e.target !== burgerCheckbox) {
+            setMenuOpen(false);
+          }
+        });
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") setMenuOpen(false);
+        });
+      }
+
+    // 2. INJECT EDGE-TO-EDGE STRETCHED FOOTER
+    const footerContainer = document.getElementById("footer-container");
+    if (footerContainer) {
+      const currentYear = new Date().getFullYear();
+      footerContainer.innerHTML = `
+        <footer class="site-footer-extended apml-tw-footer">
+          <div class="apml-tw-footer-inner">
+            <div class="apml-tw-footer-top">
+              <section class="apml-tw-brand" aria-label="APML Portal information">
+                <a class="apml-tw-logo" href="/index.html" aria-label="APML Portal home">
+                  <span class="apml-tw-logo-badge"><img src="/logo.svg" alt="" width="24" height="24"></span>
+                  <span class="apml-tw-logo-text">APML <span>PORTAL</span></span>
+                </a>
+                <p>Independent, unofficial utility website built primarily to help APML employees with selected work tasks. It is not an official company website.</p>
+                <ul class="apml-tw-socials" aria-label="Contact and social links">
+                  <li><a href="mailto:Kundar.work@gmail.com" aria-label="Email APML Portal" title="Email">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 8L4 7v10h16V7l-8 6zm0-2 7-4H5l7 4z"/></svg>
+                  </a></li>
+                  <li><a href="https://wa.me/919910579530" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 2 17.7L.5 23.5l6-1.6A11.8 11.8 0 0 0 23.5 11a11.7 11.7 0 0 0-3-7.5zM12 21a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.5.9.9-3.4-.2-.4A9.8 9.8 0 1 1 12 21zm5.4-7.3c-.3-.2-1.7-.9-2-.9-.2-.1-.4-.2-.6.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.2-1.2-.5-2.3-1.5-.8-.7-1.4-1.6-1.6-1.9-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.1c-.2-.5-.5-.4-.6-.4h-.5c-.2 0-.5.1-.7.4-.3.3-1 1-1 2.4s1 2.8 1.1 3c.2.2 2 3.1 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>
+                  </a></li>
+                  <li><a href="https://github.com/kundarwork-debug" target="_blank" rel="noopener noreferrer" aria-label="GitHub profile" title="GitHub">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.2 11.2 0 0 0-3.5 21.8c.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.4-4-1.4-.5-1.3-1.2-1.6-1.2-1.6-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.4-1.3-5.4-5.9 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.6-2.8 5.6-5.4 5.9.4.3.8 1 .8 2v3c0 .3.2.7.8.6A11.2 11.2 0 0 0 12 .8z"/></svg>
+                  </a></li>
+                </ul>
+                <div class="footer-developer-tag">Designed &amp; developed by <span>Prasad Kundar</span></div>
+              </section>
+
+              <div class="apml-tw-link-grid">
+                <nav aria-label="Work tools">
+                  <h2>Work tools</h2>
+                  <ul>
+                    <li><a href="/index.html">Home Portal</a></li>
+                    <li><a href="/modules/editor.html">Quotation Editor</a></li>
+                    <li><a href="/modules/gallery.html">Packing Gallery</a></li>
+                    <li><a href="/modules/drive.html">Cloud Drive</a></li>
+                  </ul>
+                </nav>
+                <nav aria-label="Directories">
+                  <h2>Directories</h2>
+                  <ul>
+                    <li><a href="/modules/directory.html">Hub &amp; Branch Directory</a></li>
+                    <li><a href="/modules/field-officer.html">Field Officer WCRO</a></li>
+                  </ul>
+                </nav>
+                <nav aria-label="Helpful links">
+                  <h2>Helpful links</h2>
+                  <ul>
+                    <li><a href="/about.html">About Developer</a></li>
+                    <li><a href="/policy/bug-report.html">Report a Bug</a></li>
+                    <li><a href="/404.html">Play Now</a></li>
+                  </ul>
+                </nav>
+                <nav aria-label="Legal">
+                  <h2>Legal</h2>
+                  <ul>
+                    <li><a href="/policy/privacy.html">Privacy Policy</a></li>
+                    <li><a href="/policy/terms.html">Terms &amp; Conditions</a></li>
+                    <li><a href="/policy/cookies.html">Cookies &amp; Storage Policy</a></li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
+
+            <div class="apml-tw-footer-bottom">
+              <p>© ${currentYear} APML Portal. All rights reserved.</p>
+
+            </div>
+          </div>
+        </footer>
+        <style>
+          #footer-container{background:var(--apml-color-page,#f7f5f0)!important}
+          #footer-container .apml-tw-footer {
+            --apml-tw-accent: var(--md-sys-color-primary, #b91c1c);
+            --apml-tw-bg: var(--apml-color-page, #f7f5f0);
+            --apml-tw-text: var(--apml-color-text, #292524);
+            --apml-tw-muted: var(--apml-color-text-secondary, #57534e);
+            display:block;width:100%;box-sizing:border-box;
+            padding:0;background:var(--apml-color-page,#f7f5f0)!important;
+            background-color:var(--apml-color-page,#f7f5f0)!important;background-image:none!important;
+            color:var(--apml-tw-text);border-top:1px solid var(--apml-color-border,#e7dfd8);
+          }
+          html[data-theme="dark"] #footer-container{background:var(--apml-color-page,#10141d)!important}
+          html[data-theme="dark"] #footer-container .apml-tw-footer{background:var(--apml-color-page,#10141d)!important;background-color:var(--apml-color-page,#10141d)!important}
+          #footer-container .apml-tw-logo{display:inline-flex;align-items:center;gap:10px;min-height:42px;text-decoration:none;color:var(--apml-tw-text)}
+          #footer-container .apml-tw-logo-badge{width:34px;height:34px;flex:0 0 34px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:var(--md-sys-color-primary-container,rgba(185,28,28,.1));border:1.5px solid rgba(185,28,28,.25)}
+          #footer-container .apml-tw-logo-badge img{display:block;width:24px;height:24px;object-fit:contain;animation:unifiedLogoSpin 12s linear infinite;transform-origin:center center;will-change:transform}
+          #footer-container .apml-tw-logo-text{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--apml-tw-text);white-space:nowrap}
+          #footer-container .apml-tw-logo-text span{color:var(--apml-tw-accent)}
+          @media(prefers-reduced-motion:reduce){#footer-container .apml-tw-logo-badge img{animation:none}}
+          #footer-container .apml-tw-footer-inner{max-width:1280px;margin:0 auto;padding:56px 32px 26px}
+          #footer-container .apml-tw-footer-top{display:grid;grid-template-columns:minmax(220px,1fr) minmax(0,2fr);gap:56px}
+          #footer-container .apml-tw-brand{display:flex;flex-direction:column;align-items:flex-start;gap:18px;min-width:0}
+          #footer-container .apml-tw-logo{display:inline-flex;align-items:center;min-height:42px;text-decoration:none}
+          #footer-container .apml-tw-logo img{display:block;width:auto;height:38px;max-width:180px;object-fit:contain}
+          #footer-container .apml-tw-brand>p{max-width:340px;margin:0;color:var(--apml-tw-muted);font-size:14px;line-height:1.75}
+          #footer-container .apml-tw-socials{display:flex;gap:10px;list-style:none;margin:2px 0 0;padding:0}
+          #footer-container .apml-tw-socials a{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:color-mix(in srgb,var(--apml-tw-text) 7%,transparent);color:var(--apml-tw-muted);transition:background .2s,color .2s,transform .2s}
+          #footer-container .apml-tw-socials a:hover{background:var(--apml-tw-accent);color:#fff;transform:translateY(-2px)}
+          #footer-container .apml-tw-socials svg{width:19px;height:19px;fill:currentColor}
+          #footer-container .apml-tw-brand .footer-developer-tag{margin:0;color:var(--apml-tw-muted);font-size:12px}
+          #footer-container .apml-tw-brand .footer-developer-tag span{color:var(--apml-tw-accent)}
+          #footer-container .apml-tw-link-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
+          #footer-container .apml-tw-link-grid nav{min-width:0}
+          #footer-container .apml-tw-link-grid h2{margin:0 0 20px;color:var(--apml-tw-text);font-size:14px;font-weight:750;letter-spacing:.02em}
+          #footer-container .apml-tw-link-grid ul{display:flex;flex-direction:column;gap:14px;list-style:none;margin:0;padding:0}
+          #footer-container .apml-tw-link-grid a{color:var(--apml-tw-muted);font-size:13.5px;line-height:1.5;text-decoration:none;transition:color .2s}
+          #footer-container .apml-tw-link-grid a:hover{color:var(--apml-tw-accent)}
+          #footer-container .apml-tw-footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:42px;padding-top:22px;border-top:1px solid var(--apml-color-border,#e7dfd8)}
+          #footer-container .apml-tw-footer-bottom>p{margin:0;color:var(--apml-tw-muted);font-size:12.5px}
+          html[data-theme="dark"] #footer-container .apml-tw-footer{--apml-tw-bg:#10141d;--apml-tw-text:#f8fafc;--apml-tw-muted:#cbd5e1;border-color:#334155}
+          @media(max-width:1000px){#footer-container .apml-tw-footer-top{grid-template-columns:1fr;gap:36px}#footer-container .apml-tw-link-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}}
+          @media(max-width:700px){#footer-container .apml-tw-footer-inner{padding:38px 22px 24px}#footer-container .apml-tw-link-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 18px}#footer-container .apml-tw-footer-bottom{align-items:flex-start;flex-direction:column;margin-top:34px}#footer-container .apml-tw-footer-actions{gap:10px}}
+          @media(max-width:380px){#footer-container .apml-tw-footer-inner{padding-left:16px;padding-right:16px}#footer-container .apml-tw-link-grid{gap:24px 12px}}
+          @media(prefers-reduced-motion:reduce){#footer-container .apml-tw-footer *{transition:none!important;animation:none!important}}
+        </style>
+      `;;
+
+    }
+  }
+
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderHeaderAndFooter);
+  } else {
+    renderHeaderAndFooter();
+  }
+
+  // =========================================================
+  // INTELLIGENT FLOATING MASCOT WIDGET (AUTO-HIDE + CLICK FOR NEW TIP)
+  // =========================================================
+  (function initFloatingMascot() {
+    const currentPage = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+    const isIndexPage = (currentPage === "index.html" || currentPage === "" || currentPage === "index");
+    const is404Page = (currentPage === "404.html" || currentPage === "404");
+
+    // Keep the floating mascot on desktop web only. It is intentionally
+    // omitted on phones, narrow layouts and the native Android app.
+    const isMobileLayout = window.matchMedia('(max-width: 768px)').matches;
+    const isNativeApk = document.documentElement.classList.contains('is-native-apk');
+    if (is404Page || isMobileLayout || isNativeApk) return;
+
+    // Five rotating tips for each page
+    const pageTips = {
+      "index.html": [
+        "Welcome to APML Portal! Select any module below to get started. 🚀",
+        "Tip: Use the hamburger menu on top to quickly navigate anywhere.",
+        "All telemetry systems and personnel metrics are live and synced!",
+        "Need a quotation? Open the Quotation Editor, and your PDF is saved to the Drive automatically. 📄",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "editor.html": [
+        "💡 Pro Tip: Fill out quotation line items and click 'Preview A4' to generate an official PDF.",
+        "You can save your drafts locally right from this studio.",
+        "Freight calculations compute automatically based on your inputs.",
+        "Every PDF you download is also saved to Drive in the Quotation folder. 📁",
+        "Delete any charge line you don't need with the red bin icon, and the totals update instantly."
+      ],
+      "gallery.html": [
+        "💡 Tip: Select a folder category and click 'Upload Media' to add photos or videos instantly.",
+        "Click any asset card to preview it in the full-screen lightbox.",
+        "Deleted items are automatically safely archived into the Trash Archive.",
+        "You can select several photos or videos at once and upload them in one go. 📸",
+        "Views and downloads are counted for every media item."
+      ],
+      "drive.html": [
+        "💡 Tip: Use 'Upload File' to add documents, images and videos straight into the current folder.",
+        "Create folders with 'New Folder' to keep your files organised.",
+        "Deleted files are automatically routed to the Trash Archive for easy recovery.",
+        "Quotation PDFs from the editor land in the Quotation folder automatically. 📁"
+      ],
+      "directory.html": [
+        "💡 Tip: Use the search bar to look up branch HODs and direct phone contacts.",
+        "Click on location pins to open exact addresses in Google Maps.",
+        "Search works on city, in-charge name, phone number or designation.",
+        "Use the hamburger menu to jump to any other module quickly.",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "apml-lite.html": [
+        "💡 Tip: Enter volume dimensions to calculate CFT up to the 450 CFT ceiling limit.",
+        "Destination pricing and floor constraints compute automatically.",
+        "This calculator covers the Mumbai & Pune hub rates.",
+        "Enter a CFT volume between 1 and 450 to see the rate straight away.",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "local-rate.html": [
+        "💡 Tip: Enter the volume in CFT to calculate the local shifting rate.",
+        "Rates update instantly as you change the values.",
+        "Double-check the volume, since it drives the whole estimate.",
+        "Use the hamburger menu to switch to the other calculators.",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "car-rate.html": [
+        "💡 Tip: Type the vehicle model, for example Nexon, Creta or Brezza, to pick the car.",
+        "Enter the distance in KM to get the transport estimate.",
+        "Vehicle type and distance together decide the final rate.",
+        "Use the hamburger menu to switch to the other calculators.",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "field-officer.html": [
+        "💡 Tip: Search by name, branch (MUM, PUN, AHMD), APM code, designation or phone.",
+        "Type a branch code like MUM or PUN to see its field officers.",
+        "Every field officer's APM code is listed for quick reference.",
+        "Use the hamburger menu to jump to other modules.",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "wcro-consignment-status-old.html": [
+        "💡 Tip: Filter records by any keyword to find a consignment quickly.",
+        "This is the older WCRO status view, kept for reference.",
+        "Try a consignment number, city or status word in the filter box.",
+        "Use the hamburger menu to jump to other modules.",
+        "Click my avatar anytime for another quick hint!"
+      ],
+      "about.html": [
+        "Hi! This page tells the story behind the APML Portal. 👋",
+        "Scroll down to see how the portal is built and what powers it.",
+        "Everything is synced in real-time with Firebase and Supabase.",
+        "Use the hamburger menu to explore the other modules.",
+        "Click my avatar anytime for another quick hint!"
+      ]
+    };
+
+    const defaultTips = [
+      "Welcome to the APML Enterprise workspace! 💼",
+      "Everything is synced in real-time with Firebase and Supabase.",
+      "Use the hamburger menu to jump between modules.",
+      "Quotation PDFs are saved to the Drive automatically. 📁",
+      "Click my avatar anytime for another quick hint!"
+    ];
+
+    const tipsArray = pageTips[currentPage] || defaultTips;
+    let tipIndex = Math.floor(Math.random() * tipsArray.length);
+
+    // Create Support FAB Container
+    const supportFab = document.createElement('div');
+    supportFab.className = 'support-fab';
+    supportFab.id = 'support-fab';
+    if (!isIndexPage) {
+      supportFab.classList.add('visible'); // On other pages, start visible
+    }
+
+    supportFab.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0px;">      
+        <div class="support-msg-bubble" id="supportBubble" style="position: relative;">
+          <span style="position: relative; z-index: 2; display: block; margin: 0; padding: 0;"><span id="typewriter-text"></span><span class="cursor" id="typeCursor">|</span></span>
+        </div>      
+        <div class="support-btn" id="supportAvatarBtn" title="Click for a new message!" style="cursor: pointer;">        
+          <span class="support-mascot" id="apmlWobnimo" role="img" aria-label="APML assistant mascot">
+            <span class="support-mascot-sprite support-mascot-directions"></span>
+            <span class="support-mascot-sprite support-mascot-reactions"></span>
+          </span>      
+        </div>    
+      </div>  
+    `;
+
+    // Append Mascot Styles
+    const mascotStyle = document.createElement('style');
+    mascotStyle.innerHTML = `
+      .support-fab {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.35s ease, visibility 0.35s ease;
+        pointer-events: none;
+      }
+      .support-fab.visible {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+      .support-fab > div {
+        pointer-events: inherit;
+      }
+      .support-msg-bubble {
+        position: relative;
+        top: 20px;
+        margin-right: 12px; /* shift the announcement bubble slightly left of the mascot */
+        z-index: 2;
+        background-color: #ffffff;
+        color: var(--text-main, #1c1917);
+        border: 2px solid var(--text-main, #1c1917);
+        box-shadow: 4px 4px 0px var(--text-main, #1c1917);
+        display: block;
+        padding: 4px 16px 10px;
+        margin: 0;
+        min-height: 0;
+        height: auto;
+        box-sizing: border-box;
+        border-radius: 20px 20px 0 20px;
+        font-size: 14.5px;
+        font-weight: 600;
+        max-width: 260px;
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+        transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.3s ease;
+        pointer-events: auto;
+        line-height: 1.5;
+      }
+      .support-msg-bubble.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .cursor {
+        display: inline-block;
+        width: 2px;
+        background-color: var(--text-main, #1c1917);
+        margin-left: 2px;
+        animation: blink 1s step-end infinite;
+      }
+      @keyframes blink { 50% { opacity: 0; } }
+      .support-btn {
+        width: 136px;
+        height: 136px;
+        border-radius: 50%;
+        border: 3px solid var(--text-main, #1c1917);
+        box-shadow: 4px 4px 0px var(--text-main, #1c1917);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+      }
+      .support-mascot {
+        position: relative;
+        display: block;
+        width: 128px;
+        height: 128px;
+        max-width: 100%;
+        max-height: 100%;
+        pointer-events: none;
+      }
+      .support-mascot-sprite {
+        position: absolute;
+        inset: 0;
+        display: block;
+        background-size: 300% 300%;
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+      }
+      .support-mascot-directions {
+        background-image: url("https://koboyo.com/page-mascot/mascots/beard-directions.webp");
+      }
+      .support-mascot-reactions {
+        background-image: url("https://koboyo.com/page-mascot/mascots/beard-reactions.webp");
+        opacity: 0;
+      }
+      .support-btn {
+        border: 0;
+        box-shadow: none;
+        overflow: visible;
+        background: transparent;
+        margin-right: -10px; /* move the mascot slightly closer to the screen edge */
+      }
+      .support-btn:hover {
+        background: transparent;
+      }
+      @media (max-width: 600px) {
+        .support-fab { right: 14px; bottom: 18px; }
+        .support-msg-bubble { margin-right: 8px; }
+        .support-btn { width: 108px; height: 108px; margin-right: -6px; }
+        .support-mascot { width: 104px; height: 104px; }
+      }
+      /* Keep the mascot stationary on hover; no lift or shadow ring. */
+      .support-fab:hover .support-btn {
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      /* ---- moods ---- */
+      .support-btn.apml-mood-sleep { opacity: 0.55; filter: grayscale(0.35); transition: opacity 0.6s ease, filter 0.6s ease; }
+      .support-zzz { position: absolute; right: 74px; bottom: 14px; font-size: 20px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+      .support-zzz.show { opacity: 1; animation: apmlZzz 2.4s ease-in-out infinite; }
+      @keyframes apmlZzz { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-8px) rotate(6deg); } }
+      .support-btn.apml-mood-alert { animation: none !important; box-shadow: none !important; border-color: #dc2626; }
+      @keyframes apmlBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+      @keyframes apmlGlow {
+        0% { box-shadow: 4px 4px 0 var(--text-main, #1c1917), 0 0 0 0 rgba(220, 38, 38, 0.65); }
+        100% { box-shadow: 4px 4px 0 var(--text-main, #1c1917), 0 0 0 20px rgba(220, 38, 38, 0); }
+      }
+      .support-btn.apml-mood-happy { animation: apmlHop 0.5s ease-in-out 3 !important; }
+      @keyframes apmlHop {
+        0%, 100% { transform: translateY(0) scale(1); }
+        40% { transform: translateY(-12px) scale(1.08) rotate(-6deg); }
+        70% { transform: translateY(-4px) scale(1.04) rotate(5deg); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .support-zzz.show, .support-btn.apml-mood-alert, .support-btn.apml-mood-happy { animation: none !important; }
+        .support-btn.apml-mood-alert { box-shadow: none !important; }
+      }
+    `;
+
+    document.head.appendChild(mascotStyle);
+    document.body.appendChild(supportFab);
+
+    let pinnedText = '';
+    let pinnedShowing = false;
+
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const scrollPosition = scrollY + window.innerHeight;
+      const bodyHeight = document.body.offsetHeight;
+      const footer = document.querySelector('footer') || document.getElementById('footer-container');
+      const footerHeight = footer ? footer.offsetHeight : 0;
+      const isNearBottom = scrollPosition > (bodyHeight - footerHeight + 20);
+
+      const fab = document.getElementById('support-fab');
+      if (fab) {
+        if (isNearBottom) {
+          fab.classList.remove('visible');
+        } else if (isIndexPage) {
+          if (scrollY > 250) {
+            fab.classList.add('visible');
+          } else {
+            fab.classList.remove('visible');
+          }
+        } else {
+          fab.classList.add('visible');
+        }
+      }
+    }, { passive: true });
+
+    let hideTimer = null;
+    let isTyping = false;
+    let typeToken = 0;
+
+    function playTypewriter(textToType, forceKeepOpen = false, holdMs = 5000, isPin = false) {
+      const typeText = document.getElementById('typewriter-text');
+      const bubble = document.getElementById('supportBubble');
+      const cursor = document.getElementById('typeCursor');
+      if (!typeText || !bubble) return;
+
+      const myToken = ++typeToken;
+      if (!isPin) pinnedShowing = false;
+      typeText.textContent = "";
+      setWobnimoState('speaking');
+      if (cursor) cursor.style.display = 'inline-block';
+      bubble.classList.add('show');
+      isTyping = true;
+
+      clearTimeout(hideTimer);
+
+      let typeIndex = 0;
+      function step() {
+        if (myToken !== typeToken) return;
+        if (typeIndex < textToType.length) {
+          // Keep the mascot in its speaking animation for the entire
+          // typewriter reveal, even if another short-lived state timer fires.
+          setWobnimoState('speaking');
+          typeText.textContent += textToType.charAt(typeIndex);
+        } else {
+          isTyping = false;
+          setWobnimoState('idle');
+          setTimeout(() => {
+            if (myToken === typeToken && cursor) cursor.style.display = 'none';
+          }, 1500);
+
+          if (isPin) {
+            pinnedShowing = true;
+          } else if (!forceKeepOpen || pinnedText) {
+            hideTimer = setTimeout(() => {
+              if (myToken !== typeToken) return;
+              if (pinnedText) playTypewriter(pinnedText, true, 0, true);
+              else bubble.classList.remove('show');
+            }, holdMs);
+          }
+          return;
+        }
+        typeIndex++;
+        setTimeout(step, 30);
+      }
+      step();
+    }
+
+    const IDLE_MS = 15000, ALERT_MS = 5000, HAPPY_MS = 3000;
+    const moodBtn = document.getElementById('supportAvatarBtn');
+    const wobnimo = document.getElementById('apmlWobnimo');
+    const mascotDirections = wobnimo && wobnimo.querySelector('.support-mascot-directions');
+    const mascotReactions = wobnimo && wobnimo.querySelector('.support-mascot-reactions');
+    const mascotDirectionNames = ['up-left','up','up-right','left','center','right','down-left','down','down-right'];
+    const mascotReactionNames = ['blink','heart','sparkle','surprised','starry','blush','sleepy','dizzy','delighted'];
+    let wobnimoStateTimer = null;
+    let mascotReactionTimer = null;
+    let mascotBoopCount = 0;
+    let mascotLastBoop = 0;
+
+    function showSupportDirection(name) {
+      if (!mascotDirections) return;
+      const i = mascotDirectionNames.indexOf(name);
+      mascotDirections.style.backgroundPosition = ((i % 3) * 50) + '% ' + (Math.floor(i / 3) * 50) + '%';
+    }
+    function showSupportReaction(name, duration = 1200) {
+      if (!mascotDirections || !mascotReactions) return;
+      const i = mascotReactionNames.indexOf(name);
+      if (i < 0) return;
+      clearTimeout(mascotReactionTimer);
+      mascotReactions.style.backgroundPosition = ((i % 3) * 50) + '% ' + (Math.floor(i / 3) * 50) + '%';
+      mascotReactions.style.opacity = '1';
+      mascotDirections.style.opacity = '0';
+      // A zero duration keeps the reaction visible until another state replaces it.
+      if (duration > 0) {
+        mascotReactionTimer = setTimeout(() => {
+          mascotReactions.style.opacity = '0';
+          mascotDirections.style.opacity = '1';
+        }, duration);
+      } else {
+        mascotReactionTimer = null;
+      }
+    }
+    function setWobnimoState(state, resetAfter) {
+      if (!wobnimo) return;
+      const states = {
+        idle: ['center', null],
+        speaking: ['center', 'delighted'],
+        listening: ['center', 'surprised'],
+        thinking: ['center', 'blink'],
+        working: ['center', 'starry'],
+        sleeping: ['center', 'sleepy'],
+        error: ['center', 'surprised'],
+        surprised: ['center', 'surprised']
+      };
+      const [direction, reaction] = states[state] || states.idle;
+      showSupportDirection(direction);
+      if (reaction) showSupportReaction(reaction, state === 'sleeping' ? 0 : (resetAfter || 1300));
+      else {
+        clearTimeout(mascotReactionTimer);
+        if (mascotReactions) mascotReactions.style.opacity = '0';
+        if (mascotDirections) mascotDirections.style.opacity = '1';
+      }
+      clearTimeout(wobnimoStateTimer);
+      if (resetAfter) {
+        wobnimoStateTimer = setTimeout(() => {
+          if (!asleep) setWobnimoState('idle');
+        }, resetAfter);
+      }
+    }
+    function playSupportBoop() {
+      const now = Date.now();
+      mascotBoopCount = now - mascotLastBoop < 1600 ? mascotBoopCount + 1 : 1;
+      mascotLastBoop = now;
+      const reaction = mascotBoopCount >= 4 ? 'dizzy' : ['heart','sparkle','delighted'][(mascotBoopCount - 1) % 3];
+      if (mascotBoopCount >= 4) mascotBoopCount = 0;
+      showSupportReaction(reaction, 900);
+    }
+    if (moodBtn && wobnimo && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      const sectors = ['right','down-right','down','down-left','left','up-left','up','up-right'];
+      const sectorSize = Math.PI * 2 / sectors.length;
+      window.addEventListener('pointermove', event => {
+        const rect = moodBtn.getBoundingClientRect();
+        const dx = event.clientX - (rect.left + rect.width / 2);
+        const dy = event.clientY - (rect.top + rect.height / 2);
+
+        if (Math.hypot(dx, dy) < 70) { showSupportDirection('center'); return; }
+        const sector = (Math.round(Math.atan2(dy, dx) / sectorSize) + sectors.length) % sectors.length;
+        if (!mascotReactions || mascotReactions.style.opacity !== '1') showSupportDirection(sectors[sector]);
+      }, { passive: true });
+
+      window.addEventListener('pointerout', event => {
+        if (event.relatedTarget) return;
+        showSupportDirection('center');
+      }, { passive: true });
+    }
+
+    let typingTimer = null;
+    document.addEventListener('input', (event) => {
+      if (!event.target.matches('input, textarea, select, [contenteditable="true"]')) return;
+      wake();
+      setWobnimoState('listening');
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => setWobnimoState('idle'), 1400);
+    }, true);
+    document.addEventListener('submit', () => {
+      wake();
+      setWobnimoState('thinking');
+      setTimeout(() => {
+        if (wobnimo && mascotReactions && mascotReactions.style.opacity === '1') {
+          setWobnimoState('working');
+          setTimeout(() => {
+            if (wobnimo && mascotReactions && mascotReactions.style.opacity === '1') setWobnimoState('idle');
+          }, 12000);
+        }
+      }, 850);
+    }, true);
+    // Native form validation failures should trigger the mascot's error reaction.
+    document.addEventListener('invalid', () => {
+      if (window.APMLMascot) window.APMLMascot.alert();
+    }, true);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') setWobnimoState('sleeping');
+      else setWobnimoState('idle');
+    });
+    const zzz = document.createElement('div');
+    zzz.className = 'support-zzz';
+    zzz.setAttribute('aria-hidden', 'true');
+    zzz.textContent = '💤';
+    supportFab.appendChild(zzz);
+    let asleep = false, lastActivity = Date.now(), alertTimer = null, happyTimer = null;
+
+    function wake() {
+      lastActivity = Date.now();
+      // Ordinary mouse movement must not reset the gaze to centre.
+      // Pointer tracking updates the eyes independently on every move.
+      if (!asleep) return;
+      asleep = false;
+      setWobnimoState('idle');
+      if (moodBtn) moodBtn.classList.remove('apml-mood-sleep');
+      zzz.classList.remove('show');
+    }
+    function fallAsleep() {
+      if (asleep || alertTimer || happyTimer || !moodBtn) return;
+      asleep = true;
+      setWobnimoState('sleeping');
+      moodBtn.classList.add('apml-mood-sleep');
+      zzz.classList.add('show');
+    }
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll', 'click'].forEach((ev) => {
+      window.addEventListener(ev, wake, { passive: true });
+    });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') wake(); });
+    setInterval(() => {
+      if (!asleep && Date.now() - lastActivity >= IDLE_MS) fallAsleep();
+    }, Math.max(100, Math.min(1000, IDLE_MS / 4)));
+
+    function alertMood() {
+      if (!moodBtn) return;
+      wake();
+      clearTimeout(alertTimer);
+      moodBtn.classList.remove('apml-mood-happy');
+      moodBtn.classList.add('apml-mood-alert');
+      setWobnimoState('error', ALERT_MS);
+      alertTimer = setTimeout(() => { moodBtn.classList.remove('apml-mood-alert'); alertTimer = null; lastActivity = Date.now(); }, ALERT_MS);
+    }
+    const happyLines = ['👍 Nice work!', '🎉 All done!', '✅ Done, great job!'];
+    function happyMood(text) {
+      if (!moodBtn) return;
+      wake();
+      clearTimeout(happyTimer);
+      moodBtn.classList.remove('apml-mood-alert');
+      clearTimeout(alertTimer); alertTimer = null;
+      moodBtn.classList.add('apml-mood-happy');
+      // Keep Wobnimo in its neutral pose; APML's own bounce handles the celebration without the built-in circular ring.
+      setWobnimoState('idle', HAPPY_MS);
+      happyTimer = setTimeout(() => { moodBtn.classList.remove('apml-mood-happy'); happyTimer = null; lastActivity = Date.now(); }, HAPPY_MS);
+      const line = String(text || happyLines[Math.floor(Math.random() * happyLines.length)]);
+      playTypewriter(line, false, 4500);
+    }
+
+    window.APMLMascot = {
+      say: function (text, opts) {
+        if (!text) return;
+        const keepOpen = opts && opts.keepOpen !== undefined ? !!opts.keepOpen : isIndexPage;
+        playTypewriter(String(text), keepOpen, (opts && Number(opts.hold)) || 5000);
+      },
+      alert: alertMood,
+      happy: happyMood,
+      wake: wake,
+      isAsleep: function () { return asleep; },
+      pin: function (text) {
+        text = String(text || '').trim();
+        if (!text) return;
+        if (pinnedText === text && pinnedShowing) return;
+        pinnedText = text;
+        playTypewriter(text, true, 0, true);
+      },
+      unpin: function () {
+        if (!pinnedText) return;
+        pinnedText = '';
+        pinnedShowing = false;
+        typeToken++;
+        isTyping = false;
+        const bubble = document.getElementById('supportBubble');
+        if (bubble) bubble.classList.remove('show');
+        window.dispatchEvent(new Event('scroll'));
+      }
+    };
+
+    setTimeout(() => {
+      if (!isTyping && typeToken === 0 && !pinnedText && (!isIndexPage || window.scrollY > 250)) {
+        playTypewriter(tipsArray[tipIndex], isIndexPage);
+      }
+    }, 1000);
+
+    const avatarBtn = document.getElementById('supportAvatarBtn');
+    if (avatarBtn) {
+      avatarBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (isTyping) return;
+        if (pinnedText) { playTypewriter(pinnedText, true, 0, true); playSupportBoop(); return; }
+
+        playSupportBoop();
+        tipIndex = (Math.floor(tipIndex) + 1) % tipsArray.length;
+        playTypewriter(tipsArray[tipIndex], isIndexPage);
+      });
+    }
+  })();
+
+  // 3. SERVICE WORKER REGISTRATION (PWA Support)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('ServiceWorker registration note:', err);
+      });
+    });
+  }
+
+  // 4. HARDWARE BACK BUTTON NAVIGATION TRAP
+  window.addEventListener('popstate', () => {
+    const navMenu = document.getElementById("navMenu");
+    const hamburgerBtn = document.getElementById("hamburgerBtn");
+    const burgerCheckbox = document.getElementById("burger-checkbox");
+    if (navMenu && navMenu.classList.contains('open')) {
+      navMenu.classList.remove('open');
+      if (hamburgerBtn) {
+        hamburgerBtn.classList.remove('is-active');
+        hamburgerBtn.setAttribute("aria-expanded", "false");
+      }
+      if (burgerCheckbox) burgerCheckbox.checked = false;
+    }
+  });
+})();
+
+// ---------------------------------------------------------------------
+// ALERTS: load notify.js
+// ---------------------------------------------------------------------
+(function loadNotify() {
+  if (window.APMNotify) return;
+  var s = document.createElement('script');
+  // Always load the shared Telegram notifier from the site root, regardless
+  // of whether common.js is used by a root page or a page inside /modules.
+  s.src = new URL('/notify.js?v=8', window.location.origin).href;
+  s.async = true;
+  document.head.appendChild(s);
+})();
+
+// Station tracker is not included in this repository; do not request a missing script.
+
+// Privacy-aware visitor analytics is shared across portal pages.
+(function loadVisitorTracker() {
+  if (window.__apmlVisitorTrackerRequested) return;
+  window.__apmlVisitorTrackerRequested = true;
+  var script = document.createElement('script');
+  script.src = '/core/visitor-tracker.js?v=10';
+  script.async = true;
+  document.head.appendChild(script);
+})();
+
+</script>
+
+  <!-- PLANET ATTRACTION & MOUSE RIG -->
+  <script>
+    let globalRocketX = window.innerWidth / 2;
+    let globalRocketY = window.innerHeight / 2;
+    let globalRocketAngle = 0;
+
+    (function initPhysicsAndAttraction() {
+      const stage = document.getElementById('spaceStage');
+      const planetCenter = document.getElementById('planetCenter');
+
+      let coreOffsetX = 0;
+      let coreOffsetY = 0;
+
+      function render() {
+        if (stage && !stage.closest('.hidden-view')) {
+          const rect = stage.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const relX = globalRocketX - centerX;
+          const relY = globalRocketY - centerY;
+
+          const pullDist = Math.hypot(relX, relY) || 1;
+          const pullStrength = Math.min(14, 900 / (pullDist + 60));
+          const pullAngle = Math.atan2(relY, relX);
+
+          const targetCoreX = Math.cos(pullAngle) * pullStrength * 0.5;
+          const targetCoreY = Math.sin(pullAngle) * pullStrength * 0.5;
+          coreOffsetX += (targetCoreX - coreOffsetX) * 0.1;
+          coreOffsetY += (targetCoreY - coreOffsetY) * 0.1;
+
+          if (planetCenter) {
+            planetCenter.style.transform = `translate(${coreOffsetX}px, ${coreOffsetY}px) rotate(${coreOffsetX * 0.8}deg)`;
+          }
+        }
+        requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    })();
+  </script>
+
+  <!-- 5-LIFELINE FIRE-COMET ARCADE ENGINE -->
+  <script>
+    (function initAsteroidArcade() {
+      const canvas = document.getElementById('game-canvas');
+      const rocket = document.getElementById('failed-rocket-cursor');
+      const curScoreEl = document.getElementById('currentScore');
+      const globalHighScoreEl = document.getElementById('globalHighScore');
+      const levelEl = document.getElementById('currentLevel');
+      const livesTextEl = document.getElementById('livesCountText');
+      const toastEl = document.getElementById('levelToast');
+      
+      const headerContainer = document.getElementById('header-container');
+      const footerContainer = document.getElementById('footer-container');
+      const gameView = document.getElementById('gameView');
+      const scoreView = document.getElementById('scoreView');
+      const pageFinalScore = document.getElementById('pageFinalScore');
+      const pageFinalLevel = document.getElementById('pageFinalLevel');
+      const saveScoreForm = document.getElementById('saveScoreForm');
+      const pilotCallsignInput = document.getElementById('pilotCallsignInput');
+      const btnSubmitScore = document.getElementById('btnSubmitScore');
+      const btnCheckScores = document.getElementById('btnCheckScores');
+      const btnStartGame = document.getElementById('btnStartGame');
+      const btnQuitLiveGame = document.getElementById('btnQuitLiveGame');
+      const blastUiGroup = document.getElementById('blastUiGroup');
+      const globalStatusToast = document.getElementById('globalStatusToast');
+      const leaderboardList = document.getElementById('leaderboardList');
+      const pageEscBtn = document.getElementById('pageEscBtn');
+      const scoreCardBadge = document.getElementById('scoreCardBadge');
+      const scoreCardHeading = document.getElementById('scoreCardHeading');
+      const planetCenterEl = document.getElementById('planetCenter');
+      const crtMascot = document.getElementById('crtMascot');
+      let mascotDirection = { col: 1, row: 1 };
+      let mascotReactionTimer = null;
+      let mascotReacting = false;
+
+      const mascotReactions = {
+        happy: { col: 0, row: 0 },
+        love: { col: 1, row: 0 },
+        stars: { col: 2, row: 0 },
+        surprised: { col: 0, row: 1 },
+        starEyes: { col: 1, row: 1 },
+        blush: { col: 2, row: 1 },
+        sleepy: { col: 0, row: 2 },
+        dizzy: { col: 1, row: 2 },
+        laugh: { col: 2, row: 2 }
+      };
+
+      function setMascotSprite(sheet, col, row) {
+        if (!crtMascot) return;
+        crtMascot.style.backgroundImage = `url("https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-${sheet}.webp")`;
+        crtMascot.style.backgroundPosition = `${col * 50}% ${row * 50}%`;
+      }
+
+      function restoreMascotDirection() {
+        mascotReacting = false;
+        if (!crtMascot) return;
+        crtMascot.classList.remove('is-reacting');
+        setMascotSprite('directions', mascotDirection.col, mascotDirection.row);
+      }
+
+      function reactMascot(expression, duration = 1100) {
+        if (!crtMascot) return;
+        const frame = mascotReactions[expression];
+        if (!frame) return;
+        mascotReacting = true;
+        clearTimeout(mascotReactionTimer);
+        setMascotSprite('reactions', frame.col, frame.row);
+        crtMascot.classList.add('is-reacting');
+        if (duration > 0) {
+          mascotReactionTimer = setTimeout(restoreMascotDirection, duration);
+        }
+      }
+
+      function updateMascotDirection(x, y) {
+        if (!crtMascot || mascotReacting) return;
+        const rect = crtMascot.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const thresholdX = Math.max(55, rect.width * 0.32);
+        const thresholdY = Math.max(55, rect.height * 0.32);
+        mascotDirection = {
+          col: dx < -thresholdX ? 0 : dx > thresholdX ? 2 : 1,
+          row: dy < -thresholdY ? 0 : dy > thresholdY ? 2 : 1
+        };
+        setMascotSprite('directions', mascotDirection.col, mascotDirection.row);
+      }
+
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      if (pilotCallsignInput) {
+        pilotCallsignInput.value = localStorage.getItem('apml_pilot_name') || '';
+      }
+
+      let score = 0;
+      let lives = 5;
+      let level = 1;
+      let isGameActive = false;
+      let isGameOver = false;
+      let spawnTimer = null;
+      let gameFrameId = null;
+      let globalHighestScore = parseInt(localStorage.getItem('apml_global_highest_score') || '0', 10);
+      // Adaptive difficulty is stored only in this browser; no account or server tracking.
+      const adaptiveLossKey = 'apml_asteroid_loss_streak';
+      let adaptiveLossStreak = 0;
+      let adaptiveDifficulty = 0;
+      let maxLives = 5;
+      try {
+        adaptiveLossStreak = Math.max(0, Math.min(20, parseInt(localStorage.getItem(adaptiveLossKey) || '0', 10) || 0));
+      } catch (error) {}
+      if (globalHighScoreEl) globalHighScoreEl.textContent = globalHighestScore.toLocaleString();
+
+      const missiles = [];
+      const asteroids = [];
+      const smokeParticles = [];
+      const blastParticles = [];
+      const flameTrailParticles = [];
+      const powerUps = [];
+      let bossActive = false;
+      let shieldUntil = 0;
+      let rapidFireUntil = 0;
+      let comboCount = 0;
+      let lastKillAt = 0;
+
+      let currentX = window.innerWidth / 2;
+      let currentY = window.innerHeight / 2;
+      let targetX = currentX;
+      let targetY = currentY;
+      let currentAngle = 0;
+      let lastSmokeTime = 0;
+
+      document.addEventListener('mouseenter', () => { if (rocket && isGameActive && !isGameOver) rocket.style.opacity = '1'; });
+      document.addEventListener('mouseleave', () => { if (rocket) rocket.style.opacity = '0'; });
+      
+      window.addEventListener('mousemove', (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+        updateMascotDirection(e.clientX, e.clientY);
+        if (rocket && isGameActive && !isGameOver) {
+          rocket.style.opacity = '1';
+        }
+      });
+
+      window.addEventListener('mousedown', (e) => {
+        if (!isGameActive || isGameOver) return;
+        if (e.target.closest('a, button, input, .site-header, .site-footer, #scoreView, .btn-quit-game, .arcade-scoreboard')) return;
+        if (e.button === 0) fireMissile();
+      });
+
+      window.addEventListener('touchstart', (e) => {
+        if (!isGameActive || isGameOver) return;
+        if (e.target.closest('a, button, input, .site-header, .site-footer, #scoreView, .btn-quit-game, .arcade-scoreboard')) return;
+        if (e.touches.length > 0) {
+          targetX = e.touches[0].clientX;
+          targetY = e.touches[0].clientY;
+          fireMissile();
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!isGameActive || isGameOver || !e.touches.length) return;
+        targetX = e.touches[0].clientX;
+        targetY = e.touches[0].clientY;
+        updateMascotDirection(targetX, targetY);
+      }, { passive: true });
+
+      function formatScoreDate(item) {
+        if (item.date && /^\d{2}\/\d{2}\/\d{4}$/.test(item.date)) {
+          return item.date;
+        }
+        if (item.timestamp || item.isoDate || item.date) {
+          const d = new Date(item.timestamp || item.isoDate || item.date);
+          if (!isNaN(d.getTime())) {
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
+        }
+        const now = new Date();
+        return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      }
+
+      function renderLeaderboard(entries) {
+        if (!leaderboardList) return;
+        if (!entries || entries.length === 0) {
+          leaderboardList.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 6px 0;">No global scores yet. Be the first to save!</div>';
+          return;
+        }
+        leaderboardList.innerHTML = entries.map((item, idx) => `
+          <div class="leaderboard-row ${idx < 3 ? `top-rank rank-${idx + 1}` : ''}">
+            <div class="rank-name">
+              <span class="rank-num">#${idx + 1}</span>
+              <span>${escapeHtml(item.pilot || 'Pilot')}</span>
+              <span class="entry-badge">Lvl ${item.level || 1}</span>
+              <span class="entry-date">${formatScoreDate(item)}</span>
+            </div>
+            <span class="entry-score">${(item.score || 0).toLocaleString()}</span>
+          </div>
+        `).join('');
+      }
+
+      function escapeHtml(str) {
+        return String(str || '').replace(/[&<>'"]/g, tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag));
+      }
+
+      function initGlobalScoreSync() {
+        fetch('https://apml-portal-default-rtdb.firebaseio.com/arcade_scores.json?orderBy="score"&limitToLast=30')
+          .then(res => res.json())
+          .then(data => {
+            if (data && typeof data === 'object') {
+              const entries = Object.values(data);
+              entries.sort((a, b) => (b.score || 0) - (a.score || 0));
+              if (entries.length > 0) {
+                globalHighestScore = Math.max(globalHighestScore, entries[0].score || 0);
+                localStorage.setItem('apml_global_highest_score', globalHighestScore);
+                if (globalHighScoreEl) globalHighScoreEl.textContent = globalHighestScore.toLocaleString();
+              }
+              renderLeaderboard(entries);
+            }
+          })
+          .catch(() => {});
+
+        if (window.db) {
+          db.ref('arcade_scores').orderByChild('score').limitToLast(30).on('value', (snapshot) => {
+            const entries = [];
+            snapshot.forEach((child) => {
+              entries.push(child.val());
+            });
+            entries.reverse();
+
+            if (entries.length > 0) {
+              const topScore = entries[0].score || 0;
+              globalHighestScore = Math.max(globalHighestScore, topScore);
+              localStorage.setItem('apml_global_highest_score', globalHighestScore);
+              if (globalHighScoreEl) globalHighScoreEl.textContent = globalHighestScore.toLocaleString();
+            }
+
+            renderLeaderboard(entries);
+          }, (err) => {
+            console.warn('Firebase sync note:', err);
+            const localSaved = JSON.parse(localStorage.getItem('apml_local_leaderboard') || '[]');
+            renderLeaderboard(localSaved);
+          });
+        }
+      }
+
+      initGlobalScoreSync();
+
+      function triggerUiBlastEffect(el, intensity = 42) {
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        for (let i = 0; i < intensity; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spd = Math.random() * 7 + 2.5;
+          blastParticles.push({
+            x: centerX + (Math.random() - 0.5) * rect.width * 0.8,
+            y: centerY + (Math.random() - 0.5) * rect.height * 0.8,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            radius: Math.random() * 4 + 2,
+            alpha: 1,
+            color: Math.random() > 0.4 ? '#ef4444' : (Math.random() > 0.5 ? '#f59e0b' : '#fbbf24')
+          });
+        }
+      }
+
+      function startGame() {
+        if (headerContainer) {
+          triggerUiBlastEffect(headerContainer, 36);
+          headerContainer.classList.add('fired-up');
+        }
+        if (blastUiGroup) {
+          triggerUiBlastEffect(btnStartGame, 45);
+          triggerUiBlastEffect(blastUiGroup, 55);
+          blastUiGroup.classList.add('blasted');
+        }
+
+        setTimeout(() => {
+          if (blastUiGroup) blastUiGroup.style.display = 'none';
+          if (headerContainer) headerContainer.style.display = 'none';
+        }, 340);
+
+        isGameActive = true;
+        isGameOver = false;
+        restoreMascotDirection();
+        score = 0;
+        level = 1;
+        adaptiveDifficulty = adaptiveLossStreak >= 7 ? 3 : adaptiveLossStreak >= 5 ? 2 : adaptiveLossStreak >= 3 ? 1 : 0;
+        maxLives = 5 + adaptiveDifficulty;
+        lives = maxLives;
+
+        if (curScoreEl) curScoreEl.textContent = '0';
+        if (livesTextEl) livesTextEl.textContent = String(lives);
+        if (levelEl) levelEl.textContent = '1';
+
+        document.body.classList.add('game-active');
+        if (rocket) rocket.style.opacity = '1';
+
+        asteroids.length = 0;
+        missiles.length = 0;
+        smokeParticles.length = 0;
+        flameTrailParticles.length = 0;
+        powerUps.length = 0;
+        bossActive = false;
+        shieldUntil = 0;
+        rapidFireUntil = 0;
+        comboCount = 0;
+        lastKillAt = 0;
+
+        resetSpawnTimer();
+        if (gameFrameId === null && !document.hidden) gameFrameId = requestAnimationFrame(gameLoop);
+        showToast(adaptiveDifficulty ? `Assist mode ${adaptiveDifficulty}/3 • Extra protection enabled` : "Defense Initialized • Clear Incoming Comets!");
+      }
+
+      if (btnStartGame) {
+        btnStartGame.addEventListener('click', startGame);
+      }
+
+      function quitLiveGameSession() {
+        if (!isGameActive) return;
+        isGameActive = false;
+        isGameOver = false;
+        if (spawnTimer) clearInterval(spawnTimer);
+        
+        asteroids.length = 0;
+        missiles.length = 0;
+        smokeParticles.length = 0;
+        flameTrailParticles.length = 0;
+        powerUps.length = 0;
+        bossActive = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        showToast("Mission Aborted");
+        reactMascot('sleepy', 0);
+        switchToGameView();
+      }
+
+      if (btnQuitLiveGame) {
+        btnQuitLiveGame.addEventListener('click', (e) => {
+          e.stopPropagation();
+          quitLiveGameSession();
+        });
+      }
+
+      function executeScoreSubmission(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        
+        const callsign = (pilotCallsignInput ? pilotCallsignInput.value : '').trim() || 'Pilot_' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        localStorage.setItem('apml_pilot_name', callsign);
+
+        const currentScoreToSave = score;
+        const currentLevelToSave = level;
+        
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        const currentIsoDate = now.toISOString();
+        const currentTimestamp = Date.now();
+
+        const localSaved = JSON.parse(localStorage.getItem('apml_local_leaderboard') || '[]');
+        localSaved.push({ 
+          pilot: callsign, 
+          score: currentScoreToSave, 
+          level: currentLevelToSave, 
+          date: formattedDate,
+          timestamp: currentTimestamp 
+        });
+        localSaved.sort((a, b) => b.score - a.score);
+        localStorage.setItem('apml_local_leaderboard', JSON.stringify(localSaved.slice(0, 30)));
+
+        if (btnSubmitScore) {
+          btnSubmitScore.disabled = true;
+          btnSubmitScore.style.opacity = '0.7';
+          btnSubmitScore.innerHTML = '<span>Saving...</span>';
+        }
+
+        const scorePayload = {
+          pilot: callsign,
+          score: currentScoreToSave,
+          level: currentLevelToSave,
+          date: formattedDate,
+          isoDate: currentIsoDate,
+          timestamp: currentTimestamp
+        };
+
+        function completeAndReload() {
+          if (saveScoreForm) saveScoreForm.style.display = 'none';
+          if (globalStatusToast) {
+            globalStatusToast.textContent = `✓ Recorded: ${callsign}'s score (${currentScoreToSave.toLocaleString()}) saved globally! Refreshing...`;
+            globalStatusToast.style.display = 'block';
+          }
+          setTimeout(() => {
+            window.location.reload();
+          }, 900);
+        }
+
+        fetch('https://apml-portal-default-rtdb.firebaseio.com/arcade_scores.json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(scorePayload)
+        })
+        .then(() => {
+          completeAndReload();
+        })
+        .catch(() => {
+          if (window.db) {
+            db.ref('arcade_scores').push(scorePayload)
+              .then(() => completeAndReload())
+              .catch(() => completeAndReload());
+          } else {
+            completeAndReload();
+          }
+        });
+      }
+
+      if (saveScoreForm) {
+        saveScoreForm.addEventListener('submit', executeScoreSubmission);
+      }
+      if (btnSubmitScore) {
+        btnSubmitScore.addEventListener('click', executeScoreSubmission);
+      }
+
+      if (btnCheckScores) {
+        btnCheckScores.addEventListener('click', () => {
+          isGameOver = true;
+          isGameActive = false;
+          if (spawnTimer) clearInterval(spawnTimer);
+          if (rocket) rocket.style.opacity = '0';
+          document.body.classList.remove('game-active');
+
+          asteroids.length = 0;
+          missiles.length = 0;
+          blastParticles.length = 0;
+          smokeParticles.length = 0;
+          flameTrailParticles.length = 0;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          if (headerContainer) {
+            headerContainer.style.display = 'block';
+            headerContainer.classList.remove('fired-up');
+          }
+          if (blastUiGroup) blastUiGroup.classList.remove('blasted');
+
+          if (scoreCardBadge) scoreCardBadge.textContent = "Global Rankings";
+          if (scoreCardHeading) scoreCardHeading.textContent = "APML Scoreboard";
+          if (pageFinalScore) pageFinalScore.textContent = score.toLocaleString();
+          if (pageFinalLevel) pageFinalLevel.textContent = level;
+
+          if (saveScoreForm) saveScoreForm.style.display = 'flex';
+          if (btnSubmitScore) {
+            btnSubmitScore.disabled = false;
+            btnSubmitScore.style.opacity = '1';
+            btnSubmitScore.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">cloud_upload</span><span>Save Score</span>';
+          }
+          if (globalStatusToast) globalStatusToast.style.display = 'none';
+
+          if (gameView) gameView.classList.add('hidden-view');
+          if (scoreView) scoreView.classList.remove('hidden-view');
+        });
+      }
+
+      function switchToGameView() {
+        isGameOver = false;
+        isGameActive = false;
+        score = 0;
+        lives = 5;
+        level = 1;
+
+        if (curScoreEl) curScoreEl.textContent = '0';
+        if (livesTextEl) livesTextEl.textContent = '5';
+        if (levelEl) levelEl.textContent = '1';
+
+        document.body.classList.remove('game-active');
+        if (scoreView) scoreView.classList.add('hidden-view');
+        if (gameView) gameView.classList.remove('hidden-view');
+        
+        if (headerContainer) {
+          headerContainer.style.display = 'block';
+          headerContainer.classList.remove('fired-up');
+        }
+        if (blastUiGroup) {
+          blastUiGroup.style.display = 'flex';
+          blastUiGroup.classList.remove('blasted');
+        }
+        if (rocket) rocket.style.opacity = '0';
+
+        if (scoreCardBadge) scoreCardBadge.textContent = "Mission Debrief";
+        if (scoreCardHeading) scoreCardHeading.textContent = "Defense Over";
+
+        if (saveScoreForm) {
+          saveScoreForm.style.display = 'flex';
+          if (btnSubmitScore) {
+            btnSubmitScore.disabled = false;
+            btnSubmitScore.style.opacity = '1';
+            btnSubmitScore.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">cloud_upload</span><span>Save Score</span>';
+          }
+        }
+        if (globalStatusToast) globalStatusToast.style.display = 'none';
+
+        asteroids.length = 0;
+        missiles.length = 0;
+        blastParticles.length = 0;
+        smokeParticles.length = 0;
+        flameTrailParticles.length = 0;
+
+        if (spawnTimer) clearInterval(spawnTimer);
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (document.activeElement === pilotCallsignInput) {
+            pilotCallsignInput.blur();
+            return;
+          }
+          if (isGameActive) {
+            quitLiveGameSession();
+          } else if (isGameOver) {
+            switchToGameView();
+          }
+        }
+      });
+
+      if (pageEscBtn) {
+        pageEscBtn.addEventListener('click', switchToGameView);
+      }
+
+      function fireMissile() {
+        const now = performance.now();
+        if (now - (fireMissile.lastShot || 0) < (now < rapidFireUntil ? 115 : 260)) return;
+        fireMissile.lastShot = now;
+        const rad = (currentAngle - 90) * (Math.PI / 180);
+        const speed = 15;
+        missiles.push({
+          x: currentX + Math.cos(rad) * 12,
+          y: currentY + Math.sin(rad) * 12,
+          vx: Math.cos(rad) * speed,
+          vy: Math.sin(rad) * speed,
+          radius: 3,
+          life: 90
+        });
+
+        for (let i = 0; i < 5; i++) {
+          blastParticles.push({
+            x: currentX,
+            y: currentY,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            radius: Math.random() * 2 + 1,
+            alpha: 1,
+            color: '#38bdf8'
+          });
+        }
+      }
+
+      function updateDifficulty() {
+        const previousLevel = level;
+        const newLevel = Math.floor(score / 250) + 1;
+        if (newLevel > level) {
+          level = newLevel;
+          if (levelEl) levelEl.textContent = level;
+          showToast(`Level ${level} • Threat level increased`);
+          resetSpawnTimer();
+          if (Math.floor(level / 5) > Math.floor(previousLevel / 5)) spawnBoss();
+        }
+      }
+
+      function spawnPowerUp(x, y, type) {
+        const kinds = ['shield', 'rapid', 'repair'];
+        powerUps.push({ x, y, type: type || kinds[Math.floor(Math.random() * kinds.length)], radius: 12, life: 900 });
+      }
+
+      function spawnBoss() {
+        if (bossActive || !isGameActive || isGameOver) return;
+        bossActive = true;
+        const side = Math.floor(Math.random() * 4);
+        const margin = 70;
+        let x = side === 1 ? canvas.width + margin : side === 3 ? -margin : Math.random() * canvas.width;
+        let y = side === 0 ? -margin : side === 2 ? canvas.height + margin : Math.random() * canvas.height;
+        const targetX = canvas.width / 2;
+        const targetY = canvas.height / 2;
+        const angle = Math.atan2(targetY - y, targetX - x);
+        const radius = Math.max(38, Math.min(52, Math.min(canvas.width, canvas.height) * 0.065));
+        const numPoints = 11;
+        const offsets = Array.from({length:numPoints}, () => 0.82 + Math.random() * 0.34);
+        const bossHp = Math.max(6, Math.min(24, 10 + Math.floor(level / 2) - adaptiveDifficulty * 2));
+        const bossSpeed = (1.05 + level * .035) * (1 - adaptiveDifficulty * 0.08);
+        asteroids.push({x,y,vx:Math.cos(angle)*bossSpeed,vy:Math.sin(angle)*bossSpeed,angle,radius,numPoints,offsets,rot:0,rotSpeed:.012,trailHistory:[],boss:true,hp:bossHp,maxHp:bossHp});
+        showToast(`BOSS INBOUND • Level ${level}`);
+      }
+
+      function splitAsteroid(a) {
+        if (a.boss || a.radius < 22) return;
+        for (let n=0;n<2;n++) {
+          const angle = Math.atan2(a.vy,a.vx) + (n ? 0.9 : -0.9);
+          const radius = a.radius * 0.58;
+          const points = 7 + Math.floor(Math.random()*3);
+          asteroids.push({x:a.x,y:a.y,vx:Math.cos(angle)*(Math.hypot(a.vx,a.vy)+.8),vy:Math.sin(angle)*(Math.hypot(a.vx,a.vy)+.8),angle,radius,numPoints:points,offsets:Array.from({length:points},()=>.75+Math.random()*.5),rot:0,rotSpeed:(Math.random()-.5)*.05,trailHistory:[]});
+        }
+      }
+
+      function awardKill(points, x, y) {
+        const now = performance.now();
+        comboCount = now - lastKillAt < 2400 ? comboCount + 1 : 1;
+        lastKillAt = now;
+        const multiplier = Math.min(4, 1 + Math.floor((comboCount - 1) / 3));
+        addScore(points * multiplier);
+        reactMascot(comboCount > 1 && comboCount % 3 === 0 ? 'stars' : 'happy', comboCount > 1 && comboCount % 3 === 0 ? 1500 : 650);
+        if (comboCount > 1 && comboCount % 3 === 0) showToast(`${comboCount}× COMBO • x${multiplier} score`);
+        if (Math.random() < 0.12 + adaptiveDifficulty * 0.07) spawnPowerUp(x, y);
+      }
+
+      function showToast(text) {
+        if (!toastEl) return;
+        toastEl.textContent = text;
+        toastEl.classList.add('show');
+        setTimeout(() => toastEl.classList.remove('show'), 2400);
+      }
+
+      function addScore(pts) {
+        score += pts;
+        if (curScoreEl) curScoreEl.textContent = score;
+        if (score > globalHighestScore) {
+          globalHighestScore = score;
+          if (globalHighScoreEl) globalHighScoreEl.textContent = globalHighestScore.toLocaleString();
+        }
+        updateDifficulty();
+      }
+
+      function deductLife(reason) {
+        if (!isGameActive || isGameOver) return;
+        if (performance.now() < shieldUntil) { showToast('Shield absorbed the impact'); return; }
+        lives--;
+        reactMascot('surprised', 1250);
+        if (livesTextEl) livesTextEl.textContent = `${lives}`;
+
+        if (lives <= 0) {
+          triggerGameOver();
+        } else {
+          showToast(`Lifeline Lost! (${lives}/${maxLives} Remaining)`);
+        }
+      }
+
+      function triggerGameOver() {
+        if (isGameOver) return;
+        // Reaching level 5 is treated as a strong run and clears the losing streak.
+        adaptiveLossStreak = level >= 5 ? 0 : Math.min(20, adaptiveLossStreak + 1);
+        try { localStorage.setItem(adaptiveLossKey, String(adaptiveLossStreak)); } catch (error) {}
+        reactMascot('dizzy', 0);
+        isGameOver = true;
+        isGameActive = false;
+        
+        if (spawnTimer) clearInterval(spawnTimer);
+        if (rocket) rocket.style.opacity = '0';
+        document.body.classList.remove('game-active');
+
+        asteroids.length = 0;
+        missiles.length = 0;
+        blastParticles.length = 0;
+        smokeParticles.length = 0;
+        flameTrailParticles.length = 0;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (headerContainer) {
+          headerContainer.style.display = 'block';
+          headerContainer.classList.remove('fired-up');
+        }
+        if (blastUiGroup) {
+          blastUiGroup.classList.remove('blasted');
+        }
+
+        if (scoreCardBadge) scoreCardBadge.textContent = "Mission Debrief";
+        if (scoreCardHeading) scoreCardHeading.textContent = "Defense Over";
+
+        if (pageFinalScore) pageFinalScore.textContent = score.toLocaleString();
+        if (pageFinalLevel) pageFinalLevel.textContent = level;
+
+        if (saveScoreForm) saveScoreForm.style.display = 'flex';
+        if (btnSubmitScore) {
+          btnSubmitScore.disabled = false;
+          btnSubmitScore.style.opacity = '1';
+          btnSubmitScore.innerHTML = '<span class="material-symbols-outlined" style="font-size: 16px;">cloud_upload</span><span>Save Score</span>';
+        }
+        if (globalStatusToast) globalStatusToast.style.display = 'none';
+
+        if (gameView) gameView.classList.add('hidden-view');
+        if (scoreView) scoreView.classList.remove('hidden-view');
+      }
+
+      function spawnAsteroid() {
+        if (!isGameActive || isGameOver || bossActive) return;
+        const maxAsteroids = Math.max(8, 8 + Math.min(level, 12) * 2 - adaptiveDifficulty * 2);
+        if (asteroids.length >= maxAsteroids) return;
+
+        const side = Math.floor(Math.random() * 4);
+        let x, y;
+        const margin = 50;
+
+        if (side === 0) { x = Math.random() * canvas.width; y = -margin; }
+        else if (side === 1) { x = canvas.width + margin; y = Math.random() * canvas.height; }
+        else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + margin; }
+        else { x = -margin; y = Math.random() * canvas.height; }
+
+        let coreX = canvas.width / 2;
+        let coreY = canvas.height / 2;
+        if (planetCenterEl) {
+          const rect = planetCenterEl.getBoundingClientRect();
+          coreX = rect.left + rect.width / 2;
+          coreY = rect.top + rect.height / 2;
+        }
+
+        const targetX = coreX + (Math.random() - 0.5) * 40;
+        const targetY = coreY + (Math.random() - 0.5) * 40;
+        const angle = Math.atan2(targetY - y, targetX - x);
+
+        const baseSpeed = Math.random() * 1.0 + 0.85;
+        const levelSpeedMultiplier = 1 + (level - 1) * 0.25;
+        const speed = baseSpeed * levelSpeedMultiplier * (1 - adaptiveDifficulty * 0.10);
+
+        const numPoints = Math.floor(Math.random() * 3) + 7;
+        const radius = Math.random() * 10 + 14;
+        const offsets = [];
+        for (let i = 0; i < numPoints; i++) {
+          offsets.push(0.75 + Math.random() * 0.5);
+        }
+
+        asteroids.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          angle,
+          radius,
+          numPoints,
+          offsets,
+          rot: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * (0.03 + level * 0.008),
+          trailHistory: []
+        });
+      }
+
+      function resetSpawnTimer() {
+        if (spawnTimer) clearInterval(spawnTimer);
+        const baseInterval = Math.max(430, 1350 - (level - 1) * 85);
+        const interval = Math.round(baseInterval * (1 + adaptiveDifficulty * 0.13));
+        spawnTimer = setInterval(spawnAsteroid, interval);
+      }
+
+      function createEngineFailureSmoke(x, y, angleDeg) {
+        const exhaustDist = 10;
+        const rad = (angleDeg - 90) * (Math.PI / 180);
+        const spawnX = x - Math.cos(rad) * exhaustDist;
+        const spawnY = y - Math.sin(rad) * exhaustDist;
+        const isSpark = Math.random() < 0.3;
+
+        smokeParticles.push({
+          x: spawnX + (Math.random() - 0.5) * 3,
+          y: spawnY + (Math.random() - 0.5) * 3,
+          vx: -Math.cos(rad) * (Math.random() * 1.1 + 0.3) + (Math.random() - 0.5) * 0.6,
+          vy: -Math.sin(rad) * (Math.random() * 1.1 + 0.3) + (Math.random() - 0.5) * 0.6,
+          radius: isSpark ? Math.random() * 1.4 + 0.8 : Math.random() * 2.4 + 1.4,
+          alpha: isSpark ? 1 : 0.6,
+          color: isSpark 
+            ? (Math.random() > 0.5 ? '#f97316' : '#eab308') 
+            : (Math.random() > 0.4 ? '#475569' : '#94a3b8'),
+          isSpark
+        });
+      }
+
+      function createExplosion(x, y, isRam = false) {
+        const count = isRam ? 32 : 22;
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spd = (Math.random() * 5.5 + 2) * (isRam ? 1.4 : 1);
+          blastParticles.push({
+            x, y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            radius: Math.random() * 4 + 1.5,
+            alpha: 1,
+            color: Math.random() > 0.6 ? '#fef08a' : (Math.random() > 0.3 ? '#f97316' : '#ef4444')
+          });
+        }
+      }
+
+      function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = blastParticles.length - 1; i >= 0; i--) {
+          const bp = blastParticles[i];
+          bp.x += bp.vx;
+          bp.y += bp.vy;
+          bp.vx *= 0.95;
+          bp.vy *= 0.95;
+          bp.alpha -= 0.025;
+
+          if (bp.alpha <= 0) {
+            blastParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(bp.x, bp.y, bp.radius, 0, Math.PI * 2);
+          ctx.fillStyle = bp.color;
+          ctx.globalAlpha = Math.max(0, bp.alpha);
+          ctx.shadowColor = bp.color;
+          ctx.shadowBlur = 8;
+          ctx.fill();
+          ctx.restore();
+        }
+
+        for (let i = flameTrailParticles.length - 1; i >= 0; i--) {
+          const fp = flameTrailParticles[i];
+          fp.x += fp.vx;
+          fp.y += fp.vy;
+          fp.radius *= 0.93;
+          fp.alpha -= 0.035;
+
+          if (fp.alpha <= 0 || fp.radius <= 0.4) {
+            flameTrailParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(fp.x, fp.y, fp.radius, 0, Math.PI * 2);
+          ctx.fillStyle = fp.color;
+          ctx.globalAlpha = Math.max(0, fp.alpha);
+          ctx.shadowColor = '#f97316';
+          ctx.shadowBlur = 6;
+          ctx.fill();
+          ctx.restore();
+        }
+
+        if (!isGameActive || isGameOver || document.hidden) {
+          gameFrameId = null;
+          return;
+        }
+
+        let coreX = canvas.width / 2;
+        let coreY = canvas.height / 2;
+        const coreHitRadius = 34;
+        const rocketHitRadius = 14;
+
+        if (planetCenterEl) {
+          const rect = planetCenterEl.getBoundingClientRect();
+          coreX = rect.left + rect.width / 2;
+          coreY = rect.top + rect.height / 2;
+        }
+
+        const dx = targetX - currentX;
+        const dy = targetY - currentY;
+        const dist = Math.hypot(dx, dy);
+
+        currentX += dx * 0.45;
+        currentY += dy * 0.45;
+        globalRocketX = currentX;
+        globalRocketY = currentY;
+
+        if (dist > 1 && isGameActive && !isGameOver) {
+          const targetAngle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+          let diff = (targetAngle - currentAngle) % 360;
+          if (diff > 180) diff -= 360;
+          if (diff < -180) diff += 360;
+          
+          const sputter = (Math.random() - 0.5) * 8;
+          currentAngle += diff * 0.25 + sputter;
+          globalRocketAngle = currentAngle;
+
+          const now = performance.now();
+          if (now - lastSmokeTime > 18) {
+            createEngineFailureSmoke(currentX, currentY, currentAngle);
+            lastSmokeTime = now;
+          }
+        }
+
+        if (rocket && isGameActive && !isGameOver) {
+          rocket.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) rotate(${currentAngle}deg)`;
+        }
+
+        for (let i = smokeParticles.length - 1; i >= 0; i--) {
+          const p = smokeParticles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.isSpark) {
+            p.radius *= 0.94;
+            p.alpha -= 0.04;
+          } else {
+            p.radius += 0.16;
+            p.alpha -= 0.022;
+          }
+
+          if (p.alpha <= 0 || p.radius <= 0.2) {
+            smokeParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.max(0, p.alpha);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        for (let i = missiles.length - 1; i >= 0; i--) {
+          const m = missiles[i];
+          m.x += m.vx;
+          m.y += m.vy;
+          m.life--;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, m.radius + 2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+          ctx.fillStyle = '#38bdf8';
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.restore();
+
+          if (m.life <= 0 || m.x < -50 || m.x > canvas.width + 50 || m.y < -50 || m.y > canvas.height + 50) {
+            missiles.splice(i, 1);
+          }
+        }
+
+        for (let i = asteroids.length - 1; i >= 0; i--) {
+          const a = asteroids[i];
+          a.x += a.vx;
+          a.y += a.vy;
+          a.rot += a.rotSpeed;
+
+          a.trailHistory.push({ x: a.x, y: a.y });
+          if (a.trailHistory.length > 8) a.trailHistory.shift();
+
+          if (Math.random() < 0.6) {
+            const oppAngle = a.angle + Math.PI + (Math.random() - 0.5) * 0.8;
+            const spd = Math.random() * 2.5 + 1;
+            flameTrailParticles.push({
+              x: a.x + (Math.random() - 0.5) * (a.radius * 0.8),
+              y: a.y + (Math.random() - 0.5) * (a.radius * 0.8),
+              vx: Math.cos(oppAngle) * spd,
+              vy: Math.sin(oppAngle) * spd,
+              radius: Math.random() * (a.radius * 0.35) + 1.5,
+              alpha: 0.85,
+              color: Math.random() > 0.5 ? '#f59e0b' : (Math.random() > 0.3 ? '#ea580c' : '#ef4444')
+            });
+          }
+
+          if (a.trailHistory.length > 2) {
+            const oppX = Math.cos(a.angle + Math.PI);
+            const oppY = Math.sin(a.angle + Math.PI);
+            const tailLength = a.radius * 3.8;
+
+            const flameGrad = ctx.createLinearGradient(
+              a.x, a.y, 
+              a.x + oppX * tailLength, 
+              a.y + oppY * tailLength
+            );
+            flameGrad.addColorStop(0, 'rgba(254, 240, 138, 0.85)');
+            flameGrad.addColorStop(0.3, 'rgba(249, 115, 22, 0.65)');
+            flameGrad.addColorStop(0.7, 'rgba(239, 68, 68, 0.35)');
+            flameGrad.addColorStop(1, 'transparent');
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            const perpX = -oppY * (a.radius * 0.75);
+            const perpY = oppX * (a.radius * 0.75);
+
+            ctx.lineTo(a.x + perpX, a.y + perpY);
+            ctx.lineTo(a.x + oppX * tailLength, a.y + oppY * tailLength);
+            ctx.lineTo(a.x - perpX, a.y - perpY);
+            ctx.closePath();
+            ctx.fillStyle = flameGrad;
+            ctx.shadowColor = '#f97316';
+            ctx.shadowBlur = 14;
+            ctx.fill();
+            ctx.restore();
+          }
+
+          ctx.save();
+          ctx.translate(a.x, a.y);
+          ctx.rotate(a.rot);
+          ctx.beginPath();
+          for (let j = 0; j < a.numPoints; j++) {
+            const theta = (j / a.numPoints) * Math.PI * 2;
+            const r = a.radius * a.offsets[j];
+            const px = Math.cos(theta) * r;
+            const py = Math.sin(theta) * r;
+            if (j === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+
+          const rockGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, a.radius);
+          rockGrad.addColorStop(0, a.boss ? '#fef3c7' : '#fef08a');
+          rockGrad.addColorStop(0.4, a.boss ? '#f97316' : '#dc2626');
+          rockGrad.addColorStop(0.85, a.boss ? '#7f1d1d' : '#1e1b4b');
+          rockGrad.addColorStop(1, '#0f172a');
+
+          ctx.fillStyle = rockGrad;
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = a.boss ? '#fbbf24' : '#f97316';
+          ctx.shadowColor = a.boss ? '#f97316' : '#ef4444';
+          ctx.shadowBlur = a.boss ? 22 : 10;
+          ctx.stroke();
+          ctx.restore();
+          if (a.boss) {
+            const barW = a.radius * 2.2;
+            ctx.fillStyle = 'rgba(15,23,42,.75)'; ctx.fillRect(a.x-barW/2,a.y-a.radius-15,barW,6);
+            ctx.fillStyle = '#f97316'; ctx.fillRect(a.x-barW/2,a.y-a.radius-15,barW*(a.hp/a.maxHp),6);
+            ctx.fillStyle = '#fff'; ctx.font = '800 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ASTEROID OVERLORD',a.x,a.y-a.radius-21);
+          }
+
+          const distToRocket = Math.hypot(a.x - currentX, a.y - currentY);
+          if (distToRocket < a.radius + rocketHitRadius && isGameActive && !isGameOver && !a.boss) {
+            createExplosion(a.x, a.y, true);
+            awardKill(15, a.x, a.y);
+            asteroids.splice(i, 1);
+            continue;
+          }
+
+          const distToCenter = Math.hypot(a.x - coreX, a.y - coreY);
+          if (distToCenter < a.radius + coreHitRadius) {
+            createExplosion(a.x, a.y);
+            if (a.boss) {
+              bossActive = false;
+              showToast("BOSS BREACHED THE CORE • Resume defense!");
+            }
+            asteroids.splice(i, 1);
+            deductLife("Center Station Breached! A Fire Comet slammed into the core!");
+            continue;
+          }
+
+          let asteroidDestroyed = false;
+          for (let k = missiles.length - 1; k >= 0; k--) {
+            const m = missiles[k];
+            const dist = Math.hypot(a.x - m.x, a.y - m.y);
+            if (dist < a.radius + m.radius) {
+              createExplosion(a.x, a.y);
+              missiles.splice(k, 1);
+              if (a.boss && a.hp > 1) {
+                a.hp--;
+                asteroidDestroyed = false;
+              } else {
+                if (a.boss) { bossActive = false; awardKill(250, a.x, a.y); spawnPowerUp(a.x, a.y, 'repair'); showToast('BOSS DESTROYED • Bonus secured'); }
+                else { awardKill(10, a.x, a.y); splitAsteroid(a); }
+                asteroidDestroyed = true;
+              }
+              break;
+            }
+          }
+
+          if (asteroidDestroyed) {
+            asteroids.splice(i, 1);
+            continue;
+          }
+
+          if (a.x < -90 || a.x > canvas.width + 90 || a.y < -90 || a.y > canvas.height + 90) {
+            if (a.boss) {
+              bossActive = false;
+              showToast("BOSS LOST IN DEEP SPACE • Threat wave resumed");
+            }
+            asteroids.splice(i, 1);
+            deductLife("Defense Failed! A Fire Comet slipped past containment!");
+          }
+        }
+
+        for (let i = powerUps.length - 1; i >= 0; i--) {
+          const p = powerUps[i]; p.y += 1.15; p.life--;
+          const colors = {shield:'#38bdf8',rapid:'#a78bfa',repair:'#4ade80'};
+          ctx.save(); ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2); ctx.fillStyle=colors[p.type]||'#fff'; ctx.shadowColor=ctx.fillStyle; ctx.shadowBlur=16; ctx.fill(); ctx.fillStyle='#0f172a'; ctx.font='900 11px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(p.type==='shield'?'S':p.type==='rapid'?'R':'+',p.x,p.y); ctx.restore();
+          if (Math.hypot(p.x-currentX,p.y-currentY)<p.radius+18) {
+            if (p.type==='shield') { shieldUntil=performance.now()+9000; reactMascot('love', 1400); showToast('SHIELD ACTIVE • 9 seconds'); }
+            else if (p.type==='rapid') { rapidFireUntil=performance.now()+9000; reactMascot('starEyes', 1400); showToast('RAPID FIRE • 9 seconds'); }
+            else { lives=Math.min(5,lives+1); if(livesTextEl)livesTextEl.textContent=String(lives); reactMascot('blush', 1400); showToast('REPAIR KIT • +1 life'); }
+            powerUps.splice(i,1);
+          } else if (p.life<=0 || p.y>canvas.height+30) powerUps.splice(i,1);
+        }
+
+        if (performance.now() < shieldUntil) { ctx.save(); ctx.beginPath(); ctx.arc(currentX,currentY,25,0,Math.PI*2); ctx.strokeStyle='rgba(56,189,248,.85)'; ctx.lineWidth=2; ctx.shadowColor='#38bdf8'; ctx.shadowBlur=16; ctx.stroke(); ctx.restore(); }
+        gameFrameId = requestAnimationFrame(gameLoop);
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          if (gameFrameId !== null) cancelAnimationFrame(gameFrameId);
+          gameFrameId = null;
+        } else if (isGameActive && !isGameOver && gameFrameId === null) {
+          gameFrameId = requestAnimationFrame(gameLoop);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
