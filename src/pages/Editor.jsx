@@ -27,7 +27,46 @@ const applyTotal=()=>{const total=Number(totalAmount)||0,matches=d.costItems.map
 const carIndex=d.costItems.findIndex(x=>x.label.toLowerCase().includes('car'))
 const changeCar=v=>{const rows=[...d.costItems],idx=rows.findIndex(x=>x.label.toLowerCase().includes('car'));if(idx<0)rows.splice(1,0,{label:company==='exact'?'Car Freight':'Car Transportation (if any)',amount:Number(v)||0});else rows[idx]={...rows[idx],amount:Number(v)||0};patch('costItems',rows)}
 const reset=()=>{if(confirm('Reset this company template and shared customer details to defaults?')){setForms(o=>({...o,[company]:clone(DEFAULTS[company])}));setShared(sharedDefault());setTotalAmount('');setStatus('')}}
-const download=async()=>{if(!shared.custName.trim()||!shared.fromCity.trim()||!shared.toCity.trim()){setStatus('Please fill customer name, moving from and moving to.');return}if(t.grand<=0){setStatus('Please enter a quotation amount first.');return}setBusy(true);setStatus('Preparing A4 PDF…');try{const load=(src,ok)=>ok()?Promise.resolve():new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=()=>ok()?res():rej(Error('PDF library failed'));e.onerror=()=>rej(Error('Could not load PDF library'));document.head.append(e)});await Promise.all([load('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>!!window.html2canvas),load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)]);const documentNode=preview.current?.querySelector('.quote-document');if(!documentNode)throw Error('Quotation preview is not ready.');const canvas=await window.html2canvas(documentNode,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:794,windowWidth:794,logging:false}),blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.92)),bytes=blob?new Uint8Array(await blob.arrayBuffer()):canvas.toDataURL('image/jpeg',.92),{jsPDF}=window.jspdf,pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true}),pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),fit=Math.min(pw/canvas.width,ph/canvas.height),w=canvas.width*fit,h=canvas.height*fit,x=(pw-w)/2,y=(ph-h)/2;pdf.addImage(bytes,'JPEG',x,y,w,h,undefined,'FAST');const clean=x=>String(x||'').replace(/[^a-zA-Z0-9 ]/g,'').trim()||'Customer',name=clean(shared.custName)+'_'+clean(d.companyName)+'.pdf',file=pdf.output('blob'),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);recordPdfDownload();if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}setStatus('PDF downloaded ✓ · Saving to Drive…');saveQuotationToDrive(file,name).then(()=>setStatus('PDF downloaded and saved to Drive ✓')).catch(e=>{console.warn('Quotation Drive autosave failed:',e);setStatus('PDF downloaded ✓ · Drive copy could not be saved')})}catch(e){console.error(e);setStatus('PDF generation failed. Please try again.')}finally{setBusy(false)}}
+const download=async()=>{
+ if(!shared.custName.trim()||!shared.fromCity.trim()||!shared.toCity.trim()){setStatus('Please fill customer name, moving from and moving to.');return}
+ if(t.grand<=0){setStatus('Please enter a quotation amount first.');return}
+ setBusy(true);setStatus('Preparing A4 PDF…');
+ let exportStage=null;
+ try{
+  const load=(src,ok)=>ok()?Promise.resolve():new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=()=>ok()?res():rej(Error('PDF library failed'));e.onerror=()=>rej(Error('Could not load PDF library'));document.head.append(e)});
+  await Promise.all([load('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>!!window.html2canvas),load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)]);
+  const source=preview.current?.querySelector('.quote-document');
+  if(!source)throw Error('Quotation preview is not ready.');
+  if(document.fonts?.ready)await document.fonts.ready;
+  // Export an unscaled copy. The live preview is responsively transformed on
+  // tablet/mobile; capturing it directly makes html2canvas shrink the PDF.
+  exportStage=document.createElement('div');
+  exportStage.setAttribute('aria-hidden','true');
+  exportStage.style.cssText='position:fixed;left:-12000px;top:0;width:794px;min-height:1123px;margin:0;padding:0;overflow:visible;background:#fff;z-index:-1;transform:none;zoom:1;pointer-events:none;';
+  const exportNode=source.cloneNode(true);
+  exportNode.style.cssText+=';display:block!important;position:relative!important;left:auto!important;top:auto!important;width:794px!important;min-width:794px!important;max-width:794px!important;min-height:1123px!important;height:auto!important;margin:0!important;padding-bottom:40px!important;transform:none!important;zoom:1!important;box-sizing:border-box!important;overflow:visible!important;';
+  exportStage.appendChild(exportNode);
+  document.body.appendChild(exportStage);
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const exportHeight=Math.max(1123,exportNode.scrollHeight,Math.ceil(exportNode.getBoundingClientRect().height));
+  const canvas=await window.html2canvas(exportNode,{scale:3,useCORS:true,backgroundColor:'#ffffff',width:794,height:exportHeight,windowWidth:1200,windowHeight:Math.max(1200,exportHeight),scrollX:0,scrollY:0,logging:false});
+  if(!canvas.width||!canvas.height)throw Error('Could not render the quotation page.');
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.96));
+  const bytes=blob?new Uint8Array(await blob.arrayBuffer()):canvas.toDataURL('image/jpeg',.96);
+  const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
+  const pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight();
+  const fit=Math.min(pageW/canvas.width,pageH/canvas.height),w=canvas.width*fit,h=canvas.height*fit;
+  pdf.addImage(bytes,'JPEG',(pageW-w)/2,(pageH-h)/2,w,h,undefined,'FAST');
+  const clean=x=>String(x||'').replace(/[^a-zA-Z0-9 ]/g,'').trim()||'Customer';
+  const name=clean(shared.custName)+'_'+clean(d.companyName)+'.pdf',file=pdf.output('blob'),url=URL.createObjectURL(file),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  recordPdfDownload();
+  if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
+  setStatus('PDF downloaded ✓ · Saving to Drive…');
+  saveQuotationToDrive(file,name).then(()=>setStatus('PDF downloaded and saved to Drive ✓')).catch(e=>{console.warn('Quotation Drive autosave failed:',e);setStatus('PDF downloaded ✓ · Drive copy could not be saved')});
+ }catch(e){console.error(e);setStatus('PDF generation failed. Please try again.')}
+ finally{exportStage?.remove();setBusy(false)}
+}
 return <div className="editor-page"><div className="editor-layout"><section className="editor-panel">
 <div className="company-tabs"><button className={company==='exact'?'active exact':'exact'} onClick={()=>{setCompany('exact');setStatus('')}}>Exact Container<br/>Logistics</button><button className={company==='maxcare'?'active maxcare':'maxcare'} onClick={()=>{setCompany('maxcare');setStatus('')}}>Maxcare Packers<br/>&amp; Movers</button></div>
 <div className="editor-group shared-group"><h2>Customer &amp; details <span>— shared</span></h2><Field label="Date"><input value={shared.date} onChange={e=>ps('date',e.target.value)}/></Field><Field label="Customer name *"><input value={shared.custName} onChange={e=>ps('custName',e.target.value)} placeholder="Customer name"/></Field><div className="editor-two"><Field label="Customer company"><input value={shared.custCompany} onChange={e=>ps('custCompany',e.target.value)}/></Field><Field label="Customer GST"><input value={shared.custGst} onChange={e=>ps('custGst',e.target.value)}/></Field></div><div className="editor-two"><Field label="Moving from *"><input value={shared.fromCity} onChange={e=>ps('fromCity',e.target.value)}/></Field><Field label="Moving to *"><input value={shared.toCity} onChange={e=>ps('toCity',e.target.value)}/></Field></div></div>
