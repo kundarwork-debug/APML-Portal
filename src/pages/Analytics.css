@@ -30,3 +30,12 @@
 .analytics-loading-hint{color:#92908d;font-size:10px}
 @media(prefers-reduced-motion:reduce){.analytics-loading-indicator .spinner,.analytics-loading-indicator .spinner:before,.analytics-loading-indicator .spinner:after,.analytics-loading-indicator .word{animation:none}}
 @media(max-width:520px){.analytics-loading-indicator{justify-content:flex-start;gap:6px}.analytics-loading-hint{width:100%;padding-left:38px}}
+
+/* Compact daily trend graphs inside the KPI summary cards. */
+.analytics-kpi-trend{height:34px;width:100%;margin:0 0 1px;overflow:hidden;color:#b4232c}
+.analytics-kpi.tone-green .analytics-kpi-trend{color:#15966b}
+.analytics-kpi.tone-blue .analytics-kpi-trend{color:#3977c8}
+.analytics-kpi.tone-amber .analytics-kpi-trend{color:#b7791f}
+.analytics-sparkline{display:block;width:100%;height:34px;overflow:visible}
+.analytics-sparkline-area{fill:currentColor;opacity:.11}
+.analytics-sparkline-empty{height:34px;border-bottom:1px dashed #e5e1d9;opacity:.7}
