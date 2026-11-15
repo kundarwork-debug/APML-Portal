@@ -4,7 +4,7 @@ import PrivacyConsent from './PrivacyConsent'
 import { getApmlDatabase } from '../lib/firebase'
 import { Footer } from './ui/footer'
 import { Component as HamburgerButton } from './ui/demo'
-import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale } from 'lucide-react'
+import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
 
 const links = [
  {to:'/',label:'Home',icon:Home},{to:'/editor',label:'Quotation Editor',icon:FileText},
@@ -82,7 +82,7 @@ function FloatingMascot({pagePath}){
    const bodyHeight=document.body.offsetHeight
    const footerHeight=footer?footer.offsetHeight:0
    const nearBottom=scrollPosition>(bodyHeight-footerHeight+20)
-   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&(!isIndexPage||scrollY>250)&&!nearBottom)
+   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&pageKey!=='play'&&(!isIndexPage||scrollY>250)&&!nearBottom)
    if(nearBottom){clearTimeout(timers.current.hide);setBubbleVisible(false)}
   }
   update()
@@ -226,6 +226,12 @@ export default function Shell(){
       { name: 'Privacy Policy', Icon: ShieldCheck, href: '/privacy' },
       { name: 'Terms & Conditions', Icon: Scale, href: '/terms' },
       { name: 'Cookies Policy', Icon: ShieldCheck, href: '/cookies' }
+     ]
+    },
+    {
+     title: 'Helpful Links',
+     links: [
+      { name: 'Play Now', Icon: Gamepad2, href: '/play', className: 'footer-play-link' }
      ]
     }
    ]}
