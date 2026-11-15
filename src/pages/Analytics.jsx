@@ -83,7 +83,7 @@ export default function Analytics() {
     }
   }, [range])
 
-  useEffect(() => { loadReport(range) }, [range, loadReport])
+  useEffect(() => { if (range !== 'custom') loadReport(range) }, [range, loadReport])
 
   const daily = data?.daily || []
   const totals = data?.totals || {}
