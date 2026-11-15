@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import './Analytics.css'
 import { getApmlDatabase } from '../lib/firebase'
+import { supabase } from '../lib/supabaseAuth'
 
 const API_URL = 'https://apml-drive-api.kundar-work.workers.dev/nova/analytics'
 const fmt = value => new Intl.NumberFormat('en-IN').format(Number(value) || 0)
@@ -95,7 +96,9 @@ export default function Analytics() {
       const params = new URLSearchParams()
       if (start && end) { params.set('start', start); params.set('end', end) }
       else params.set('days', selectedRange)
-      const response = await fetch(API_URL + '?' + params.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      const { data: sessionData, error: sessionError } = await supabase?.auth.getSession() || { data: { session: null }, error: new Error('Administrator session is unavailable.') }
+      if (sessionError || !sessionData?.session?.access_token) throw new Error('Please sign in again with an approved administrator account.')
+      const response = await fetch(API_URL + '?' + params.toString(), { headers: { Accept: 'application/json', Authorization: 'Bearer ' + sessionData.session.access_token }, cache: 'no-store' })
       const result = await response.json().catch(() => ({}))
       if (!response.ok || !result.ok) throw new Error(result.error || 'Analytics report could not be loaded.')
       setData(result)
