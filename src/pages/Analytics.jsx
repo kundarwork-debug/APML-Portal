@@ -5,6 +5,7 @@ import {
   FileText, MapPin, Layers3, Zap
 } from 'lucide-react'
 import './Analytics.css'
+import { getApmlDatabase } from '../lib/firebase'
 
 const API_URL = 'https://apml-drive-api.kundar-work.workers.dev/nova/analytics'
 const fmt = value => new Intl.NumberFormat('en-IN').format(Number(value) || 0)
@@ -76,6 +77,16 @@ export default function Analytics() {
   const [hideEmpty, setHideEmpty] = useState(true)
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
+  const [firebaseLive, setFirebaseLive] = useState(false)
+  const [onlineNow, setOnlineNow] = useState(null)
+  const rangeRef = useRef(range)
+  const customStartRef = useRef(customStart)
+  const customEndRef = useRef(customEnd)
+  const loadReportRef = useRef(null)
+  rangeRef.current = range
+  customStartRef.current = customStart
+  customEndRef.current = customEnd
+  loadReportRef.current = loadReport
   const trendRef = useRef(null)
   const visitorRef = useRef(null)
   const performanceRef = useRef(null)
@@ -100,6 +111,59 @@ export default function Analytics() {
   }, [range])
 
   useEffect(() => { if (range !== 'custom') loadReport(range) }, [range, loadReport])
+
+  // Subscribe to Firebase Realtime Database so the dashboard updates as soon
+  // as the portal writes new daily activity, downloads, sessions or presence.
+  // The Worker remains responsible for privacy-safe aggregation and insights.
+  useEffect(() => {
+    let db
+    let refreshTimer
+    let disposed = false
+    const subscriptions = []
+    const queueRefresh = () => {
+      clearTimeout(refreshTimer)
+      refreshTimer = setTimeout(() => {
+        if (disposed) return
+        const selected = rangeRef.current
+        if (selected === 'custom') {
+          if (customStartRef.current && customEndRef.current) loadReportRef.current?.('custom', customStartRef.current, customEndRef.current)
+        } else {
+          loadReportRef.current?.(selected)
+        }
+      }, 650)
+    }
+    const attach = (database, path, callback) => {
+      const ref = database.ref(path)
+      ref.on('value', callback, () => setFirebaseLive(false))
+      subscriptions.push(() => ref.off('value', callback))
+    }
+    getApmlDatabase().then(database => {
+      if (disposed) return
+      db = database
+      setFirebaseLive(true)
+      attach(db, 'analytics/daily_logs', queueRefresh)
+      attach(db, 'analytics/visitor_sessions', queueRefresh)
+      attach(db, 'analytics/totalPdfDownloads', snap => {
+        const value = Number(snap.val()) || 0
+        setData(current => current ? { ...current, totals: { ...current.totals, totalPdfsLifetime: value } } : current)
+      })
+      attach(db, 'analytics/totalMediaDownloads', snap => {
+        const value = Number(snap.val()) || 0
+        setData(current => current ? { ...current, totals: { ...current.totals, totalMediaLifetime: value } } : current)
+      })
+      attach(db, 'presence', snap => setOnlineNow(snap.numChildren()))
+    }).catch(() => {
+      if (!disposed) {
+        setFirebaseLive(false)
+        setOnlineNow(null)
+      }
+    })
+    return () => {
+      disposed = true
+      clearTimeout(refreshTimer)
+      subscriptions.forEach(unsubscribe => unsubscribe())
+    }
+  }, [])
 
   const daily = data?.daily || []
   const totals = data?.totals || {}
@@ -302,7 +366,7 @@ export default function Analytics() {
         <div className="analytics-eyebrow"><Activity size={14}/> APML PORTAL INSIGHTS</div>
         <h1>Traffic &amp; <span>Analytics</span></h1>
         <p>Understand portal activity, visitor engagement, downloads and performance.</p>
-        <div className="analytics-head-meta"><span><i className={busy ? 'analytics-live-dot is-busy' : 'analytics-live-dot'}/>{busy ? 'Updating report…' : 'Live report'}</span><span>India time · {data?.timezone || 'Asia/Kolkata'}</span>{data?.generatedAt && <span>Updated {new Date(data.generatedAt).toLocaleTimeString('en-IN')}</span>}</div>
+        <div className="analytics-head-meta"><span><i className={busy ? 'analytics-live-dot is-busy' : 'analytics-live-dot'}/>{busy ? 'Updating report…' : firebaseLive ? 'Live · Firebase connected' : 'Worker report · Firebase reconnecting'}</span>{onlineNow !== null && <span>{fmt(onlineNow)} online now</span>}<span>India time · {data?.timezone || 'Asia/Kolkata'}</span>{data?.generatedAt && <span>Updated {new Date(data.generatedAt).toLocaleTimeString('en-IN')}</span>}</div>
       </div>
       <div className="analytics-head-actions">
         <button className="analytics-btn" onClick={() => range === 'custom' ? loadReport('custom', customStart, customEnd) : loadReport(range)} disabled={busy}><RefreshCw size={15} className={busy ? 'analytics-spin' : ''}/> Refresh</button>
