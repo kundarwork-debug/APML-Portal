@@ -1,0 +1,125 @@
+name: APML Quality Monitor
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apml-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-quality:
+    name: Build and dependency security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Audit npm dependencies
+        shell: bash
+        run: |
+          npm audit --json > npm-audit.json || true
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('npm-audit.json', 'utf8'));
+          const counts = report.metadata?.vulnerabilities ?? {};
+          const total = counts.total ?? 0;
+          const lines = [
+            '## Dependency security',
+            '',
+            '| Severity | Count |',
+            '|---|---:|',
+            ...['critical', 'high', 'moderate', 'low', 'info'].map(level => `| ${level} | ${counts[level] ?? 0} |`),
+            '',
+            total ? '**Action required:** review the dependency audit artifact.' : 'No known npm vulnerabilities were reported by this audit.'
+          ];
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          NODE
+
+      - name: Build React portal
+        run: npm run build
+
+      - name: Upload dependency audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apml-dependency-audit
+          path: npm-audit.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  live-site-audit:
+    name: Live website, accessibility and link checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check important live pages
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --verbose
+            --no-progress
+            --max-concurrency 4
+            --timeout 25
+            --accept 200,206,429
+            './**/*.md'
+            'https://apmlportal.vercel.app/'
+            'https://apmlportal.vercel.app/editor'
+            'https://apmlportal.vercel.app/system-health'
+            'https://apmlportal.vercel.app/local-rate'
+            'https://apmlportal.vercel.app/about'
+          output: ./lychee-report.md
+          format: markdown
+          fail: true
+
+      - name: Run Lighthouse audits
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://apmlportal.vercel.app/
+            https://apmlportal.vercel.app/editor
+            https://apmlportal.vercel.app/system-health
+            https://apmlportal.vercel.app/about
+          runs: 1
+          uploadArtifacts: true
+          temporaryPublicStorage: false
+
+      - name: Add live audit note
+        if: always()
+        run: |
+          {
+            echo "## Live website audit"
+            echo ""
+            echo "The workflow checks key public pages for availability and runs Lighthouse audits covering performance, accessibility, best practices and SEO."
+            echo ""
+            echo "See the **Artifacts** section of this workflow run for the Lighthouse and link-check reports."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload link-check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apml-link-check-report
+          path: lychee-report.md
+          if-no-files-found: ignore
+          retention-days: 14
