@@ -49,6 +49,17 @@ async function ensureApex() {
   await window.__apmlApexPromise
 }
 
+function Sparkline({ values = [] }) {
+  const width = 120, height = 34, pad = 3
+  const nums = values.map(value => Number(value) || 0)
+  if (!nums.length) return <div className="analytics-sparkline-empty" aria-label="No trend data yet" />
+  const max = Math.max(...nums, 1), min = Math.min(...nums, 0), span = max - min || 1
+  const coords = nums.map((value, index) => [nums.length === 1 ? width / 2 : pad + index * (width - pad * 2) / (nums.length - 1), height - pad - ((value - min) / span) * (height - pad * 2)])
+  const points = coords.map(([x, y]) => x + ',' + y).join(' ')
+  const area = 'M ' + coords[0][0] + ' ' + (height - pad) + ' L ' + coords.map(([x, y]) => x + ' ' + y).join(' L ') + ' L ' + coords[coords.length - 1][0] + ' ' + (height - pad) + ' Z'
+  return <svg className="analytics-sparkline" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Daily trend sparkline"><path className="analytics-sparkline-area" d={area}/><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+}
+
 export default function Analytics() {
   const [data, setData] = useState(null)
   const [range, setRange] = useState('30')
@@ -272,12 +283,12 @@ export default function Analytics() {
   }
 
   const kpis = [
-    { label: 'Visitors', value: fmt(totals.visitors), delta: pctChange(totals.visitors, previous.visitors), note: 'Daily visitor counts', icon: Users, tone: 'green' },
-    { label: 'PDF quotations', value: fmt(totals.pdf), delta: pctChange(totals.pdf, previous.pdf), note: fmt(totals.totalPdfsLifetime) + ' lifetime', icon: FileText, tone: 'red' },
-    { label: 'Media downloads', value: fmt(totals.media), delta: pctChange(totals.media, previous.media), note: fmt(totals.totalMediaLifetime) + ' lifetime', icon: Layers3, tone: 'blue' },
-    { label: 'Total downloads', value: fmt(totalDownloads), delta: pctChange(totalDownloads, previousDownloads), note: 'PDFs + media', icon: Download, tone: 'red' },
-    { label: 'Average daily visitors', value: fmt(daily.length ? Math.round((totals.visitors || 0) / daily.length) : 0), note: 'Selected period average', icon: TrendingUp, tone: 'green' },
-    { label: 'Busiest day', value: busiestDay ? dateLabel(busiestDay.date).replace(/, \d{4}$/, '') : '—', note: fmt(busiestDay ? busiestDay.visitors + busiestDay.pdf + busiestDay.media : 0) + ' total actions', icon: Zap, tone: 'amber' }
+    { label: 'Visitors', value: fmt(totals.visitors), delta: pctChange(totals.visitors, previous.visitors), note: 'Daily visitor counts', icon: Users, tone: 'green', trend: daily.map(row => row.visitors) },
+    { label: 'PDF quotations', value: fmt(totals.pdf), delta: pctChange(totals.pdf, previous.pdf), note: fmt(totals.totalPdfsLifetime) + ' lifetime', icon: FileText, tone: 'red', trend: daily.map(row => row.pdf) },
+    { label: 'Media downloads', value: fmt(totals.media), delta: pctChange(totals.media, previous.media), note: fmt(totals.totalMediaLifetime) + ' lifetime', icon: Layers3, tone: 'blue', trend: daily.map(row => row.media) },
+    { label: 'Total downloads', value: fmt(totalDownloads), delta: pctChange(totalDownloads, previousDownloads), note: 'PDFs + media', icon: Download, tone: 'red', trend: daily.map(row => (row.pdf || 0) + (row.media || 0)) },
+    { label: 'Average daily visitors', value: fmt(daily.length ? Math.round((totals.visitors || 0) / daily.length) : 0), note: 'Selected period average', icon: TrendingUp, tone: 'green', trend: daily.map(row => row.visitors) },
+    { label: 'Busiest day', value: busiestDay ? dateLabel(busiestDay.date).replace(/, \\d{4}$/, '') : '—', note: fmt(busiestDay ? busiestDay.visitors + busiestDay.pdf + busiestDay.media : 0) + ' total actions', icon: Zap, tone: 'amber', trend: daily.map(row => row.visitors + row.pdf + row.media) }
   ]
 
   return <main className="analytics-page">
@@ -320,7 +331,7 @@ export default function Analytics() {
         const Icon = item.icon
         return <article className={'analytics-kpi tone-' + item.tone} key={item.label}>
           <div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Icon size={18}/></span><span className="analytics-kpi-label">{item.label}</span>{item.delta && <span className={'analytics-delta ' + (item.delta.startsWith('+') && item.delta !== '+0.0%' ? 'up' : item.delta.startsWith('-') ? 'down' : '')}>{item.delta}</span>}</div>
-          <strong>{item.value}</strong><small>{item.note}</small>
+          <strong>{item.value}</strong><div className="analytics-kpi-trend"><Sparkline values={item.trend}/></div><small>{item.note}</small>
         </article>
       })}
     </section>
