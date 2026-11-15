@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Gamepad2, Heart, Home, Play, RotateCcw, Trophy, Zap } from 'lucide-react'
+import { ArrowLeft, Home, Play, RotateCcw, Trophy, Zap } from 'lucide-react'
 import './NotFound.css'
 
 export default function NotFound(){
@@ -11,7 +11,6 @@ export default function NotFound(){
  const [highScore,setHighScore]=useState(()=>Number(localStorage.getItem('apml-arcade-high-score')||0))
  const [showScores,setShowScores]=useState(false)
  const [finished,setFinished]=useState(false)
- const gameRef=useRef(null)
 
  useEffect(()=>{
   if(!running)return
@@ -19,7 +18,6 @@ export default function NotFound(){
   const ctx=canvas?.getContext('2d')
   if(!canvas||!ctx)return
   const state={w:0,h:0,player:{x:0,y:0},bullets:[],rocks:[],stars:[],score:0,lives:5,last:0,spawn:0,fire:0,keys:new Set()}
-  gameRef.current=state
   let raf=0
   const resize=()=>{
    const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2)
