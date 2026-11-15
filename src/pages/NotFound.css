@@ -9,3 +9,6 @@
 @media(max-width:760px){.not-found-page{min-height:calc(100svh - 105px);padding:28px 12px 38px;border-radius:16px}.nf-stage{flex-direction:column;gap:0}.nf-orbit{height:170px;flex-basis:170px;width:170px}.nf-planet span{font-size:42px}.nf-content>p{font-size:12px;margin-bottom:16px}.nf-actions{width:100%;max-width:390px}.nf-actions button,.nf-actions a{flex:1 1 calc(50% - 8px)}.nf-playing{min-height:100svh}.nf-arcade-top{gap:7px;padding:7px 9px;max-width:calc(100vw - 16px)}.nf-arcade-top small{font-size:8px}.nf-arcade-top b{font-size:12px}.nf-arcade-top button{padding:6px 8px;font-size:9px}.nf-live-hint{font-size:8px;letter-spacing:.07em}.nf-result-grid strong{font-size:16px}}
 @media(max-width:390px){.nf-arcade-top{gap:5px;padding:6px 7px}.nf-arcade-top>div{gap:3px}.nf-arcade-top small{font-size:7px}.nf-arcade-top b{font-size:11px}.nf-arcade-top>i{height:12px}.nf-arcade-top button{font-size:8px;padding:5px 6px}.nf-result-grid{gap:5px}.nf-result-grid>div{padding:10px 4px}}
 @media(prefers-reduced-motion:reduce){.nf-planet,.nf-mascot,.nf-live-dot{animation:none}.nf-actions button,.nf-actions a{transition:none}}
+
+
+.legacy-not-found-frame{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;border:0;display:block;background:#fdf8f5;z-index:999999;}
