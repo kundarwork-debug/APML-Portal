@@ -6,7 +6,7 @@ import InfoPage from './pages/InfoPage'
 import EditorPage from './pages/Editor'
 import SystemHealth from './pages/SystemHealth'
 import QualityMonitor from './pages/QualityMonitor'
-import Admin
+import Admin from './pages/Admin'
 import LocalRate from './pages/LocalRate'
 import CarRate from './pages/CarRate'
 import Directory from './pages/Directory'
