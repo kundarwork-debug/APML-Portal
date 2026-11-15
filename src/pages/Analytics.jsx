@@ -60,10 +60,7 @@ function Sparkline({ values = [] }) {
     const mid = (previous[0] + point[0]) / 2
     return path + ` C ${mid} ${previous[1]}, ${mid} ${point[1]}, ${point[0]} ${point[1]}`
   }, `M ${coords[0][0]} ${coords[0][1]}`)
-  const area = line + ` L ${coords[coords.length - 1][0]} ${height - pad} L ${coords[0][0]} ${height - pad} Z`
   return <svg className="analytics-sparkline" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Daily trend sparkline">
-    <defs><linearGradient id="analytics-spark-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="currentColor" stopOpacity=".2"/><stop offset="100%" stopColor="currentColor" stopOpacity="0"/></linearGradient></defs>
-    <path className="analytics-sparkline-area" d={area}/>
     <path className="analytics-sparkline-line" d={line}/>
   </svg>
 }
