@@ -142,6 +142,13 @@ export default function NotFound() {
       for (let x = 0; x < game.width; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, game.height); ctx.stroke() }
       for (let y = 0; y < game.height; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(game.width, y); ctx.stroke() }
       game.stars.forEach(star => { star.y += star.speed * dt; if (star.y > game.height) star.y = 0; ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(star.x, star.y, star.size, star.size) })
+      const coreX = game.width / 2, coreY = game.height * .47
+      const coreGlow = ctx.createRadialGradient(coreX, coreY, 4, coreX, coreY, 62)
+      coreGlow.addColorStop(0, 'rgba(248,113,113,.22)'); coreGlow.addColorStop(1, 'rgba(248,113,113,0)')
+      ctx.fillStyle = coreGlow; ctx.beginPath(); ctx.arc(coreX, coreY, 62, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(coreX, coreY, 31, 0, Math.PI * 2); ctx.fillStyle = '#7f1d1d'; ctx.fill(); ctx.strokeStyle = '#fca5a5'; ctx.lineWidth = 2; ctx.stroke()
+      ctx.beginPath(); ctx.ellipse(coreX, coreY, 47, 15, -.28, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(252,165,165,.65)'; ctx.lineWidth = 2; ctx.stroke()
+      ctx.fillStyle = '#fee2e2'; ctx.font = '800 8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('APML CORE', coreX, coreY + 3)
 
       if (game.keys.has('ArrowLeft') || game.keys.has('KeyA')) game.player.x -= 6 * dt
       if (game.keys.has('ArrowRight') || game.keys.has('KeyD')) game.player.x += 6 * dt
@@ -178,6 +185,9 @@ export default function NotFound() {
         }
         if (Math.hypot(rock.x - game.player.x, rock.y - game.player.y) < rock.radius + 13) {
           burst(rock.x, rock.y); game.rocks.splice(i, 1); if (rock.boss) game.boss = false; loseLife(); continue
+        }
+        if (Math.hypot(rock.x - coreX, rock.y - coreY) < rock.radius + 34) {
+          burst(rock.x, rock.y, '#fca5a5', 26); game.rocks.splice(i, 1); if (rock.boss) game.boss = false; loseLife(); continue
         }
         let destroyed = false
         for (let j = game.bullets.length - 1; j >= 0; j--) {
