@@ -1,10 +1,10 @@
 import {useEffect,useMemo,useState} from 'react'
 import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw} from 'lucide-react'
-import {getApmlDatabase,getApmlAuth} from '../lib/firebase'
+import {getApmlDatabase} from '../lib/firebase'
+import { useApmlAdminAuth } from '../lib/supabaseAuth'
 import {driveAlert,driveConfirm,driveToast} from '../lib/sweetalert'
 import './FieldOfficer.css'
 
-const admins=['kundar701@gmail.com','kundar.work@gmail.com']
 const empty={name:'',branch:'',apmCode:'N/A',mobile:'',designation:'Marketing Executive',role:'BFO',status:'Active',isDeleted:false}
 let xlsxLoad
 function loadXlsx(){if(!xlsxLoad)xlsxLoad=new Promise((resolve,reject)=>{if(window.XLSX)return resolve(window.XLSX);const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=()=>resolve(window.XLSX);s.onerror=()=>reject(new Error('Excel import library could not load.'));document.head.appendChild(s)});return xlsxLoad}
@@ -12,7 +12,8 @@ function normHeader(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'
 function isDeleted(x){return x.isDeleted===true||x.isDeleted==='true'||x.isDeleted===1}
 
 export default function FieldOfficer(){
- const [records,setRecords]=useState([]),[query,setQuery]=useState(''),[status,setStatus]=useState('Connecting to live officer directory…'),[admin,setAdmin]=useState(false),[busy,setBusy]=useState(false),[edit,setEdit]=useState(null),[toast,setToast]=useState('')
+ const [records,setRecords]=useState([]),[query,setQuery]=useState(''),[status,setStatus]=useState('Connecting to live officer directory…'),[busy,setBusy]=useState(false),[edit,setEdit]=useState(null),[toast,setToast]=useState('')
+ const { admin, signIn, signOut } = useApmlAdminAuth()
  const [ref,setRef]=useState(null),[importing,setImporting]=useState(false),[statusFilter,setStatusFilter]=useState('All')
  useEffect(()=>{let active=true,dbRef=null,handler=null;(async()=>{try{const db=await getApmlDatabase();if(!active)return;dbRef=db.ref('field_officers');setRef(dbRef);handler=snap=>{if(!active)return;const v=snap.val()||{};setRecords(Object.entries(v).map(([id,x])=>({...x,id})));setStatus('Live sync connected')};dbRef.on('value',handler,e=>{if(active)setStatus('Unable to load directory: '+e.message)})}catch(e){if(active)setStatus('Firebase connection unavailable. '+e.message)}})();return()=>{active=false;if(dbRef&&handler)dbRef.off('value',handler)}},[])
  const activeRecords=records.filter(x=>!isDeleted(x)),activeCount=activeRecords.length
@@ -31,7 +32,7 @@ export default function FieldOfficer(){
    notify('Phone number copied');
   }catch{notify('Could not copy number. Please select and copy it manually.')}
  }
- async function toggleAdmin(){setBusy(true);try{const auth=await getApmlAuth();if(admin){await auth.signOut();setAdmin(false);notify('Admin view closed');return}const result=await auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider()),email=(result.user.email||'').toLowerCase().trim();if(!admins.includes(email)){await auth.signOut();throw new Error('This Google account is not authorized for admin access.')}setAdmin(true);notify('Admin access enabled')}catch(e){try{await driveAlert('Admin sign-in failed',e.message||'Please try again.','error')}catch{notify(e.message||'Admin sign-in failed')}}finally{setBusy(false)}}
+ async function toggleAdmin(){setBusy(true);try{if(admin){await signOut();notify('Admin view closed');return}await signIn()}catch(e){try{await driveAlert('Admin sign-in failed',e.message||'Please try again.','error')}catch{notify(e.message||'Admin sign-in failed')}}finally{setBusy(false)}}
  async function save(){if(!ref)return notify('Directory is not connected');if(!edit.id&&!admin)return notify('Only admins can create new officers');const value={...edit,name:edit.name.trim(),branch:edit.branch.trim().toUpperCase(),apmCode:edit.apmCode.trim()||'N/A',mobile:edit.mobile.trim(),role:'BFO'};if(!value.name||!value.branch||!value.mobile)return notify('Name, branch and mobile are required.');setBusy(true);try{if(edit.id)await ref.child(edit.id).update(value);else await ref.push({...value,isDeleted:false});setEdit(null);notify(edit.id?'Officer details updated':'New field officer created')}catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}}
  async function update(id,patch){if(!ref)return;if(patch.isDeleted===false&&!admin)return notify('Admin access required to restore officers');if(patch.isDeleted===true){const ok=await driveConfirm('Hide this officer?','The contact will disappear from the public directory. Only an admin can restore or permanently delete it.','Hide contact');if(!ok)return}setBusy(true);try{await ref.child(id).update(patch);notify(patch.isDeleted?'Contact hidden from public directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
  async function importExcel(file){
