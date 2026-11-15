@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
-import {Plus,Trash2,Download,RotateCcw,FileText,Calculator,LoaderCircle} from 'lucide-react'
+import {Plus,Trash2,Download,RotateCcw,FileText,Calculator} from 'lucide-react'
 import './Editor.css'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
 const sharedDefault=()=>({date:dateNow(),custName:'',custCompany:'Unregistered',custGst:'GST Exempted',fromCity:'',toCity:''})
@@ -64,8 +64,10 @@ const download=async()=>{
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
   recordPdfDownload();
   if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
+  setBusy(false);
   await editorAlert({icon:'success',title:'PDF generated successfully!',text:name});
-  try{await saveQuotationToDrive(file,name);await editorAlert({icon:'success',title:'Saved to APML Drive',text:'The quotation PDF has also been saved in the Quotation folder.'})}catch(driveError){console.warn('Quotation Drive autosave failed:',driveError);await editorAlert({icon:'warning',title:'PDF downloaded, Drive save failed',text:driveError?.message||'The PDF was downloaded, but its Drive copy could not be saved.'})}
+  // Save to Drive independently; do not block the editor or PDF download.
+  saveQuotationToDrive(file,name).catch(driveError=>console.warn('Quotation Drive background save failed:',driveError));
  }catch(e){console.error(e);await editorAlert({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
  finally{exportStage?.remove();setBusy(false)}
 }
@@ -77,6 +79,20 @@ return <div className="editor-page"><div className="editor-layout"><section clas
 {d.costItems.map((x,i)=><div className="editor-dynamic-row" key={i}><input aria-label="Cost item description" value={x.label} onChange={e=>patch('costItems',d.costItems.map((z,j)=>j===i?{...z,label:e.target.value}:z))}/><input aria-label="Cost item amount" type="number" value={x.amount} onChange={e=>patch('costItems',d.costItems.map((z,j)=>j===i?{...z,amount:e.target.value}:z))}/><button className="remove-row" onClick={()=>patch('costItems',d.costItems.filter((_,j)=>j!==i))} aria-label="Remove cost item"><Trash2 size={16}/></button></div>)}<button className="editor-add" onClick={()=>patch('costItems',[...d.costItems,{label:'New Charge',amount:0}])}><Plus size={16}/> Add cost item</button><div className="editor-totals"><div><span>Subtotal</span><strong>₹ {money(t.subtotal)}</strong></div><div><span>GST ({Number(d.gstPercent)||0}%)</span><strong>₹ {money(t.gst)}</strong></div><div className="grand"><span>Total with GST</span><strong>₹ {money(t.grand)}</strong></div></div></div>
 <div className="editor-group"><h2>Terms &amp; conditions</h2>{d.terms.map((x,i)=><div className="editor-dynamic-row term-edit" key={i}><textarea value={x} onChange={e=>patch('terms',d.terms.map((z,j)=>j===i?e.target.value:z))}/><button className="remove-row" onClick={()=>patch('terms',d.terms.filter((_,j)=>j!==i))} aria-label="Remove term"><Trash2 size={16}/></button></div>)}<button className="editor-add" onClick={()=>patch('terms',[...d.terms,'New term or condition.'])}><Plus size={16}/> Add term</button></div>
 <div className="editor-group"><h2>Registered office</h2><Field label={d.addrLabel}><textarea value={d.addr} onChange={e=>patch('addr',e.target.value)}/></Field><div className="editor-two"><Field label="Phone"><input value={d.phone} onChange={e=>patch('phone',e.target.value)}/></Field>{d.showEmail&&<Field label="Email"><input value={d.email} onChange={e=>patch('email',e.target.value)}/></Field>}</div></div>
-<button className="editor-reset" onClick={reset}><RotateCcw size={15}/> Reset template to default</button><div className="editor-download"><button onClick={download} disabled={busy}>{busy?<LoaderCircle className="spin" size={18}/>:<Download size={18}/>} {busy?'Generating PDF…':'Download A4 PDF'}</button>{status&&<p role="status">{status}</p>}</div></section>
+<button className="editor-reset" onClick={reset}><RotateCcw size={15}/> Reset template to default</button><div className="editor-download"><button onClick={download} disabled={busy}><Download size={18}/> {busy?'Generating PDF…':'Download A4 PDF'}</button>{status&&<p role="status">{status}</p>}</div></section>
 <section className="editor-preview"><div className="preview-caption"><FileText size={15}/> LIVE A4 PREVIEW <span>Changes update instantly</span></div><div className="preview-scroll"><div className="preview-paper" ref={preview}><Preview company={company} d={d} s={shared}/></div></div></section></div></div>
+{busy&&<div className="quote-generating-overlay" role="status" aria-live="polite">
+  <div className="spinnerContainer">
+    <div className="spinner"></div>
+    <div className="loader"><p>Preparing</p><div className="words">
+      <span className="word">quotation</span>
+      <span className="word">PDF</span>
+      <span className="word">pages</span>
+      <span className="word">document</span>
+      <span className="word">quotation</span>
+    </div></div>
+    <span className="quote-generating-caption">Please wait while your A4 quotation is generated</span>
+  </div>
+</div>}
+</div>
 }
