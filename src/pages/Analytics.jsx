@@ -83,10 +83,6 @@ export default function Analytics() {
   const customStartRef = useRef(customStart)
   const customEndRef = useRef(customEnd)
   const loadReportRef = useRef(null)
-  rangeRef.current = range
-  customStartRef.current = customStart
-  customEndRef.current = customEnd
-  loadReportRef.current = loadReport
   const trendRef = useRef(null)
   const visitorRef = useRef(null)
   const performanceRef = useRef(null)
@@ -109,6 +105,11 @@ export default function Analytics() {
       setBusy(false)
     }
   }, [range])
+
+  rangeRef.current = range
+  customStartRef.current = customStart
+  customEndRef.current = customEnd
+  loadReportRef.current = loadReport
 
   useEffect(() => { if (range !== 'custom') loadReport(range) }, [range, loadReport])
 
