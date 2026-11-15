@@ -220,6 +220,15 @@ export default function Analytics() {
           document.head.appendChild(script)
         })
       }
+      if (!window.jspdf.jsPDF.API.autoTable) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script')
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js'
+          script.onload = resolve
+          script.onerror = reject
+          document.head.appendChild(script)
+        })
+      }
       const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
       const width = doc.internal.pageSize.getWidth()
       doc.setFont('helvetica', 'bold'); doc.setFontSize(19); doc.setTextColor(40, 40, 40)
