@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
 
 interface SocialLink {
   name: string;
@@ -12,7 +11,6 @@ interface SocialLink {
 
 interface FooterLink {
   name: string;
-  Icon: LucideIcon | React.FC<React.SVGProps<SVGSVGElement>>;
   href?: string;
   className?: string;
 }
@@ -46,7 +44,6 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-4 lg:col-span-3">
             <Link to="/" className="inline-flex items-center gap-3 text-xl font-semibold tracking-tight text-foreground">
-              <img src="/logo.svg" alt="" aria-hidden="true" className="apml-rotating-logo h-10 w-10 shrink-0 object-contain" />
               <span className="portal-footer-brand-name">APML <i>Portal</i></span>
             </Link>
             <p className="mt-2 max-w-md text-sm leading-6 text-foreground/60">
@@ -58,7 +55,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
                   <FooterHref href={link.href} className="transition-colors hover:text-foreground/90">
                     {link.name}
                   </FooterHref>
-                  {index < socialLinks.length - 1 && " • "}
+                  {index < socialLinks.length - 1 && "  "}
                 </React.Fragment>
               ))}
             </p>
@@ -69,13 +66,12 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
               <div key={title} className="min-w-0">
                 <h3 className="text-sm font-semibold text-foreground">{title}</h3>
                 <ul className="mt-3 space-y-2.5">
-                  {links.map(({ name, Icon, href, className }) => (
+                  {links.map(({ name, href, className }) => (
                     <li key={name}>
                       <FooterHref
                         href={href || "#"}
                         className={cn("group inline-flex items-center text-sm text-foreground/60 transition-colors hover:text-foreground/90", className)}
                       >
-                        <Icon aria-hidden="true" className="mr-2 h-4 w-4 shrink-0 stroke-current" />
                         {name}
                       </FooterHref>
                     </li>
