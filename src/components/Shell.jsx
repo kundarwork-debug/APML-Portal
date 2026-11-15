@@ -194,7 +194,7 @@ export default function Shell(){
    className="portal-site-footer"
    brand={{
     name: 'APML Portal',
-    description: 'An independent, unofficial employee utility workspace built to make selected APML work tasks simpler and more accessible. Not an official company website.'
+    description: 'An independent, unofficial employee utility workspace built to make selected APML work tasks simpler and more accessible.'
    }}
    socialLinks={[
     { name: 'GitHub', href: 'https://github.com/kundarwork-debug/APML-Portal' },
