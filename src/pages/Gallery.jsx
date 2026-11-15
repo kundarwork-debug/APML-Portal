@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, HardDrive, Grid2X2, X, FileImage
 } from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
+import { useApmlAdminAuth } from '../lib/supabaseAuth'
 import './Gallery.css'
 
 const firebaseConfig = {
@@ -16,7 +17,6 @@ const firebaseConfig = {
   messagingSenderId: '479017159240',
   appId: '1:479017159240:web:0853422718e6195b74a67d'
 }
-const ADMIN_EMAILS = ['kundar701@gmail.com', 'kundar.work@gmail.com']
 const CLOUDINARY_UPLOAD = 'https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload'
 const DRIVE_API_URL = 'https://apml-drive-api.kundar-work.workers.dev'
 const FOLDER_STORAGE_KEY = 'apml_unlimited_gallery_folders_v7'
@@ -94,7 +94,7 @@ export default function Gallery() {
   const [folders, setFolders] = useState(DEFAULT_FOLDERS)
   const [activeFolder, setActiveFolder] = useState('')
   const [uploadFolder, setUploadFolder] = useState('')
-  const [admin, setAdmin] = useState(false)
+  const { admin, signIn, signOut } = useApmlAdminAuth()
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('Connecting to gallery…')
   const [search, setSearch] = useState('')
@@ -179,22 +179,12 @@ export default function Gallery() {
   async function toggleAdmin() {
     setBusy(true)
     try {
-      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
-      const auth = window.firebase.auth()
       if (admin) {
-        await auth.signOut()
-        setAdmin(false)
+        await signOut()
         if (activeFolder === 'deleted') setActiveFolder('')
         await driveToast('Admin mode closed')
       } else {
-        const result = await auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider())
-        const email = (result.user.email || '').toLowerCase().trim()
-        if (!ADMIN_EMAILS.includes(email)) {
-          await auth.signOut()
-          throw new Error('This Google account is not authorized to manage the gallery.')
-        }
-        setAdmin(true)
-        await driveToast('Admin access granted')
+        await signIn()
       }
     } catch (error) {
       await driveAlert('Admin sign-in failed', error.message || 'Please try again.', 'error')
