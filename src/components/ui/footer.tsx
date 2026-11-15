@@ -14,6 +14,7 @@ interface FooterLink {
   name: string;
   Icon: LucideIcon | React.FC<React.SVGProps<SVGSVGElement>>;
   href?: string;
+  className?: string;
 }
 
 interface FooterColumn {
@@ -68,11 +69,11 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
               <div key={title} className="min-w-0">
                 <h3 className="text-sm font-semibold text-foreground">{title}</h3>
                 <ul className="mt-3 space-y-2.5">
-                  {links.map(({ name, Icon, href }) => (
+                  {links.map(({ name, Icon, href, className }) => (
                     <li key={name}>
                       <FooterHref
                         href={href || "#"}
-                        className="group inline-flex items-center text-sm text-foreground/60 transition-colors hover:text-foreground/90"
+                        className={cn("group inline-flex items-center text-sm text-foreground/60 transition-colors hover:text-foreground/90", className)}
                       >
                         <Icon aria-hidden="true" className="mr-2 h-4 w-4 shrink-0 stroke-current" />
                         {name}
