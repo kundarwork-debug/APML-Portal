@@ -7100,12 +7100,6 @@ window.sendPortalNotification = function () {};
 // Privacy-aware visitor analytics is shared across portal pages.
 (function loadVisitorTracker() {
   if (window.__apmlVisitorTrackerRequested) return;
-  window.__apmlVisitorTrackerRequested = true;
-  var script = document.createElement('script');
-  script.src = '/core/visitor-tracker.js?v=10';
-  script.async = true;
-  document.head.appendChild(script);
-})();
 
 </script>
 
