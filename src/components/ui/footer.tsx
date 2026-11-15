@@ -64,7 +64,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:col-span-8 lg:col-span-9 lg:gap-10">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:col-span-8 lg:col-span-9 lg:grid-cols-4 lg:gap-6">
             {columns.map(({ title, links }) => (
               <div key={title} className="min-w-0">
                 <h3 className="text-sm font-semibold text-foreground">{title}</h3>
