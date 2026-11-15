@@ -144,10 +144,6 @@ export default function Analytics() {
       setFirebaseLive(true)
       attach(db, 'analytics/daily_logs', queueRefresh)
       attach(db, 'analytics/visitor_sessions', queueRefresh)
-      attach(db, 'analytics/totalPdfDownloads', snap => {
-        const value = Number(snap.val()) || 0
-        setData(current => current ? { ...current, totals: { ...current.totals, totalPdfsLifetime: value } } : current)
-      })
       attach(db, 'analytics/totalMediaDownloads', snap => {
         const value = Number(snap.val()) || 0
         setData(current => current ? { ...current, totals: { ...current.totals, totalMediaLifetime: value } } : current)
