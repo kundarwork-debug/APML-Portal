@@ -4,14 +4,14 @@ import PrivacyConsent from './PrivacyConsent'
 import { getApmlDatabase } from '../lib/firebase'
 import { Footer } from './ui/footer'
 import { Component as HamburgerButton } from './ui/demo'
-import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
+import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, CircleHelp, Calculator, Truck, Activity, ShieldCheck, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
 
 const links = [
  {to:'/',label:'Home',icon:Home},{to:'/editor',label:'Quotation Editor',icon:FileText},
  {to:'/local-rate',label:'Local Rate',icon:Calculator},{to:'/car-rate',label:'Car Rate',icon:Truck},
  {to:'/directory',label:'Branch Directory',icon:MapPinned},{to:'/field-officer',label:'Field Officers',icon:Users},
  {to:'/drive',label:'APML Drive',icon:Cloud},{to:'/gallery',label:'Gallery',icon:Images},
- {to:'/analytics',label:'Analytics',icon:ChartNoAxesCombined},{to:'/system-health',label:'System Health',icon:Activity},
+ {to:'/analytics',label:'Analytics',icon:ChartNoAxesCombined},{to:'/system-health',label:'System Health',icon:Activity},{to:'/quality-monitor',label:'Quality Monitor',icon:ShieldCheck},
  {to:'/apml-lite',label:'APML Lite',icon:BriefcaseBusiness},{to:'/about',label:'About',icon:CircleHelp}
 ]
 function FloatingMascot({pagePath}){
