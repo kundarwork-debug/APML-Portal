@@ -43,6 +43,65 @@ function HeroMascot(){
 }
 function OperationalTelemetry(){
  const [counts,setCounts]=useState({users:0,pdf:0,media:0})
+ const [hasBeenViewed,setHasBeenViewed]=useState(false)
+ const [countUpReady,setCountUpReady]=useState(false)
+ const sectionRef=useRef(null)
+ const countRefs=useRef({})
+ const countUps=useRef({})
+ const latestCounts=useRef(counts)
+ latestCounts.current=counts
+
+ // Match the legacy homepage: load CountUp.js only after 20% of this card is visible.
+ useEffect(()=>{
+  const element=sectionRef.current
+  if(!element||!('IntersectionObserver' in window))return
+  const observer=new IntersectionObserver(entries=>{
+   if(entries.some(entry=>entry.isIntersecting)){
+    setHasBeenViewed(true)
+    observer.disconnect()
+   }
+  },{threshold:0.2})
+  observer.observe(element)
+  return()=>observer.disconnect()
+ },[])
+
+ useEffect(()=>{
+  if(!hasBeenViewed)return
+  let cancelled=false
+  const existing=window.countUp?.CountUp
+  if(existing){setCountUpReady(true);return}
+  const script=document.createElement('script')
+  script.src='https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.js'
+  script.async=true
+  script.onload=()=>{if(!cancelled&&window.countUp?.CountUp)setCountUpReady(true)}
+  script.onerror=()=>console.warn('APML CountUp animation library could not load; showing live values without animation.')
+  document.head.appendChild(script)
+  return()=>{cancelled=true}
+ },[hasBeenViewed])
+
+ useEffect(()=>{
+  if(!hasBeenViewed)return
+  const values=[['users',counts.users],['pdf',counts.pdf],['media',counts.media]]
+  values.forEach(([key,value])=>{
+   const element=countRefs.current[key]
+   if(!element)return
+   const formatted=Number(value||0).toLocaleString('en-IN')
+   const CountUp=window.countUp?.CountUp
+   if(countUpReady&&CountUp){
+    if(!countUps.current[key]){
+     const counter=new CountUp(element,Number(value)||0,{duration:1.2,useGrouping:true,separator:',',decimal:'.'})
+     if(counter.error){element.textContent=formatted;return}
+     countUps.current[key]=counter
+     counter.start()
+    }else{
+     countUps.current[key].update(Number(value)||0)
+    }
+   }else{
+    element.textContent=formatted
+   }
+  })
+ },[counts,hasBeenViewed,countUpReady])
+
  useEffect(()=>{
   let active=true,db=null,refs=[]
   const start=async()=>{
@@ -76,14 +135,14 @@ function OperationalTelemetry(){
   start()
   return()=>{active=false;refs.forEach(ref=>ref.off?.('value')??ref.off?.())}
  },[])
- const number=value=>Number(value||0).toLocaleString('en-IN')
- return <section className="legacy-telemetry">
+
+ return <section className="legacy-telemetry" ref={sectionRef}>
   <Link to="/analytics">
    <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across Western Central Regional Office &amp; nationwide hubs.</p></div><span><i/> All operational systems monitored</span></div>
    <div className="legacy-telemetry-stats">
-    <div><small>Live Active Personnel</small><strong>{number(counts.users)}</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
-    <div><small>PDF Quotations Drafted</small><strong>{number(counts.pdf)}+</strong><em>Exact Container &amp; Maxcare</em></div>
-    <div><small>Cloud Files &amp; Media Downloads</small><strong>{number(counts.media)}+</strong><em>Drive &amp; gallery archives</em></div>
+    <div><small>Live Active Personnel</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
+    <div><small>PDF Quotations Drafted</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Exact Container &amp; Maxcare</em></div>
+    <div><small>Cloud Files &amp; Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Drive &amp; gallery archives</em></div>
    </div>
   </Link>
  </section>
