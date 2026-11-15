@@ -30,8 +30,8 @@ const carIndex=d.costItems.findIndex(x=>x.label.toLowerCase().includes('car'))
 const changeCar=v=>{const rows=[...d.costItems],idx=rows.findIndex(x=>x.label.toLowerCase().includes('car'));if(idx<0)rows.splice(1,0,{label:company==='exact'?'Car Freight':'Car Transportation (if any)',amount:Number(v)||0});else rows[idx]={...rows[idx],amount:Number(v)||0};patch('costItems',rows)}
 const reset=async()=>{const result=await editorAlert({icon:'warning',title:'Reset quotation template?',text:'This will restore the selected company template and clear the shared customer details.',showCancelButton:true,confirmButtonText:'Yes, reset',cancelButtonText:'Keep editing'});if(result.isConfirmed){setForms(o=>({...o,[company]:clone(DEFAULTS[company])}));setShared(sharedDefault());setTotalAmount('');setStatus('')}}
 const download=async()=>{
- if(!shared.custName.trim()||!shared.fromCity.trim()||!shared.toCity.trim()){setStatus('Please fill customer name, moving from and moving to.');return}
- if(t.grand<=0){setStatus('Please enter a quotation amount first.');return}
+ if(!shared.custName.trim()||!shared.fromCity.trim()||!shared.toCity.trim()){await editorAlert({icon:'warning',title:'Fill in the quotation details',text:'Please enter the customer name, moving-from location and moving-to location before generating the PDF.'});return}
+ if(t.grand<=0){await editorAlert({icon:'warning',title:'Fill in the amount',text:'Please enter a valid quotation amount before generating the PDF.'});return}
  setBusy(true);setStatus('Preparing A4 PDF…');
  let exportStage=null;
  try{
@@ -64,9 +64,9 @@ const download=async()=>{
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
   recordPdfDownload();
   if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
-  setStatus('PDF downloaded ✓ · Saving to Drive…');
-  saveQuotationToDrive(file,name).then(()=>setStatus('PDF downloaded and saved to Drive ✓')).catch(e=>{console.warn('Quotation Drive autosave failed:',e);setStatus('PDF downloaded ✓ · Drive copy could not be saved')});
- }catch(e){console.error(e);setStatus('PDF generation failed. Please try again.')}
+  await editorAlert({icon:'success',title:'PDF generated successfully!',text:name});
+  try{await saveQuotationToDrive(file,name);await editorAlert({icon:'success',title:'Saved to APML Drive',text:'The quotation PDF has also been saved in the Quotation folder.'})}catch(driveError){console.warn('Quotation Drive autosave failed:',driveError);await editorAlert({icon:'warning',title:'PDF downloaded, Drive save failed',text:driveError?.message||'The PDF was downloaded, but its Drive copy could not be saved.'})}
+ }catch(e){console.error(e);await editorAlert({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
  finally{exportStage?.remove();setBusy(false)}
 }
 return <div className="editor-page"><div className="editor-layout"><section className="editor-panel">
