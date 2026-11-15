@@ -50,14 +50,22 @@ async function ensureApex() {
 }
 
 function Sparkline({ values = [] }) {
-  const width = 120, height = 34, pad = 3
+  const width = 180, height = 42, pad = 4
   const nums = values.map(value => Number(value) || 0)
   if (!nums.length) return <div className="analytics-sparkline-empty" aria-label="No trend data yet" />
   const max = Math.max(...nums, 1), min = Math.min(...nums, 0), span = max - min || 1
   const coords = nums.map((value, index) => [nums.length === 1 ? width / 2 : pad + index * (width - pad * 2) / (nums.length - 1), height - pad - ((value - min) / span) * (height - pad * 2)])
-  const points = coords.map(([x, y]) => x + ',' + y).join(' ')
-  const area = 'M ' + coords[0][0] + ' ' + (height - pad) + ' L ' + coords.map(([x, y]) => x + ' ' + y).join(' L ') + ' L ' + coords[coords.length - 1][0] + ' ' + (height - pad) + ' Z'
-  return <svg className="analytics-sparkline" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Daily trend sparkline"><path className="analytics-sparkline-area" d={area}/><polyline points={points} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+  const line = coords.length < 2 ? `M ${coords[0][0]} ${coords[0][1]} L ${coords[0][0] + 1} ${coords[0][1]}` : coords.slice(1).reduce((path, point, index) => {
+    const previous = coords[index]
+    const mid = (previous[0] + point[0]) / 2
+    return path + ` C ${mid} ${previous[1]}, ${mid} ${point[1]}, ${point[0]} ${point[1]}`
+  }, `M ${coords[0][0]} ${coords[0][1]}`)
+  const area = line + ` L ${coords[coords.length - 1][0]} ${height - pad} L ${coords[0][0]} ${height - pad} Z`
+  return <svg className="analytics-sparkline" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Daily trend sparkline">
+    <defs><linearGradient id="analytics-spark-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="currentColor" stopOpacity=".2"/><stop offset="100%" stopColor="currentColor" stopOpacity="0"/></linearGradient></defs>
+    <path className="analytics-sparkline-area" d={area}/>
+    <path className="analytics-sparkline-line" d={line}/>
+  </svg>
 }
 
 export default function Analytics() {
