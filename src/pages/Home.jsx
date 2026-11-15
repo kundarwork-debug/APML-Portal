@@ -149,9 +149,15 @@ function OperationalTelemetry(){
 }
 export default function Home(){
  const [query,setQuery]=useState('')
+ const [hubReady,setHubReady]=useState(false)
+ useEffect(()=>{
+  const timer=window.setTimeout(()=>setHubReady(true),520)
+  return()=>window.clearTimeout(timer)
+ },[])
  const filtered=useMemo(()=>homeTools.filter(t=>(t.title+' '+t.description+' '+t.tags.join(' ')).toLowerCase().includes(query.toLowerCase())),[query])
  const activeCount=homeTools.filter(t=>modules.some(m=>m.id===t.id)).length
- return <div className="home-page legacy-home">
+ return <div className={"home-page legacy-home "+(hubReady?"hub-ready":"hub-loading")}>
+  {!hubReady&&<div className="hub-loading-screen" role="status" aria-live="polite"><div className="hub-loader-mark"><span/><span/><span/></div><b>APML PORTAL</b><small>Preparing your workspace…</small></div>}
   <section className="legacy-hero" aria-labelledby="homeHeroTitle">
    <HeroMascot/>
    <p className="legacy-eyebrow"><i/> APML PORTAL</p>
