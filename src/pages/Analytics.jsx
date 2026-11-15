@@ -289,7 +289,7 @@ export default function Analytics() {
         <div className="analytics-head-meta"><span><i className={busy ? 'analytics-live-dot is-busy' : 'analytics-live-dot'}/>{busy ? 'Updating report…' : 'Live report'}</span><span>India time · {data?.timezone || 'Asia/Kolkata'}</span>{data?.generatedAt && <span>Updated {new Date(data.generatedAt).toLocaleTimeString('en-IN')}</span>}</div>
       </div>
       <div className="analytics-head-actions">
-        <button className="analytics-btn" onClick={() => loadReport(range)} disabled={busy}><RefreshCw size={15} className={busy ? 'analytics-spin' : ''}/> Refresh</button>
+        <button className="analytics-btn" onClick={() => range === 'custom' ? loadReport('custom', customStart, customEnd) : loadReport(range)} disabled={busy}><RefreshCw size={15} className={busy ? 'analytics-spin' : ''}/> Refresh</button>
         <button className="analytics-btn" onClick={exportDailyCsv} disabled={!data}><FileSpreadsheet size={15}/> CSV</button>
         <button className="analytics-btn analytics-btn-primary" onClick={exportPdf} disabled={!data}><FileDown size={15}/> PDF report</button>
       </div>
