@@ -5,6 +5,7 @@ import ModulePage from './pages/ModulePage'
 import InfoPage from './pages/InfoPage'
 import EditorPage from './pages/Editor'
 import SystemHealth from './pages/SystemHealth'
+import QualityMonitor from './pages/QualityMonitor'
 import LocalRate from './pages/LocalRate'
 import CarRate from './pages/CarRate'
 import Directory from './pages/Directory'
@@ -16,4 +17,4 @@ import Analytics from './pages/Analytics'
 import ApmlLite from './pages/ApmlLite'
 import PolicyPage from './pages/PolicyPage'
 import NotFound from './pages/NotFound'
-export default function App(){return <Routes><Route element={<Shell/>}><Route index element={<Home/>}/><Route path="editor" element={<EditorPage/>}/><Route path="system-health" element={<SystemHealth/>}/><Route path="local-rate" element={<LocalRate/>}/><Route path="car-rate" element={<CarRate/>}/><Route path="directory" element={<Directory/>}/><Route path="field-officer" element={<FieldOfficer/>}/><Route path="drive" element={<Drive/>}/><Route path="gallery" element={<Gallery/>}/><Route path="analytics" element={<Analytics/>}/><Route path="apml-lite" element={<ApmlLite/>}/><Route path="bug-report" element={<BugReport/>}/><Route path="privacy" element={<PolicyPage/>}/><Route path="terms" element={<PolicyPage/>}/><Route path="cookies" element={<PolicyPage/>}/><Route path="play" element={<NotFound/>}/><Route path=":id" element={<ModulePage/>}/><Route path="about" element={<InfoPage/>}/><Route path="*" element={<NotFound/>}/></Route></Routes>}
+export default function App(){return <Routes><Route element={<Shell/>}><Route index element={<Home/>}/><Route path="editor" element={<EditorPage/>}/><Route path="system-health" element={<SystemHealth/>}/><Route path="quality-monitor" element={<QualityMonitor/>}/><Route path="local-rate" element={<LocalRate/>}/><Route path="car-rate" element={<CarRate/>}/><Route path="directory" element={<Directory/>}/><Route path="field-officer" element={<FieldOfficer/>}/><Route path="drive" element={<Drive/>}/><Route path="gallery" element={<Gallery/>}/><Route path="analytics" element={<Analytics/>}/><Route path="apml-lite" element={<ApmlLite/>}/><Route path="bug-report" element={<BugReport/>}/><Route path="privacy" element={<PolicyPage/>}/><Route path="terms" element={<PolicyPage/>}/><Route path="cookies" element={<PolicyPage/>}/><Route path="play" element={<NotFound/>}/><Route path=":id" element={<ModulePage/>}/><Route path="about" element={<InfoPage/>}/><Route path="*" element={<NotFound/>}/></Route></Routes>}
