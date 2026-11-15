@@ -42,16 +42,16 @@
 @media(max-width:1050px){.preview-paper{width:794px}}
 
 
-/* Focused progress overlay shown only while the quotation PDF is being generated. */
-.quote-generating-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.86);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
-.quote-generating-overlay .spinnerContainer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:28px 24px;border:1px solid #eee5df;border-radius:18px;background:#fff;box-shadow:0 18px 60px #2925241c;min-width:270px}
-.quote-generating-overlay .spinner{width:56px;height:56px;display:grid;border:4px solid transparent;border-radius:50%;border-right-color:#299fff;animation:quote-tri-spinner 1s infinite linear}
+/* Quotation generation overlay follows the editor's warm ivory and APML red theme. */
+.quote-generating-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(250,247,244,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.quote-generating-overlay .spinnerContainer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px 26px;border:1px solid #eee5df;border-radius:16px;background:#fffdfb;box-shadow:0 12px 36px #4a2f2318;min-width:270px}
+.quote-generating-overlay .spinner{width:56px;height:56px;display:grid;border:4px solid transparent;border-radius:50%;border-right-color:#b91c1c;animation:quote-tri-spinner 1s infinite linear}
 .quote-generating-overlay .spinner:before,.quote-generating-overlay .spinner:after{content:"";grid-area:1/1;margin:2px;border:inherit;border-radius:50%;animation:quote-tri-spinner 2s infinite}
 .quote-generating-overlay .spinner:after{margin:8px;animation-duration:3s}
 @keyframes quote-tri-spinner{to{transform:rotate(1turn)}}
-.quote-generating-overlay .loader{color:#4a4a4a;font-family:Poppins,Arial,sans-serif;font-weight:500;font-size:23px;box-sizing:content-box;height:40px;padding:10px;display:flex;border-radius:8px;overflow:hidden}
+.quote-generating-overlay .loader{color:#756a64;font-family:Manrope,'DM Sans',Arial,sans-serif;font-weight:750;font-size:22px;box-sizing:content-box;height:40px;padding:10px;display:flex;border-radius:8px;overflow:hidden}
 .quote-generating-overlay .loader p{margin:0;white-space:nowrap}
 .quote-generating-overlay .words{height:40px;overflow:hidden}
-.quote-generating-overlay .word{display:block;height:40px;line-height:40px;padding-left:6px;color:#299fff;animation:quote-cycle-words 5s infinite}
+.quote-generating-overlay .word{display:block;height:40px;line-height:40px;padding-left:6px;color:#b91c1c;animation:quote-cycle-words 5s infinite}
 @keyframes quote-cycle-words{10%{transform:translateY(-105%)}25%{transform:translateY(-100%)}35%{transform:translateY(-205%)}50%{transform:translateY(-200%)}60%{transform:translateY(-305%)}75%{transform:translateY(-300%)}85%{transform:translateY(-405%)}100%{transform:translateY(-400%)}}
-.quote-generating-caption{font-size:11px;color:#887b73;text-align:center;margin-top:3px}
+.quote-generating-caption{font:600 10px 'DM Sans',Arial,sans-serif;color:#938780;text-align:center;margin-top:3px}
