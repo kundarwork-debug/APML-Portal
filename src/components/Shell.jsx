@@ -231,7 +231,7 @@ export default function Shell(){
     {
      title: 'Helpful Links',
      links: [
-      { name: 'Play Now', Icon: Gamepad2, href: '/play', className: 'footer-play-link' }
+      { name: 'Play Now', href: '/play' }
      ]
     }
    ]}
