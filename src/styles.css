@@ -541,3 +541,17 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .apml-floating-tip.show{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:opacity .22s ease,transform .22s ease,visibility 0s}
 .apml-floating-cursor{display:inline-block;margin-left:2px;animation:wobnimoCursor .7s steps(2,end) infinite}
 @keyframes wobnimoCursor{50%{opacity:0}}
+
+
+/* Wobnimo refinement: fade and blur only; no shrinking or body bounce. */
+.apml-floating-mascot{
+  transform:translate3d(0,14px,0);
+  transition:opacity .48s ease,filter .48s ease,transform .48s ease,visibility 0s linear .5s;
+}
+.apml-floating-mascot.is-visible{
+  transform:translate3d(0,0,0);
+  transition:opacity .48s ease,filter .48s ease,transform .48s ease,visibility 0s;
+}
+.apml-floating-mascot.is-speaking>div>button{
+  animation:none!important;
+}
