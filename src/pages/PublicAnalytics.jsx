@@ -57,7 +57,7 @@ export default function PublicAnalytics() {
     <section className="public-analytics-panel">
       <div className="public-analytics-panel-head"><div><h2>Daily activity</h2><p>Visitors, quotations and media downloads combined.</p></div><span>{report?.startDate && report?.endDate ? dateLabel(report.startDate) + ' – ' + dateLabel(report.endDate) : ''}</span></div>
       <div className="public-analytics-bars" role="img" aria-label="Daily combined portal activity">
-        {chartRows.map(row => { const total = row.visitors + row.pdf + row.media; return <div className="public-analytics-bar-col" key={row.date} title={dateLabel(row.date) + ': ' + number(total) + ' activities'}><i style={{height: Math.max(3, total / maxActivity * 100) + '%'}}/><small>{dateLabel(row.date)}</small></div> })}
+        {chartRows.map(row => { const total = row.visitors + row.pdf + row.media; return <div className="public-analytics-bar-col" key={row.date} title={dateLabel(row.date) + ': ' + number(total) + ' activities'}><div className="public-analytics-bar-stack" style={{height: Math.max(3, total / maxActivity * 100) + '%'}}><i className="visitors" style={{height: (total ? row.visitors / total * 100 : 0) + '%'}}/><i className="pdf" style={{height: (total ? row.pdf / total * 100 : 0) + '%'}}/><i className="media" style={{height: (total ? row.media / total * 100 : 0) + '%'}}/></div><small>{dateLabel(row.date)}</small></div> })}
         {!chartRows.length && <p className="public-analytics-status">No activity recorded in this period.</p>}
       </div>
       <div className="public-analytics-legend"><span><i className="visitors"/> Visitors</span><span><i className="pdf"/> PDFs</span><span><i className="media"/> Media</span></div>
