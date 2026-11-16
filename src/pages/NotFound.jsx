@@ -35,6 +35,21 @@ export default function NotFound() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   useEffect(() => {
+    const mascot = mascotRef.current
+    if (!mascot) return undefined
+    const look = event => {
+      const rect = mascot.getBoundingClientRect()
+      const dx = event.clientX - (rect.left + rect.width / 2)
+      const dy = event.clientY - (rect.top + rect.height / 2)
+      const col = dx < -rect.width * .32 ? 0 : dx > rect.width * .32 ? 2 : 1
+      const row = dy < -rect.height * .32 ? 0 : dy > rect.height * .32 ? 2 : 1
+      mascot.style.backgroundPosition = `${col * 50}% ${row * 50}%`
+    }
+    window.addEventListener('pointermove', look)
+    return () => window.removeEventListener('pointermove', look)
+  }, [])
+
+  useEffect(() => {
     let alive = true
     getApmlDatabase().then(db => {
       db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value').then(snapshot => {
