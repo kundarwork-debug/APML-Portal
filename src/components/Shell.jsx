@@ -18,6 +18,7 @@ function FloatingMascot({pagePath}){
  const [visible,setVisible]=useState(false)
  const [bubbleVisible,setBubbleVisible]=useState(false)
  const [typedText,setTypedText]=useState('')
+ const [isSpeaking,setIsSpeaking]=useState(false)
  const [direction,setDirection]=useState('center')
  const [reaction,setReaction]=useState('')
  const [tipIndex,setTipIndex]=useState(0)
@@ -54,6 +55,7 @@ function FloatingMascot({pagePath}){
   clearTimeout(timers.current.type);clearTimeout(timers.current.hide)
   const currentToken=++token.current
   typing.current=true
+  setIsSpeaking(true)
   setTypedText('')
   setReaction('delighted')
   setBubbleVisible(true)
@@ -66,6 +68,7 @@ function FloatingMascot({pagePath}){
     timers.current.type=setTimeout(step,30)
    }else{
     typing.current=false
+    setIsSpeaking(false)
     setReaction('')
     timers.current.hide=setTimeout(()=>{
      if(currentToken===token.current)setBubbleVisible(false)
@@ -91,7 +94,7 @@ function FloatingMascot({pagePath}){
   return()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update)}
  },[pagePath,pageKey,isIndexPage])
  useEffect(()=>{
-  if(!visible||!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return
+  if(!visible||isSpeaking||!window.matchMedia('(hover: hover) and (pointer: fine)').matches)return
   const sectors=['right','down-right','down','down-left','left','up-left','up','up-right']
   const aim=e=>{
    const el=document.querySelector('.apml-floating-mascot button')
@@ -105,7 +108,7 @@ function FloatingMascot({pagePath}){
   window.addEventListener('pointermove',aim,{passive:true})
   window.addEventListener('pointerout',reset,{passive:true})
   return()=>{window.removeEventListener('pointermove',aim);window.removeEventListener('pointerout',reset)}
- },[visible,reaction])
+ },[visible,reaction,isSpeaking])
  useEffect(()=>{
   const initial=setTimeout(()=>{
    if(!typing.current&&!bubbleVisible&&(!isIndexPage||window.scrollY>250))playTip(tips[tipIndex % tips.length])
@@ -126,8 +129,7 @@ function FloatingMascot({pagePath}){
   setTipIndex(next)
   playTip(tips[next])
  }
- if(!visible)return null
- return <div className="apml-floating-mascot">
+ return <div className={'apml-floating-mascot'+(visible?' is-visible':' is-hidden')+(isSpeaking?' is-speaking':'')}>
   <div className="apml-floating-mascot-inner">
    <div className={'apml-floating-tip'+(bubbleVisible?' show':'')} role="status" aria-live="polite">
     <span>{typedText}</span><span className="apml-floating-cursor" aria-hidden="true">|</span>
