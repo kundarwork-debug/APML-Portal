@@ -535,3 +535,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
  .apml-floating-mascot,.apml-floating-mascot.is-visible{transition:opacity .15s ease,visibility 0s}
  .apml-floating-mascot.is-speaking>div>button,.apml-floating-mascot.is-speaking .apml-floating-face,.apml-floating-tip.show{animation:none}
 }
+
+/* Keep the speech bubble fully hidden until Wobnimo starts talking. */
+.apml-floating-tip{opacity:0;visibility:hidden;transform:translateY(7px) scale(.97);transition:opacity .22s ease,transform .22s ease,visibility 0s linear .24s}
+.apml-floating-tip.show{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:opacity .22s ease,transform .22s ease,visibility 0s}
+.apml-floating-cursor{display:inline-block;margin-left:2px;animation:wobnimoCursor .7s steps(2,end) infinite}
+@keyframes wobnimoCursor{50%{opacity:0}}
