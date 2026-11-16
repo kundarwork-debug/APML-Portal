@@ -930,3 +930,37 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   .apml-download-btn,.apml-download-btn>svg:first-child,.apml-download-label,.apml-download-tray,.apml-download-tooltip{transition:none!important}
   .apml-download-btn:hover:not(:disabled)>svg:first-child,.apml-download-btn:focus-visible>svg:first-child{animation:none!important}
 }
+
+
+/* APML footer back-to-top control */
+.portal-site-footer{position:relative}
+.apml-back-to-top{
+  position:absolute;right:max(22px,calc((100% - 1320px)/2));bottom:24px;
+  width:45px;height:45px;padding:0;border:0;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#f87171,#b4232c);
+  color:#fff;cursor:pointer;
+  box-shadow:0 5px 15px rgba(180,35,44,.2);
+  transition:transform .25s ease,box-shadow .25s ease,filter .25s ease;
+}
+.apml-back-to-top-arrow{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.5;transition:transform .3s ease}
+.apml-back-to-top-text{
+  position:absolute;left:50%;bottom:-23px;transform:translate(-50%,-5px);
+  width:max-content;padding:4px 8px;border-radius:5px;
+  background:#b4232c;color:#fff;font-size:10px;font-weight:700;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+}
+.apml-back-to-top:hover,.apml-back-to-top:focus-visible{
+  filter:brightness(1.04);transform:translateY(-2px);
+  box-shadow:0 7px 18px rgba(180,35,44,.28);outline:none;
+}
+.apml-back-to-top:hover .apml-back-to-top-arrow,.apml-back-to-top:focus-visible .apml-back-to-top-arrow{
+  animation:apml-back-top-slide .7s cubic-bezier(.25,.46,.45,.94) both;
+}
+.apml-back-to-top:hover .apml-back-to-top-text,.apml-back-to-top:focus-visible .apml-back-to-top-text{
+  opacity:1;transform:translate(-50%,0);
+}
+.apml-back-to-top:active{transform:scale(.95)}
+@keyframes apml-back-top-slide{0%{transform:translateY(7px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@media(max-width:768px){.apml-back-to-top{right:16px;bottom:14px;width:42px;height:42px}}
+@media(prefers-reduced-motion:reduce){.apml-back-to-top,.apml-back-to-top-arrow,.apml-back-to-top-text{transition:none!important;animation:none!important}}
