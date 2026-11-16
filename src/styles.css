@@ -720,54 +720,62 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media(max-width:600px){.apml-footer-socials{gap:9px;margin-top:12px}.apml-footer-social{width:34px;height:34px}.apml-footer-social svg{width:15px;height:15px}}
 
 
-/* Hamburger menu options — compact GitHub-style selection treatment */
+/* Hamburger menu options — soft APML red with smooth interaction */
 .portal-nav a,
 .portal-nav .portal-nav-support{
   position:relative;
   overflow:hidden;
   background:transparent;
   color:#292524;
-  transition:background-color .18s ease,color .18s ease,transform .18s ease;
+  transition:
+    background-color .32s cubic-bezier(.22,1,.36,1),
+    color .28s ease,
+    box-shadow .32s ease;
 }
 .portal-nav a svg,
 .portal-nav .portal-nav-support svg{
   color:#7d8590;
-  transition:color .18s ease;
+  transition:color .28s ease,transform .32s cubic-bezier(.22,1,.36,1);
 }
 .portal-nav a::before,
 .portal-nav .portal-nav-support::before{
   content:"";
   position:absolute;
-  top:10%;
-  bottom:10%;
+  top:18%;
+  bottom:18%;
   left:0;
   width:3px;
   border-radius:4px;
   background:#b4232c;
   opacity:0;
-  transition:opacity .18s ease;
+  transform:scaleY(.55);
+  transition:opacity .28s ease,transform .32s cubic-bezier(.22,1,.36,1);
 }
 .portal-nav a:hover,
 .portal-nav .portal-nav-support:hover{
-  background:#b4232c;
-  color:#fff;
-  box-shadow:inset 3px 0 0 #7f171d;
+  background:#fff1f0;
+  color:#b4232c;
+  box-shadow:inset 0 0 0 1px #f8d6d3;
 }
 .portal-nav a:focus-visible,
 .portal-nav .portal-nav-support:focus-visible,
 .portal-nav a.active{
-  background:#fff0ed;
+  background:#fff1f0;
   color:#b4232c;
   outline:none;
 }
+.portal-nav a:hover::before,
+.portal-nav .portal-nav-support:hover::before,
 .portal-nav a:focus-visible::before,
 .portal-nav .portal-nav-support:focus-visible::before,
 .portal-nav a.active::before{
   opacity:1;
+  transform:scaleY(1);
 }
 .portal-nav a:hover svg,
-.portal-nav .portal-nav-support:hover svg{color:#fff}
+.portal-nav .portal-nav-support:hover svg,
 .portal-nav a.active svg{color:#b4232c}
+.portal-nav a:hover svg{transform:translateX(1px)}
 .portal-nav .portal-nav-support{
   border-top:1px solid var(--line);
   border-left:0;
