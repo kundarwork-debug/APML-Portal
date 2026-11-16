@@ -18,6 +18,7 @@ function FloatingMascot({pagePath}){
  const [visible,setVisible]=useState(false)
  const [bubbleVisible,setBubbleVisible]=useState(false)
  const [typedText,setTypedText]=useState('')
+ const pinnedRef=useRef(false)
  const [isSpeaking,setIsSpeaking]=useState(false)
  const [direction,setDirection]=useState('center')
  const [reaction,setReaction]=useState('')
@@ -71,7 +72,7 @@ function FloatingMascot({pagePath}){
     setIsSpeaking(false)
     setReaction('')
     timers.current.hide=setTimeout(()=>{
-     if(currentToken===token.current)setBubbleVisible(false)
+     if(currentToken===token.current&&!pinnedRef.current)setBubbleVisible(false)
     },holdMs)
    }
   }
@@ -115,8 +116,42 @@ function FloatingMascot({pagePath}){
   },1000)
   return()=>clearTimeout(initial)
  },[pagePath])
+ useEffect(()=>{
+  const api={
+   pin(message){
+    const text=String(message||'')
+    if(!text)return
+    clearTimers()
+    token.current++
+    pinnedRef.current=true
+    typing.current=false
+    setIsSpeaking(false)
+    setReaction('')
+    setTypedText(text)
+    setBubbleVisible(true)
+   },
+   unpin(){
+    pinnedRef.current=false
+    clearTimers()
+    token.current++
+    typing.current=false
+    setIsSpeaking(false)
+    setBubbleVisible(false)
+   },
+   say(message,options){
+    pinnedRef.current=false
+    playTip(String(message||''),Number(options?.hold)||5000)
+   }
+  }
+  window.APMLMascot=api
+  return()=>{
+   if(window.APMLMascot===api)delete window.APMLMascot
+  }
+ },[])
  useEffect(()=>()=>{clearTimers();token.current++},[])
  const interact=()=>{
+  if(pinnedRef.current)return
+
   if(typing.current)return
   const now=Date.now()
   boops.current.count=now-boops.current.last<1600?boops.current.count+1:1
@@ -134,7 +169,7 @@ function FloatingMascot({pagePath}){
    <div className={'apml-floating-tip'+(bubbleVisible?' show':'')} role="status" aria-live="polite">
     <span>{typedText}</span><span className="apml-floating-cursor" aria-hidden="true">|</span>
    </div>
-   <button type="button" aria-label="Click Wobnimo for another APML Portal tip" title="Click for a new message!" onClick={interact}>
+   <button id="supportAvatarBtn" type="button" aria-label="Click Wobnimo for another APML Portal tip" title="Click for a new message!" onClick={interact}>
     <span className="apml-floating-face" style={{backgroundPosition:position(direction,directionNames),opacity:reaction?0:1}}/>
     <span className="apml-floating-face apml-floating-reaction" style={{backgroundPosition:position(reaction,reactionNames),opacity:reaction?1:0}}/>
    </button>
