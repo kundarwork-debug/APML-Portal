@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Github, Mail, MessageCircle } from "lucide-react";
+import { ArrowUp, Github, Mail, MessageCircle } from "lucide-react";
 
 interface SocialLink {
   name: string;
@@ -94,6 +94,15 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
           </p>
         </div>
       </div>
+      <button
+        type="button"
+        className="apml-back-to-top"
+        aria-label="Back to top"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        <ArrowUp className="apml-back-to-top-arrow" aria-hidden="true" />
+        <span className="apml-back-to-top-text">Back to Top</span>
+      </button>
     </footer>
   ),
 );
