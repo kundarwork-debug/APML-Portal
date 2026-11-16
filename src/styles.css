@@ -122,9 +122,30 @@
 .apml-floating-tip{max-width:290px;font-size:13px}
 @media(max-width:768px){.apml-floating-mascot{display:none}}
 
-/* Match the original APML floating Wobnimo widget: typewriter bubble, sprite face and legacy placement. */
-.apml-floating-mascot{position:fixed;right:32px;bottom:32px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:0;opacity:1;visibility:visible;pointer-events:none}
+/* Floating Wobnimo: smooth vanish/re-entry and a clear speaking state. */
+.apml-floating-mascot{
+ position:fixed;right:32px;bottom:32px;z-index:100;
+ display:flex;flex-direction:column;align-items:flex-end;gap:0;
+ opacity:0;visibility:hidden;pointer-events:none;
+ filter:blur(10px);transform:translate3d(0,14px,0) scale(.88);
+ transform-origin:bottom right;
+ transition:opacity .48s ease,filter .48s ease,transform .48s cubic-bezier(.2,.75,.25,1),visibility 0s linear .5s;
+ will-change:opacity,filter,transform
+}
+.apml-floating-mascot.is-visible{
+ opacity:1;visibility:visible;pointer-events:none;
+ filter:blur(0);transform:translate3d(0,0,0) scale(1);
+ transition:opacity .48s ease,filter .48s ease,transform .48s cubic-bezier(.2,.75,.25,1),visibility 0s
+}
+.apml-floating-mascot.is-hidden{pointer-events:none}
 .apml-floating-mascot-inner{display:flex;flex-direction:column;align-items:flex-end;gap:0;pointer-events:auto}
+.apml-floating-mascot.is-hidden .apml-floating-mascot-inner{pointer-events:none}
+.apml-floating-mascot.is-speaking>div>button{animation:wobnimoSpeaking .42s ease-in-out infinite alternate}
+.apml-floating-mascot.is-speaking .apml-floating-face{animation:wobnimoTalk .2s ease-in-out infinite alternate}
+@keyframes wobnimoSpeaking{from{transform:translateY(0) rotate(-2deg) scale(1)}to{transform:translateY(-5px) rotate(2deg) scale(1.035)}}
+@keyframes wobnimoTalk{from{transform:scaleY(1) scaleX(1)}to{transform:scaleY(.96) scaleX(1.025)}}
+.apml-floating-tip.show{animation:wobnimoBubbleIn .28s cubic-bezier(.2,.75,.25,1) both}
+@keyframes wobnimoBubbleIn{from{opacity:0;transform:translateY(7px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .apml-floating-mascot>div>button{width:136px;height:136px;margin-right:-10px;padding:0;border:0;border-radius:50%;background:transparent;box-shadow:none;overflow:visible;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:none}
 .apml-floating-mascot>div>button:hover{background:transparent;transform:none;box-shadow:none}
 .apml-floating-face{position:absolute;inset:4px;display:block;width:128px;height:128px;background-image:url('https://koboyo.com/page-mascot/mascots/beard-directions.webp');background-size:300% 300%;background-repeat:no-repeat;background-position:50% 50%;filter:none;transition:opacity .08s linear}
@@ -509,3 +530,8 @@ input::placeholder,textarea::placeholder{color:#706761;opacity:1}
 html,body{background:var(--canvas)}
 body{position:relative;isolation:isolate}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(circle at 50% 10%,rgba(185,28,28,.035) 0%,transparent 50%),linear-gradient(to right,rgba(220,212,204,.58) 1px,transparent 1px),linear-gradient(to bottom,rgba(220,212,204,.58) 1px,transparent 1px);background-size:100% 100%,64px 64px,64px 64px;opacity:.58}
+
+@media(prefers-reduced-motion:reduce){
+ .apml-floating-mascot,.apml-floating-mascot.is-visible{transition:opacity .15s ease,visibility 0s}
+ .apml-floating-mascot.is-speaking>div>button,.apml-floating-mascot.is-speaking .apml-floating-face,.apml-floating-tip.show{animation:none}
+}
