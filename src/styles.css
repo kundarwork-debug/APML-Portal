@@ -681,3 +681,28 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
  .apml-score-save button{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.apml-arcade-live,.apml-scorecard-backdrop{scroll-behavior:auto}}
+
+
+/* Original APML CRT mascot + manual arcade controls + full scoreboard */
+.apml-crt-mascot{
+ width:clamp(150px,22vw,220px);height:clamp(150px,22vw,220px);flex:none;
+ margin:4px auto 12px;
+ background-image:url("https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-directions.webp");
+ background-repeat:no-repeat;background-size:300% 300%;background-position:50% 50%;
+ filter:drop-shadow(0 12px 24px rgba(15,23,42,.16));
+ transition:transform .18s ease,filter .18s ease,background-position .12s ease;
+ animation:apml-crt-float 4s ease-in-out infinite;
+}
+@keyframes apml-crt-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.apml-view-scores{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:7px 10px;border:1px solid #ef444433;border-radius:8px;background:#fff7f5;color:#b91c1c;font-size:10px;font-weight:850;white-space:nowrap}
+.apml-view-scores svg{transform:rotate(180deg)}
+.apml-mobile-fire{display:none;position:absolute;right:18px;bottom:max(24px,env(safe-area-inset-bottom));z-index:2;width:74px;height:74px;align-items:center;justify-content:center;gap:4px;flex-direction:column;border:2px solid #fca5a588;border-radius:50%;background:radial-gradient(circle at 35% 25%,#fb8b72,#b91c1c 72%);color:white;font-size:10px;font-weight:900;letter-spacing:.08em;box-shadow:0 0 0 7px #ef444422,0 8px 28px #0008;touch-action:manipulation}
+.apml-mobile-fire svg{width:19px;height:19px}
+.apml-arcade-hint{max-width:calc(100vw - 120px);text-align:center}
+@media(max-width:700px){
+ .apml-crt-mascot{width:min(54vw,190px);height:min(54vw,190px);margin:0 auto 6px}
+ .apml-mobile-fire{display:flex}
+ .not-found-leaderboard-preview{align-items:flex-start}
+ .apml-view-scores{margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){.apml-crt-mascot{animation:none}}
