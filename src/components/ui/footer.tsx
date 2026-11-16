@@ -82,11 +82,15 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
           </div>
         </div>
 
-        {copyright && (
-          <div className="mt-8 border-t border-border/70 pt-4">
-            <p className="text-xs text-foreground/55">{copyright}</p>
-          </div>
-        )}
+        <div className="mt-8 border-t border-border/70 pt-4">
+          {copyright && <p className="text-xs text-foreground/55">{copyright}</p>}
+          <p className="mt-2 text-[10px] font-medium tracking-[0.01em] text-foreground/45">
+            Developed &amp; maintained by{" "} 
+            <Link to="/about" className="font-semibold text-[#b91c1c] transition-colors hover:text-[#991b1b] hover:underline">
+              PRASAD <span className="text-[#b91c1c]">KUNDAR</span>
+            </Link>
+          </p>
+        </div>
       </div>
     </footer>
   ),
