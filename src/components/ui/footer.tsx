@@ -31,11 +31,11 @@ interface FooterProps extends React.HTMLAttributes<HTMLElement> {
   copyright?: string;
 }
 
-function FooterHref({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
+function FooterHref({ href, children, className, ariaLabel }: { href: string; children: React.ReactNode; className?: string; ariaLabel?: string }) {
   if (href.startsWith("/") && !href.startsWith("//")) {
-    return <Link to={href} className={className}>{children}</Link>;
+    return <Link to={href} className={className} aria-label={ariaLabel}>{children}</Link>;
   }
-  return <a href={href} className={className} target={href.startsWith("mailto:") ? undefined : "_blank"} rel="noopener noreferrer">{children}</a>;
+  return <a href={href} className={className} aria-label={ariaLabel} target={href.startsWith("mailto:") ? undefined : "_blank"} rel="noopener noreferrer">{children}</a>;
 }
 
 export const Footer = React.forwardRef<HTMLElement, FooterProps>(
@@ -55,7 +55,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
                 const key = link.name.toLowerCase();
                 const Icon = key.includes("instagram") ? Instagram : key.includes("linkedin") ? Linkedin : key.includes("whatsapp") ? MessageCircle : key.includes("email") ? AtSign : null;
                 return (
-                  <FooterHref key={link.name} href={link.href} className="apml-footer-social" aria-label={link.name}>
+                  <FooterHref key={link.name} href={link.href} className="apml-footer-social" ariaLabel={link.name}>
                     {Icon ? <Icon aria-hidden="true" /> : <span aria-hidden="true">{link.name === "X" ? "𝕏" : "GH"}</span>}
                   </FooterHref>
                 );
