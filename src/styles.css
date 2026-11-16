@@ -329,7 +329,7 @@
   }
   .portal-nav.open{
     display:flex!important;opacity:1;visibility:visible;pointer-events:auto;
-    transform:translateY(0) scale(1);
+    transform:translate(-50%,-50%) scale(1);
   }
   .portal-nav a{
     display:flex;width:100%;min-height:42px;align-items:center;justify-content:flex-start;
@@ -834,9 +834,15 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   transition:filter .24s ease,box-shadow .24s ease,transform .24s cubic-bezier(.22,1,.36,1);
 }
 .apml-download-btn > svg:first-child{
+  position:absolute;
+  left:50%;
+  top:50%;
+  display:block;
   flex:none;
+  margin:0;
   opacity:0;
-  transform:translateY(13px) scale(.88);
+  transform:translate(-50%,calc(-50% + 13px)) scale(.88);
+  transform-origin:center;
   transition:opacity .24s ease,transform .3s cubic-bezier(.22,1,.36,1);
 }
 .apml-download-btn .apml-download-label{
