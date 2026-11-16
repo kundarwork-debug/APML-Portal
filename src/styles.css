@@ -826,11 +826,11 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 }
 
 
-/* APML download-button micro-interaction — preserves each button's existing size and shape */
+/* APML download interaction — centered icon, tray and APML-red tooltip; preserves button dimensions */
 .apml-download-btn{
   position:relative;
-  overflow:hidden;
   isolation:isolate;
+  overflow:visible;
   transition:filter .24s ease,box-shadow .24s ease,transform .24s cubic-bezier(.22,1,.36,1);
 }
 .apml-download-btn > svg:first-child{
@@ -841,41 +841,92 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   flex:none;
   margin:0;
   opacity:0;
-  transform:translate(-50%,calc(-50% + 13px)) scale(.88);
+  transform:translate(-50%,-50%) translateY(-9px);
   transform-origin:center;
-  transition:opacity .24s ease,transform .3s cubic-bezier(.22,1,.36,1);
+  transition:opacity .24s ease,transform .32s cubic-bezier(.22,1,.36,1),color .24s ease;
+  pointer-events:none;
 }
 .apml-download-btn .apml-download-label{
   display:inline-block;
   transition:opacity .2s ease,transform .3s cubic-bezier(.22,1,.36,1);
 }
-.apml-download-btn:hover:not(:disabled){
-  filter:brightness(1.04);
-  box-shadow:0 4px 12px rgba(180,35,44,.2);
-  transform:translateY(-1px);
+.apml-download-tray{
+  position:absolute;
+  left:50%;
+  top:calc(50% + 8px);
+  width:18px;
+  height:5px;
+  border-bottom:2px solid currentColor;
+  border-left:2px solid currentColor;
+  border-right:2px solid currentColor;
+  opacity:0;
+  transform:translateX(-50%) translateY(-5px);
+  transition:opacity .24s ease,transform .3s cubic-bezier(.22,1,.36,1),color .24s ease;
+  pointer-events:none;
+}
+.apml-download-tooltip{
+  position:absolute;
+  z-index:5;
+  right:8px;
+  top:-34px;
+  padding:5px 9px;
+  border-radius:6px;
+  background:#b4232c;
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  line-height:1.2;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity .2s ease,transform .24s ease;
+  pointer-events:none;
+}
+.apml-download-tooltip::after{
+  content:"";
+  position:absolute;
+  right:12px;
+  bottom:-4px;
+  width:8px;
+  height:8px;
+  background:#b4232c;
+  transform:rotate(45deg);
+}
+.apml-download-btn:hover:not(:disabled),
+.apml-download-btn:focus-visible{
+  filter:brightness(1.03);
+  box-shadow:0 4px 12px rgba(180,35,44,.18);
 }
 .apml-download-btn:hover:not(:disabled) > svg:first-child,
 .apml-download-btn:focus-visible > svg:first-child{
   opacity:1;
-  transform:translateY(0) scale(1);
-  animation:apml-download-heartbeat 1.5s ease-in-out infinite;
+  transform:translate(-50%,-50%);
+  animation:apml-download-slide-in-top .55s cubic-bezier(.25,.46,.45,.94) both;
+}
+.apml-download-btn:hover:not(:disabled) .apml-download-tray,
+.apml-download-btn:focus-visible .apml-download-tray{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
 }
 .apml-download-btn:hover:not(:disabled) .apml-download-label,
 .apml-download-btn:focus-visible .apml-download-label{
   opacity:0;
-  transform:translateY(-9px);
+  transform:translateY(-7px);
+}
+.apml-download-btn:hover:not(:disabled) .apml-download-tooltip,
+.apml-download-btn:focus-visible .apml-download-tooltip{
+  opacity:1;
+  transform:translateY(0);
 }
 .apml-download-btn:active:not(:disabled){transform:scale(.98)}
 .apml-download-btn:focus-visible{outline:2px solid #b4232c;outline-offset:3px}
 .apml-download-btn:disabled{cursor:not-allowed}
-@keyframes apml-download-heartbeat{
-  0%,100%{transform:scale(1)}
-  10%{transform:scale(.91)}
-  17%{transform:scale(.98)}
-  33%{transform:scale(.87)}
-  45%{transform:scale(1)}
+@keyframes apml-download-slide-in-top{
+  0%{transform:translate(-50%,-50%) translateY(-10px);opacity:0}
+  100%{transform:translate(-50%,-50%);opacity:1}
 }
 @media(prefers-reduced-motion:reduce){
-  .apml-download-btn,.apml-download-btn > svg:first-child,.apml-download-btn .apml-download-label{transition:none!important}
-  .apml-download-btn:hover:not(:disabled) > svg:first-child,.apml-download-btn:focus-visible > svg:first-child{animation:none!important}
+  .apml-download-btn,.apml-download-btn>svg:first-child,.apml-download-label,.apml-download-tray,.apml-download-tooltip{transition:none!important}
+  .apml-download-btn:hover:not(:disabled)>svg:first-child,.apml-download-btn:focus-visible>svg:first-child{animation:none!important}
 }
