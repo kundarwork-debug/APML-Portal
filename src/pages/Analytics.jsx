@@ -68,7 +68,7 @@ function Sparkline({ values = [] }) {
 
 export default function Analytics() {
   const [data, setData] = useState(null)
-  const [range, setRange] = useState('365')
+  const [range, setRange] = useState('30')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState(dateKey(new Date()))
   const [customOpen, setCustomOpen] = useState(false)
@@ -365,7 +365,8 @@ export default function Analytics() {
   ]
   const heatmapMonthLabels = Array.from({ length: 12 }, (_, month) => {
     const first = new Date(heatmapYear, month, 1)
-    return { label: first.toLocaleDateString('en-IN', { month: 'short' }), week: Math.floor((heatmapOffset + first.getDate() - 1) / 7) }
+    const daysFromYearStart = Math.floor((first - heatmapYearStart) / 86400000)
+    return { label: first.toLocaleDateString('en-IN', { month: 'short' }), week: Math.floor((heatmapOffset + daysFromYearStart) / 7) }
   })
 
   const kpis = [
