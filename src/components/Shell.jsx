@@ -257,8 +257,10 @@ export default function Shell(){
     description: 'An independent, unofficial employee utility workspace built to make selected APML work tasks simpler and more accessible.'
    }}
    socialLinks={[
-    { name: 'GitHub', href: 'https://github.com/kundarwork-debug/APML-Portal' },
-    { name: 'Email', href: 'mailto:Kundar.work@gmail.com' }
+    { name: 'Instagram', href: 'https://www.instagram.com/' },
+    { name: 'X', href: 'https://x.com/' },
+    { name: 'LinkedIn', href: 'https://www.linkedin.com/' },
+    { name: 'WhatsApp', href: 'https://www.whatsapp.com/' }
    ]}
    columns={[
     {
