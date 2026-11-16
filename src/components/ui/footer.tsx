@@ -44,7 +44,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
       <div className="mx-auto w-full max-w-none px-5 sm:px-8 lg:px-12 2xl:px-16">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-4 lg:col-span-3">
-            <Link to="/" className="inline-flex items-center gap-3 text-xl font-semibold tracking-tight text-foreground">
+            <Link to="/" className="inline-flex items-center gap-3 text-xl font-semibold tracking-tight text-foreground transition-colors duration-200 hover:text-[#b4232c]">
               <span className="portal-footer-brand-name">APML <i>Portal</i></span>
             </Link>
             <p className="mt-2 max-w-md text-sm leading-6 text-foreground/60">
@@ -72,7 +72,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
                     <li key={name}>
                       <FooterHref
                         href={href || "#"}
-                        className={cn("group inline-flex items-center text-sm text-foreground/60 transition-colors hover:text-foreground/90", className)}
+                        className={cn("group inline-flex items-center text-sm text-foreground/60 transition-colors duration-200 hover:text-[#b4232c]", className)}
                       >
                         {name}
                       </FooterHref>
