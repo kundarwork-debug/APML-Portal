@@ -1246,8 +1246,6 @@ html[data-theme="dark"] .portal-page-content .glass-card,
 html[data-theme="dark"] .portal-page-content .surface-card,
 html[data-theme="dark"] .portal-page-content .quick-pricing-card,
 html[data-theme="dark"] .portal-page-content .footer-card,
-html[data-theme="dark"] .portal-page-content [class*="rounded"][class*="border"],
-html[data-theme="dark"] .portal-page-content [class*="rounded"][class*="shadow"]{
   background-color:#151e2e!important;
   color:#e2e8f0;
   border-color:#334155!important;
