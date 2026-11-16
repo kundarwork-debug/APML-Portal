@@ -177,9 +177,27 @@ export default function Shell(){
   const indiaDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
   window.apmlHasAnalyticsConsent=hasConsent
   window.logDailyActivity=async(type)=>{if(!hasConsent())return false;try{const db=await getApmlDatabase();const result=await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1);return !!result.committed}catch(error){console.warn('APML daily analytics unavailable',error);return false}}
-  const recordVisitor=()=>{if(!hasConsent())return;const today=indiaDate();try{if(localStorage.getItem('apml_last_visit_date')===today)return;localStorage.setItem('apml_last_visit_date',today)}catch(_){}window.logDailyActivity('visitors')}
-  window.addEventListener('apml-analytics-consent-granted',recordVisitor);recordVisitor()
-  return()=>window.removeEventListener('apml-analytics-consent-granted',recordVisitor)
+  let visitorWritePending=false
+  const recordVisitor=async()=>{
+   if(!hasConsent()||visitorWritePending||typeof window.logDailyActivity!=='function')return
+   const today=indiaDate()
+   try{if(localStorage.getItem('apml_last_visit_counted_v2')===today)return}catch(_){}
+   visitorWritePending=true
+   try{
+    const committed=await window.logDailyActivity('visitors')
+    if(committed){try{localStorage.setItem('apml_last_visit_counted_v2',today)}catch(_){}}
+   }finally{visitorWritePending=false}
+  }
+  const retryVisitor=()=>{if(document.visibilityState==='visible')recordVisitor()}
+  window.addEventListener('apml-analytics-consent-granted',recordVisitor)
+  window.addEventListener('online',retryVisitor)
+  document.addEventListener('visibilitychange',retryVisitor)
+  recordVisitor()
+  return()=>{
+   window.removeEventListener('apml-analytics-consent-granted',recordVisitor)
+   window.removeEventListener('online',retryVisitor)
+   document.removeEventListener('visibilitychange',retryVisitor)
+  }
  },[])
  useEffect(()=>{const src=import.meta.env.BASE_URL+'notify.js?v=21.46';if(document.querySelector('script[data-apml-notify]'))return;const script=document.createElement('script');script.src=src;script.async=true;script.dataset.apmlNotify='true';document.body.appendChild(script);return()=>script.remove()},[])
  const active=links.find(x=>x.to===location.pathname)?.label||(location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
