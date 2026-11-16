@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react'
 import {useNavigate} from 'react-router-dom'
-import {ArrowUpRight,Code2,Heart,BriefcaseBusiness,Globe,Layers,Cloud,Shield,FolderTree,Workflow,Rocket,ExternalLink,Smartphone,Web,Folder,GitBranch} from 'lucide-react'
+import {ArrowUpRight,Code2,Heart,BriefcaseBusiness,Globe,Layers,Cloud,Shield,FolderTree,Workflow,Rocket,ExternalLink,Smartphone} from 'lucide-react'
 import './InfoPage.css'
 
 const sponsorUrl='https://kundarwork-debug.github.io/sponsor/support.html'
