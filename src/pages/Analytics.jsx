@@ -69,7 +69,7 @@ function Sparkline({ values = [] }) {
 
 export default function Analytics() {
   const [data, setData] = useState(null)
-  const [range, setRange] = useState('30')
+  const [range, setRange] = useState('365')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState(dateKey(new Date()))
   const [customOpen, setCustomOpen] = useState(false)
@@ -351,6 +351,26 @@ export default function Analytics() {
     setTimeout(() => URL.revokeObjectURL(url), 3000)
   }
 
+  const heatmapYear = new Date().getFullYear()
+  const heatmapYearStart = new Date(heatmapYear, 0, 1)
+  const heatmapOffset = heatmapYearStart.getDay()
+  const heatmapDays = Array.from({ length: (new Date(heatmapYear, 11, 31) - heatmapYearStart) / 86400000 + 1 }, (_, index) => {
+    const date = new Date(heatmapYear, 0, index + 1)
+    const key = dateKey(date)
+    const row = heatmap.find(item => item.date === key)
+    const total = (row?.visitors || 0) + (row?.pdf || 0) + (row?.media || 0)
+    return { key, total, visitors: row?.visitors || 0, pdf: row?.pdf || 0, media: row?.media || 0 }
+  })
+  const heatmapMax = Math.max(1, ...heatmapDays.map(day => day.total))
+  const heatmapCells = [
+    ...Array.from({ length: heatmapOffset }, (_, index) => ({ key: 'pad-' + index, empty: true })),
+    ...heatmapDays.map(day => ({ ...day, level: day.total === 0 ? 0 : day.total / heatmapMax < .25 ? 1 : day.total / heatmapMax < .5 ? 2 : day.total / heatmapMax < .75 ? 3 : 4 }))
+  ]
+  const heatmapMonthLabels = Array.from({ length: 12 }, (_, month) => {
+    const first = new Date(heatmapYear, month, 1)
+    return { label: first.toLocaleDateString('en-IN', { month: 'short' }), week: Math.floor((heatmapOffset + first.getDate() - 1) / 7) }
+  })
+
   const kpis = [
     { label: 'Visitors', value: fmt(totals.visitors), delta: pctChange(totals.visitors, previous.visitors), note: 'Daily visitor counts', icon: Users, tone: 'green', trend: daily.map(row => row.visitors) },
     { label: 'PDF quotations', value: fmt(totals.pdf), delta: pctChange(totals.pdf, previous.pdf), note: fmt(totals.totalPdfsLifetime) + ' lifetime', icon: FileText, tone: 'red', trend: daily.map(row => row.pdf) },
@@ -430,8 +450,18 @@ export default function Analytics() {
     </div>
 
     <section className="analytics-panel">
-      <div className="analytics-panel-head"><div><h2><CalendarDays size={18}/> Daily activity heatmap</h2><p>Rolling 365-day view · hover or focus a square for its daily totals.</p></div><span className="analytics-muted">Oldest → newest</span></div>
-      <div className="analytics-heat-scroll"><div className="analytics-heat-months">{Array.from({length:12},(_,i)=><span key={i}>{new Date(new Date().getFullYear(),new Date().getMonth()-11+i,1).toLocaleDateString('en-IN',{month:'short'})}</span>)}</div><div className="analytics-heatmap">{heatmap.map(row => { const total = row.visitors + row.pdf + row.media; const max = Math.max(1,...heatmap.map(x=>x.visitors+x.pdf+x.media)); const level = total === 0 ? 0 : total / max < .25 ? 1 : total / max < .5 ? 2 : total / max < .75 ? 3 : 4; return <span key={row.date} className={'heat-level-' + level} title={dateLabel(row.date) + ' · ' + fmt(total) + ' actions (Visitors ' + fmt(row.visitors) + ', PDFs ' + fmt(row.pdf) + ', Media ' + fmt(row.media) + ')'} aria-label={dateLabel(row.date) + ', ' + fmt(total) + ' actions'}/> })}</div></div>
+      <div className="analytics-panel-head"><div><h2><CalendarDays size={18}/> Daily activity heatmap</h2><p>January–December {heatmapYear} · hover or focus a square for daily visitors, PDFs and media.</p></div><span className="analytics-muted">Oldest → newest</span></div>
+      <div className="analytics-heat-scroll">
+        <div className="analytics-heat-calendar">
+          <div className="analytics-heat-months">{heatmapMonthLabels.map((month,index)=><span key={index} style={{ gridColumnStart: month.week + 1 }}>{month.label}</span>)}</div>
+          <div className="analytics-heatmap-layout">
+            <div className="analytics-weekday-labels"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+            <div className="analytics-heatmap">{heatmapCells.map(day => day.empty
+              ? <span key={day.key} className="heat-empty" aria-hidden="true"/>
+              : <span key={day.key} className={'heat-level-' + day.level} title={dateLabel(day.key) + ' · ' + fmt(day.total) + ' actions (Visitors ' + fmt(day.visitors) + ', PDFs ' + fmt(day.pdf) + ', Media ' + fmt(day.media) + ')'} aria-label={dateLabel(day.key) + ', ' + fmt(day.total) + ' actions'}/>)}</div>
+          </div>
+        </div>
+      </div>
       <div className="analytics-heat-legend"><span>Less</span>{[0,1,2,3,4].map(n=><i key={n} className={'heat-level-' + n}/>)}<span>More</span></div>
     </section>
 
