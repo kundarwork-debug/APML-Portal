@@ -35,7 +35,7 @@ function FooterHref({ href, children, className, ariaLabel }: { href: string; ch
   if (href.startsWith("/") && !href.startsWith("//")) {
     return <Link to={href} className={className} aria-label={ariaLabel}>{children}</Link>;
   }
-  return <a href={href} className={className} aria-label={ariaLabel} target={href.startsWith("mailto:") ? undefined : "_blank"} rel="noopener noreferrer">{children}</a>;
+  return <a href={href} className={className} aria-label={ariaLabel} target="_blank" rel="noopener noreferrer">{children}</a>;
 }
 
 export const Footer = React.forwardRef<HTMLElement, FooterProps>(
