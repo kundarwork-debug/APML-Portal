@@ -743,20 +743,21 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   left:0;
   width:3px;
   border-radius:4px;
-  background:#292524;
+  background:#b4232c;
   opacity:0;
   transition:opacity .18s ease;
 }
 .portal-nav a:hover,
 .portal-nav .portal-nav-support:hover{
-  background:#f1ece6;
-  color:#292524;
+  background:#b4232c;
+  color:#fff;
+  box-shadow:inset 3px 0 0 #7f171d;
 }
 .portal-nav a:focus-visible,
 .portal-nav .portal-nav-support:focus-visible,
 .portal-nav a.active{
-  background:#e8e0d8;
-  color:#292524;
+  background:#fff0ed;
+  color:#b4232c;
   outline:none;
 }
 .portal-nav a:focus-visible::before,
@@ -765,8 +766,8 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
   opacity:1;
 }
 .portal-nav a:hover svg,
-.portal-nav .portal-nav-support:hover svg,
-.portal-nav a.active svg{color:#292524}
+.portal-nav .portal-nav-support:hover svg{color:#fff}
+.portal-nav a.active svg{color:#b4232c}
 .portal-nav .portal-nav-support{
   border-top:1px solid var(--line);
   border-left:0;
