@@ -709,10 +709,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 
 /* Compact APML footer social buttons */
-.apml-footer-socials{display:flex;align-items:center;gap:9px;margin-top:16px}
-.apml-footer-social{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;flex:none;border:1px solid rgba(185,28,28,.18);border-radius:50%;background:#3a2525;color:#fff;transition:transform .22s ease,background .22s ease,border-color .22s ease,box-shadow .22s ease}
-.apml-footer-social svg{width:16px;height:16px;stroke-width:2}
-.apml-footer-social span{font-size:13px;font-weight:800;line-height:1}
-.apml-footer-social:hover{transform:translateY(-3px);background:#b91c1c;border-color:#b91c1c;box-shadow:0 7px 16px rgba(185,28,28,.2)}
-.apml-footer-social:active{transform:scale(.94)}
-@media(max-width:600px){.apml-footer-socials{gap:8px;margin-top:13px}.apml-footer-social{width:34px;height:34px}.apml-footer-social svg{width:15px;height:15px}}
+.apml-footer-socials{display:flex;align-items:center;gap:10px;margin-top:15px}
+.apml-footer-social{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border:1px solid rgba(180,35,44,.24);border-radius:30px;background:#411d83;color:#fff;transition:transform .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease}
+.apml-footer-social svg{width:14px;height:14px;stroke-width:2.1}
+.apml-footer-social:hover{transform:scale(1.12);background:#b4232c;border-color:#b4232c;box-shadow:0 6px 14px rgba(180,35,44,.2)}
+.apml-footer-social:active{transform:scale(.9)}
+@media(max-width:600px){.apml-footer-socials{gap:9px;margin-top:12px}.apml-footer-social{width:30px;height:30px}.apml-footer-social svg{width:13px;height:13px}}
