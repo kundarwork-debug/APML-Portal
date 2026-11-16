@@ -257,10 +257,9 @@ export default function Shell(){
     description: 'An independent, unofficial employee utility workspace built to make selected APML work tasks simpler and more accessible.'
    }}
    socialLinks={[
-    { name: 'Instagram', href: 'https://www.instagram.com/' },
-    { name: 'X', href: 'https://x.com/' },
-    { name: 'LinkedIn', href: 'https://www.linkedin.com/' },
-    { name: 'WhatsApp', href: 'https://www.whatsapp.com/' }
+    { name: 'WhatsApp', href: 'https://wa.me/919910579530' },
+    { name: 'GitHub', href: 'https://github.com/kundarwork-debug/Side-Quote-Generator' },
+    { name: 'Gmail', href: 'mailto:kundar.work@gmail.com' }
    ]}
    columns={[
     {
