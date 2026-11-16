@@ -603,3 +603,81 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .not-found-signoff span{padding:0 7px;color:#b4232c}
 @media(max-width:600px){.not-found-page{padding-top:22px}.not-found-intro{margin-bottom:22px}.not-found-intro>p{font-size:12px}.not-found-game-head{align-items:flex-start;flex-direction:column;padding:17px}.not-found-stats{width:100%}.not-found-stats span{flex:1;justify-content:center}.not-found-canvas-wrap{height:330px}.not-found-game-foot{flex-direction:column;text-align:center;gap:6px}.not-found-game-overlay strong{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.not-found-orbit{animation:none}}
+
+
+/* React-native APML arcade revival */
+.not-found-launch-card{display:flex;align-items:center;gap:18px;margin-top:22px;padding:20px 22px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.not-found-launch-art{position:relative;display:grid;place-items:center;width:58px;height:58px;flex:none;border-radius:17px;background:#fff0ed;color:var(--red)}
+.not-found-launch-art span{position:absolute;top:3px;right:6px;color:#d97706;font-size:13px}
+.not-found-launch-card>div:nth-child(2){flex:1;min-width:0}
+.not-found-launch-card strong{font:800 14px Manrope,sans-serif;color:var(--ink)}
+.not-found-launch-card p{margin:5px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
+.not-found-launch-card>button,.apml-scorecard-actions>button:not(.secondary){display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:9px;background:var(--red);color:#fff;padding:12px 17px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 7px 16px #b91c1c22}
+.not-found-leaderboard-preview{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:13px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;background:#fffdfb;color:#827770;font-size:10px}
+.not-found-leaderboard-preview>div{display:flex;align-items:center;gap:7px;color:var(--red);font-size:11px}
+.not-found-leaderboard-preview>div strong{color:var(--ink)}
+.not-found-leaderboard-preview>span{font-weight:700}
+.not-found-leaderboard-preview small{color:var(--muted)}
+.apml-arcade-live{position:fixed;inset:0;z-index:9990;overflow:hidden;background:#080d17;touch-action:none}
+.apml-arcade-live canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
+.apml-arcade-scoreboard{position:absolute;top:max(16px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:13px;max-width:calc(100vw - 20px);padding:9px 13px 9px 17px;border:1px solid #ffffff2b;border-radius:999px;background:#111827eF;color:#e2e8f0;box-shadow:0 12px 35px #0006;backdrop-filter:blur(14px);white-space:nowrap}
+.apml-arcade-scoreboard>span{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:.08em;color:#9ca3af}
+.apml-arcade-scoreboard b{font:800 14px 'Space Grotesk',sans-serif;color:#fb8b72;letter-spacing:0}
+.apml-arcade-scoreboard>i{width:1px;height:17px;background:#ffffff26}
+.apml-arcade-scoreboard .apml-arcade-lives{color:#fb7185}
+.apml-arcade-scoreboard .apml-arcade-lives b{color:#fb7185}
+.apml-arcade-scoreboard button{display:flex;align-items:center;gap:4px;border:1px solid #ef444455;border-radius:999px;background:#ef44441a;color:#fca5a5;padding:6px 9px;font-size:9px;font-weight:800}
+.apml-arcade-toast{position:absolute;top:75px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 30px);padding:8px 15px;border-radius:999px;background:linear-gradient(135deg,#b91c1c,#ea580c);color:white;font-size:10px;font-weight:850;letter-spacing:.06em;text-align:center;box-shadow:0 0 22px #ea580c55;pointer-events:none}
+.apml-arcade-hint{position:absolute;bottom:max(15px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);padding:7px 12px;border:1px solid #ffffff20;border-radius:999px;background:#111827a8;color:#9ca3af;font-size:8px;font-weight:800;letter-spacing:.1em;white-space:nowrap;pointer-events:none}
+.apml-scorecard-backdrop{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;background:#080d17cc;backdrop-filter:blur(12px);overflow-y:auto}
+.apml-scorecard{width:min(590px,100%);max-height:min(92dvh,900px);overflow:auto;padding:23px;background:#111827;color:#f8fafc;border:1px solid #ffffff20;border-radius:22px;box-shadow:0 25px 90px #0008}
+.apml-scorecard-head{display:flex;align-items:center;justify-content:space-between}
+.apml-scorecard-head>span,.apml-score-rank-head>strong{display:flex;align-items:center;gap:7px;color:#fb8b72;font-size:10px;font-weight:850;letter-spacing:.12em}
+.apml-scorecard-head button{display:grid;place-items:center;width:34px;height:34px;border:1px solid #ffffff22;border-radius:50%;background:#ffffff0a;color:#cbd5e1}
+.apml-scorecard h2{margin:13px 0 4px;font:800 28px Manrope,sans-serif;letter-spacing:-1px}
+.apml-scorecard-sub{margin:0;color:#9ca3af;font-size:11px;line-height:1.6}
+.apml-final-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0}
+.apml-final-stats>div{padding:13px 10px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08}
+.apml-final-stats small,.apml-score-save label{display:block;color:#9ca3af;font-size:8px;font-weight:850;letter-spacing:.1em}
+.apml-final-stats strong{display:block;margin-top:6px;color:#fb8b72;font:800 20px 'Space Grotesk',sans-serif;overflow-wrap:anywhere}
+.apml-score-save{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;padding:14px;border:1px solid #ffffff18;border-radius:13px;background:#ffffff08}
+.apml-score-save label{grid-column:1/-1}
+.apml-score-save input{min-width:0;height:42px;padding:0 12px;border:1px solid #ffffff25;border-radius:8px;outline:0;background:#0b1220;color:#f8fafc;font-size:12px}
+.apml-score-save input:focus{border-color:#fb8b72}
+.apml-score-save button{height:42px;padding:0 15px;border:0;border-radius:8px;background:#b91c1c;color:white;font-size:10px;font-weight:850;white-space:nowrap}
+.apml-score-save button:disabled{opacity:.65;cursor:default}
+.apml-score-rank-head{display:flex;align-items:center;justify-content:space-between;margin:19px 0 9px}
+.apml-score-rank-head>span{color:#9ca3af;font-size:8px;font-weight:850;letter-spacing:.1em}
+.apml-score-rank-list{display:grid;gap:5px;max-height:210px;overflow:auto;padding-right:3px}
+.apml-rank-row{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:9px;padding:8px 10px;border:1px solid #ffffff10;border-radius:8px;background:#ffffff06;font-size:10px}
+.apml-rank-row.top{background:#f59e0b12;border-color:#f59e0b25}
+.apml-rank-row>b{color:#fbbf24;font-size:10px}
+.apml-rank-row>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e5e7eb;font-weight:700}
+.apml-rank-row small{margin-left:6px;color:#9ca3af;font-size:8px}
+.apml-rank-row>strong{color:#fb8b72;font:800 12px 'Space Grotesk',sans-serif}
+.apml-scorecard-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.apml-scorecard-actions>button.secondary{padding:10px 15px;border:1px solid #ffffff25;border-radius:8px;background:transparent;color:#cbd5e1;font-size:10px;font-weight:800}
+@media(max-width:600px){
+ .not-found-launch-card{align-items:flex-start;flex-wrap:wrap;padding:16px;gap:12px}
+ .not-found-launch-art{width:48px;height:48px}
+ .not-found-launch-card>div:nth-child(2){flex:1 1 calc(100% - 65px)}
+ .not-found-launch-card>button{width:100%;justify-content:center}
+ .not-found-leaderboard-preview{gap:9px}
+ .apml-arcade-scoreboard{gap:6px;padding:7px 8px}
+ .apml-arcade-scoreboard>span{font-size:7px;gap:3px}
+ .apml-arcade-scoreboard b{font-size:11px}
+ .apml-arcade-scoreboard>i{height:12px}
+ .apml-arcade-scoreboard button{padding:5px 6px;font-size:8px}
+ .apml-arcade-toast{top:62px;font-size:8px}
+ .apml-arcade-hint{font-size:7px;letter-spacing:.04em}
+ .apml-scorecard{padding:17px;border-radius:17px}
+ .apml-scorecard h2{font-size:24px}
+ .apml-final-stats{gap:6px}
+ .apml-final-stats>div{padding:10px 7px}
+ .apml-final-stats small{font-size:7px}
+ .apml-final-stats strong{font-size:16px}
+ .apml-score-save{grid-template-columns:1fr}
+ .apml-score-save label{grid-column:auto}
+ .apml-score-save button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.apml-arcade-live,.apml-scorecard-backdrop{scroll-behavior:auto}}
