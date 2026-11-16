@@ -258,7 +258,7 @@ export default function Shell(){
    }}
    socialLinks={[
     { name: 'WhatsApp', href: 'https://wa.me/919910579530' },
-    { name: 'GitHub', href: 'https://github.com/kundarwork-debug/Side-Quote-Generator' },
+    { name: 'GitHub', href: 'https://github.com/kundarwork-debug/APML-Portal' },
     { name: 'Gmail', href: 'mailto:kundar.work@gmail.com' }
    ]}
    columns={[
