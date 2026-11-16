@@ -117,7 +117,7 @@ function OperationalTelemetry(){
     const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
     const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
     dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,day)=>total+(Number(day?.pdf)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
-    const lifetimeRef=db.ref('analytics/lifetime_pdf_generated');refs.push(lifetimeRef)
+    const lifetimeRef=db.ref('analytics/totalPdfDownloads');refs.push(lifetimeRef)
     lifetimeRef.on('value',snap=>{lifetimePdfTotal=Number(snap.val())||0;publishPdfTotal()},error=>console.warn('APML lifetime PDF telemetry unavailable',error))
     const foldersRef=db.ref('catbox_gdrive_folders');const filesRef=db.ref('catbox_gdrive_files');refs.push(foldersRef,filesRef)
     let quotationFolderIds=new Set(),quotationFiles={}
