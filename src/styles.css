@@ -710,7 +710,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 
 /* Compact APML footer social buttons */
 .apml-footer-socials{display:flex;align-items:center;gap:10px;margin-top:15px}
-.apml-footer-social{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border:1px solid rgba(180,35,44,.24);border-radius:30px;background:#411d83;color:#fff;transition:transform .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease}
+.apml-footer-social{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border:1px solid transparent;border-radius:30px;background:transparent;color:#411d83;transition:transform .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease}
 .apml-footer-social svg{width:14px;height:14px;stroke-width:2.1}
 .apml-footer-social:hover{transform:scale(1.12);background:#b4232c;border-color:#b4232c;box-shadow:0 6px 14px rgba(180,35,44,.2)}
 .apml-footer-social:active{transform:scale(.9)}
