@@ -1147,3 +1147,209 @@ html[data-theme="dark"] .portal-page-content [style*="background-color: #fff"]{b
 html[data-theme="dark"] .portal-page-content [style*="color: #111"],
 html[data-theme="dark"] .portal-page-content [style*="color: #222"],
 html[data-theme="dark"] .portal-page-content [style*="color: black"]{color:#edf1f5!important}
+
+
+/* =========================================================
+   APML DARK THEME — migrated from the legacy portal system
+   Shared palette and surface rules, adapted for React modules.
+   ========================================================= */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --md-sys-color-primary:#f87171;
+  --md-sys-color-primary-container:#3b1820;
+  --md-sys-color-on-primary-container:#fecaca;
+  --md-sys-color-surface:#111827;
+  --md-sys-color-surface-container-lowest:#111827;
+  --md-sys-color-surface-container-low:#1e293b;
+  --md-sys-color-surface-container:#334155;
+  --md-sys-color-outline-variant:#334155;
+  --md-sys-color-on-surface:#f8fafc;
+  --md-sys-color-on-surface-variant:#cbd5e1;
+  --bg-base:#0b1120;
+  --surface-card:#151e2e;
+  --surface:#151e2e;
+  --surface-glass:rgba(21,30,46,.94);
+  --surface-raised:#1e293b;
+  --surface-subtle:#1e293b;
+  --surface-border:#334155;
+  --border-subtle:#334155;
+  --text-main:#f8fafc;
+  --text-secondary:#e2e8f0;
+  --text-muted:#a8b5c7;
+  --text-faint:#8493a8;
+  --canvas:#0b1120;
+  --background:#0b1120;
+  --paper:#151e2e;
+  --ink:#f8fafc;
+  --muted:#a8b5c7;
+  --line:#334155;
+  --border:#334155;
+  --red:#f87171;
+  --red-dark:#ef4444;
+  --shadow:0 8px 28px rgba(0,0,0,.28);
+  --shadow-soft:0 8px 28px rgba(0,0,0,.28);
+  --shadow-subtle:0 8px 28px rgba(0,0,0,.28);
+  --shadow-sm:0 8px 24px rgba(0,0,0,.24);
+  --shadow-md:0 14px 36px rgba(0,0,0,.32);
+  --apml-color-page:#0b1120;
+  --apml-color-surface:#151e2e;
+  --apml-color-surface-subtle:#1e293b;
+  --apml-color-border:#334155;
+  --apml-color-text:#f8fafc;
+  --apml-color-text-secondary:#e2e8f0;
+  --apml-color-text-muted:#a8b5c7;
+  --apml-color-brand:#f87171;
+  --apml-color-brand-hover:#ef4444;
+  --apml-color-brand-soft:#3b1820;
+}
+html[data-theme="dark"] body{
+  background:#0b1120!important;
+  background-color:#0b1120!important;
+  background-image:radial-gradient(circle at 50% 12%,rgba(127,29,29,.16),transparent 58%)!important;
+  color:#f8fafc!important;
+}
+html[data-theme="dark"] .portal-header,
+html[data-theme="dark"] .portal-site-footer{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-nav{
+  background:rgba(15,23,42,.97)!important;
+  color:#f8fafc!important;
+  border-color:#334155!important;
+  box-shadow:0 18px 45px rgba(0,0,0,.35)!important;
+}
+html[data-theme="dark"] .portal-nav a,
+html[data-theme="dark"] .portal-nav-support{color:#e2e8f0!important}
+html[data-theme="dark"] .portal-nav a:hover,
+html[data-theme="dark"] .portal-nav a.active,
+html[data-theme="dark"] .portal-nav-support:hover{
+  background:#3b1820!important;color:#fecaca!important;border-color:#67383e!important;
+}
+html[data-theme="dark"] .portal-nav-separator{background:#334155!important}
+html[data-theme="dark"] .portal-brand,
+html[data-theme="dark"] .portal-header-actions{color:#f8fafc!important}
+
+/* Common React module surfaces */
+html[data-theme="dark"] .portal-page-content .card,
+html[data-theme="dark"] .portal-page-content .panel,
+html[data-theme="dark"] .portal-page-content .table-section,
+html[data-theme="dark"] .portal-page-content .kpi,
+html[data-theme="dark"] .portal-page-content .banner,
+html[data-theme="dark"] .portal-page-content .module-card,
+html[data-theme="dark"] .portal-page-content .stat-card,
+html[data-theme="dark"] .portal-page-content .info-card,
+html[data-theme="dark"] .portal-page-content .content-card,
+html[data-theme="dark"] .portal-page-content .feature-card,
+html[data-theme="dark"] .portal-page-content .glass-card,
+html[data-theme="dark"] .portal-page-content .surface-card,
+html[data-theme="dark"] .portal-page-content .quick-pricing-card,
+html[data-theme="dark"] .portal-page-content .footer-card,
+html[data-theme="dark"] .portal-page-content [class*="rounded"][class*="border"],
+html[data-theme="dark"] .portal-page-content [class*="rounded"][class*="shadow"]{
+  background-color:#151e2e!important;
+  color:#e2e8f0;
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content .module-card:hover,
+html[data-theme="dark"] .portal-page-content .card:hover{
+  border-color:#475569!important;
+}
+html[data-theme="dark"] .portal-page-content input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] .portal-page-content textarea,
+html[data-theme="dark"] .portal-page-content select{
+  background-color:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:#475569!important;
+}
+html[data-theme="dark"] .portal-page-content input::placeholder,
+html[data-theme="dark"] .portal-page-content textarea::placeholder{color:#94a3b8!important}
+html[data-theme="dark"] .portal-page-content table th,
+html[data-theme="dark"] .portal-page-content .tabs,
+html[data-theme="dark"] .portal-page-content [role="tab"]:not([aria-selected="true"]),
+html[data-theme="dark"] .portal-page-content .suggestion-cat{
+  background-color:#1e293b!important;color:#cbd5e1!important;border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content table td,
+html[data-theme="dark"] .portal-page-content table th,
+html[data-theme="dark"] .portal-page-content .price-row,
+html[data-theme="dark"] .portal-page-content .suggestion-item{
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content .suggestion-item{color:#e2e8f0!important}
+html[data-theme="dark"] .portal-page-content .suggestions-dropdown{
+  background:#151e2e!important;border-color:#334155!important;color:#e2e8f0!important;
+}
+html[data-theme="dark"] .portal-page-content .swal2-popup,
+html[data-theme="dark"] .swal2-popup{
+  background:#151e2e!important;color:#f8fafc!important;border:1px solid #334155!important;
+}
+html[data-theme="dark"] .swal2-title,
+html[data-theme="dark"] .swal2-html-container{color:#e2e8f0!important}
+html[data-theme="dark"] .portal-page-content .support-msg-bubble{
+  background:#151e2e!important;color:#f8fafc!important;border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content .ambient-bg,
+html[data-theme="dark"] .portal-page-content .ambient-glow,
+html[data-theme="dark"] .portal-page-content .ambient-mesh{opacity:.22}
+
+/* Tailwind/shadcn surfaces used by the React modules */
+html[data-theme="dark"] .portal-page-content .bg-white,
+html[data-theme="dark"] .portal-page-content .bg-gray-50,
+html[data-theme="dark"] .portal-page-content .bg-slate-50,
+html[data-theme="dark"] .portal-page-content .bg-stone-50,
+html[data-theme="dark"] .portal-page-content .bg-neutral-50{background-color:#151e2e!important}
+html[data-theme="dark"] .portal-page-content .bg-gray-100,
+html[data-theme="dark"] .portal-page-content .bg-slate-100,
+html[data-theme="dark"] .portal-page-content .bg-stone-100,
+html[data-theme="dark"] .portal-page-content .bg-neutral-100{background-color:#1e293b!important}
+html[data-theme="dark"] .portal-page-content .text-black,
+html[data-theme="dark"] .portal-page-content .text-gray-900,
+html[data-theme="dark"] .portal-page-content .text-gray-800,
+html[data-theme="dark"] .portal-page-content .text-slate-900,
+html[data-theme="dark"] .portal-page-content .text-slate-800,
+html[data-theme="dark"] .portal-page-content .text-stone-900{color:#f8fafc!important}
+html[data-theme="dark"] .portal-page-content .text-gray-700,
+html[data-theme="dark"] .portal-page-content .text-gray-600,
+html[data-theme="dark"] .portal-page-content .text-slate-700,
+html[data-theme="dark"] .portal-page-content .text-slate-600,
+html[data-theme="dark"] .portal-page-content .text-stone-700{color:#cbd5e1!important}
+html[data-theme="dark"] .portal-page-content .text-gray-500,
+html[data-theme="dark"] .portal-page-content .text-gray-400,
+html[data-theme="dark"] .portal-page-content .text-slate-500,
+html[data-theme="dark"] .portal-page-content .text-slate-400{color:#a8b5c7!important}
+html[data-theme="dark"] .portal-page-content .border-gray-100,
+html[data-theme="dark"] .portal-page-content .border-gray-200,
+html[data-theme="dark"] .portal-page-content .border-slate-100,
+html[data-theme="dark"] .portal-page-content .border-slate-200,
+html[data-theme="dark"] .portal-page-content .divide-gray-100>*+*,
+html[data-theme="dark"] .portal-page-content .divide-gray-200>*+*{border-color:#334155!important}
+html[data-theme="dark"] .portal-page-content .shadow,
+html[data-theme="dark"] .portal-page-content .shadow-sm,
+html[data-theme="dark"] .portal-page-content .shadow-md,
+html[data-theme="dark"] .portal-page-content .shadow-lg{
+  --tw-shadow:0 8px 24px rgba(0,0,0,.24);box-shadow:var(--tw-shadow)!important;
+}
+html[data-theme="dark"] .portal-page-content .recharts-cartesian-grid line,
+html[data-theme="dark"] .portal-page-content .apexcharts-gridline{stroke:#334155!important}
+html[data-theme="dark"] .portal-page-content .recharts-text,
+html[data-theme="dark"] .portal-page-content .apexcharts-text{fill:#a8b5c7!important}
+html[data-theme="dark"] .portal-page-content .apexcharts-tooltip,
+html[data-theme="dark"] .portal-page-content .apexcharts-xaxistooltip{
+  background:#1e293b!important;border-color:#475569!important;color:#f8fafc!important;
+}
+html[data-theme="dark"] .portal-page-content [style*="background: white"],
+html[data-theme="dark"] .portal-page-content [style*="background-color: white"],
+html[data-theme="dark"] .portal-page-content [style*="background: #fff"],
+html[data-theme="dark"] .portal-page-content [style*="background-color: #fff"]{background-color:#151e2e!important}
+html[data-theme="dark"] .portal-page-content [style*="color: #111"],
+html[data-theme="dark"] .portal-page-content [style*="color: #222"],
+html[data-theme="dark"] .portal-page-content [style*="color: black"]{color:#f8fafc!important}
+html[data-theme="dark"] .portal-site-footer a,
+html[data-theme="dark"] .portal-site-footer p,
+html[data-theme="dark"] .portal-site-footer h2,
+html[data-theme="dark"] .portal-site-footer h3{color:#cbd5e1}
+@media(prefers-reduced-motion:reduce){
+ html,html *,html *::before,html *::after{transition-duration:0s!important;animation-duration:.01ms!important}
+}
