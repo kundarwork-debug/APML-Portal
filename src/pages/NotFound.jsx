@@ -18,6 +18,8 @@ function readLocalScores() {
 
 export default function NotFound() {
   const canvasRef = useRef(null)
+  const fireRef = useRef(null)
+  const mascotRef = useRef(null)
   const statsRef = useRef({ score: 0, lives: 5, level: 1 })
   const [running, setRunning] = useState(false)
   const [gameOver, setGameOver] = useState(false)
@@ -30,24 +32,23 @@ export default function NotFound() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [toast, setToast] = useState('')
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   useEffect(() => {
     let alive = true
     getApmlDatabase().then(db => {
-      db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value', snapshot => {
+      db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value').then(snapshot => {
         if (!alive) return
         const entries = []
         snapshot.forEach(child => entries.push(child.val()))
         entries.sort((a, b) => (b.score || 0) - (a.score || 0))
-        if (entries.length) {
-          setLeaderboard(entries)
-          const best = Math.max(...entries.map(item => Number(item.score) || 0))
-          setHighScore(current => {
-            const next = Math.max(current, best)
-            localStorage.setItem(HIGH_SCORE_KEY, String(next))
-            return next
-          })
-        }
+        setLeaderboard(entries.length ? entries : readLocalScores())
+        const best = Math.max(0, ...entries.map(item => Number(item.score) || 0))
+        if (best) setHighScore(current => {
+          const next = Math.max(current, best)
+          localStorage.setItem(HIGH_SCORE_KEY, String(next))
+          return next
+        })
       })
     }).catch(() => {})
     return () => { alive = false }
@@ -70,7 +71,6 @@ export default function NotFound() {
     const ctx = canvas.getContext('2d')
     let raf = 0
     let lastTime = 0
-    let lastShot = 0
     let lastSpawn = 0
     let lastToast = 0
     let shipX = window.innerWidth / 2
@@ -111,8 +111,17 @@ export default function NotFound() {
         targetY = event.touches[0].clientY
       }
     }
+    const fireMissile = () => {
+      const now = performance.now()
+      if (now - (fireMissile.lastShot || 0) < (now < rapidUntil ? 115 : 260)) return
+      fireMissile.lastShot = now
+      missiles.push({ x: shipX + Math.cos(angle) * 15, y: shipY + Math.sin(angle) * 15, vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12, life: 90, r: 3 })
+    }
+    fireRef.current = fireMissile
+    const pointerDown = event => { if (event.button === 0) fireMissile() }
     const keydown = event => {
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) event.preventDefault()
+      if (event.code === 'Space') fireMissile()
       const step = 34
       if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') targetX -= step
       if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') targetX += step
@@ -121,6 +130,7 @@ export default function NotFound() {
       if (event.key === 'Escape') setRunning(false)
     }
     window.addEventListener('pointermove', move)
+    canvas.addEventListener('pointerdown', pointerDown)
     window.addEventListener('touchmove', touchMove, { passive: true })
     window.addEventListener('keydown', keydown)
 
@@ -218,11 +228,6 @@ export default function NotFound() {
         return !best || d < best.d ? { item, d } : best
       }, null)
       if (nearest) angle = Math.atan2(nearest.item.y - shipY, nearest.item.x - shipX)
-      if (time - lastShot > (time < rapidUntil ? 115 : 260)) {
-        const direction = nearest ? angle : -Math.PI / 2
-        missiles.push({ x: shipX + Math.cos(direction) * 15, y: shipY + Math.sin(direction) * 15, vx: Math.cos(direction) * 12, vy: Math.sin(direction) * 12, life: 90, r: 3 })
-        lastShot = time
-      }
       const levelNow = statsRef.current.level
       const spawnDelay = Math.max(430, 1350 - (levelNow - 1) * 85)
       if (!bossActive && levelNow >= 5 && levelNow % 5 === 0 && bossSpawnedAt !== levelNow) spawnAsteroid(true)
@@ -312,6 +317,8 @@ export default function NotFound() {
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
+      canvas.removeEventListener('pointerdown', pointerDown)
+      fireRef.current = null
       window.removeEventListener('pointermove', move)
       window.removeEventListener('touchmove', touchMove)
       window.removeEventListener('keydown', keydown)
@@ -357,6 +364,7 @@ export default function NotFound() {
       <section className="not-found-intro">
         <div className="not-found-code"><span>4</span><span className="not-found-orbit">✦</span><span>4</span></div>
         <div className="not-found-kicker"><ShieldAlert size={15}/> SIGNAL LOST · ERROR 404</div>
+        <div className="apml-crt-mascot" ref={mascotRef} role="img" aria-label="APML friendly CRT mascot" />
         <h1>Looks like you drifted <span>off course.</span></h1>
         <p>The page you're looking for isn't in this sector. You can help defend the APML station while you're here.</p>
         <div className="not-found-actions">
@@ -372,12 +380,13 @@ export default function NotFound() {
         </div>
         <div className="not-found-launch-card">
           <div className="not-found-launch-art"><Rocket size={38}/><span>✦</span></div>
-          <div><strong>Ready for launch?</strong><p>Auto-fire is enabled. Move with your mouse, touch or arrow keys. Reach level 5 to face the Overlord.</p></div>
+          <div><strong>Ready for launch?</strong><p>Move to steer. Click or tap to fire, or press Space. Reach level 5 to face the Overlord.</p></div>
           <button type="button" onClick={startGame}><Rocket size={16}/> Start mission</button>
         </div>
         <div className="not-found-leaderboard-preview">
           <div><Trophy size={16}/><strong>APML Pilot Rankings</strong></div>
-          {leaderboard.length ? leaderboard.slice(0, 3).map((item, index) => <span key={item.timestamp + '-' + index}>#{index + 1} {item.pilot || 'Pilot'} · {(item.score || 0).toLocaleString()} pts</span>) : <small>Be the first pilot to record a score.</small>}
+          {leaderboard.length ? leaderboard.slice(0, 3).map((item, index) => <span key={(item.timestamp || item.date || 'score') + '-' + index}>#{index + 1} {item.pilot || 'Pilot'} · {(item.score || 0).toLocaleString()} pts</span>) : <small>No saved scores found yet.</small>}
+          <button type="button" className="apml-view-scores" onClick={() => setShowLeaderboard(true)}>View full scoreboard <ArrowLeft size={13}/></button>
         </div>
       </section>
       <p className="not-found-signoff">APML PORTAL <span>·</span> LOST IN SPACE, NOT FOR LONG.</p>
@@ -389,23 +398,24 @@ export default function NotFound() {
           <button type="button" onClick={() => setRunning(false)} aria-label="Quit mission"><X size={15}/> Quit</button>
         </div>
         {toast && <div className="apml-arcade-toast">{toast}</div>}
-        <div className="apml-arcade-hint">MOVE TO STEER · AUTO-FIRE ENABLED · ESC TO QUIT</div>
+        <button type="button" className="apml-mobile-fire" onPointerDown={event => event.stopPropagation()} onClick={() => fireRef.current?.()}>FIRE <Zap size={17}/></button>
+        <div className="apml-arcade-hint">MOVE TO STEER · CLICK / TAP OR SPACE TO FIRE · ESC TO QUIT</div>
       </div>}
 
-      {gameOver && <div className="apml-scorecard-backdrop">
+      {(gameOver || showLeaderboard) && <div className="apml-scorecard-backdrop">
         <section className="apml-scorecard" aria-label="Mission scorecard">
-          <div className="apml-scorecard-head"><span><Trophy size={15}/> MISSION DEBRIEF</span><button type="button" onClick={closeScorecard} aria-label="Close scorecard"><X size={18}/></button></div>
-          <h2>Defense Over</h2>
-          <p className="apml-scorecard-sub">Your run has ended. Record your score among APML pilots.</p>
-          <div className="apml-final-stats"><div><small>FINAL SCORE</small><strong>{score.toLocaleString()}</strong></div><div><small>LEVEL REACHED</small><strong>{level}</strong></div><div><small>BEST SCORE</small><strong>{highScore.toLocaleString()}</strong></div></div>
-          <form className="apml-score-save" onSubmit={saveScore}>
+          <div className="apml-scorecard-head"><span><Trophy size={15}/> {showLeaderboard ? 'GLOBAL RANKINGS' : 'MISSION DEBRIEF'}</span><button type="button" onClick={() => { setShowLeaderboard(false); if (gameOver) closeScorecard() }} aria-label="Close scorecard"><X size={18}/></button></div>
+          <h2>{showLeaderboard ? 'APML Scoreboard' : 'Defense Over'}</h2>
+          <p className="apml-scorecard-sub">{showLeaderboard ? 'The top saved pilot scores from APML arcade.' : 'Your run has ended. Record your score among APML pilots.'}</p>
+          {!showLeaderboard && <div className="apml-final-stats"><div><small>FINAL SCORE</small><strong>{score.toLocaleString()}</strong></div><div><small>LEVEL REACHED</small><strong>{level}</strong></div><div><small>BEST SCORE</small><strong>{highScore.toLocaleString()}</strong></div></div>}
+          {!showLeaderboard && <form className="apml-score-save" onSubmit={saveScore}>
             <label htmlFor="apml-pilot-name">PILOT CALLSIGN</label>
             <input id="apml-pilot-name" maxLength={18} value={pilot} onChange={event => setPilot(event.target.value)} placeholder="Enter your name" />
             <button type="submit" disabled={saving || saved}>{saving ? 'Saving score…' : saved ? '✓ Score saved' : 'Save score'}</button>
-          </form>
+          </form>}
           <div className="apml-score-rank-head"><strong><Trophy size={15}/> APML SCOREBOARD</strong><span>TOP 30</span></div>
           <div className="apml-score-rank-list">{leaderboard.slice(0, 30).map((item, index) => <div className={index < 3 ? 'apml-rank-row top' : 'apml-rank-row'} key={(item.timestamp || item.date || 'entry') + '-' + index}><b>#{index + 1}</b><span>{item.pilot || 'Pilot'} <small>LVL {item.level || 1}</small></span><strong>{Number(item.score || 0).toLocaleString()}</strong></div>)}</div>
-          <div className="apml-scorecard-actions"><button type="button" className="secondary" onClick={closeScorecard}>Exit</button><button type="button" onClick={startGame}><RotateCcw size={15}/> Play again</button></div>
+          <div className="apml-scorecard-actions">{gameOver && <button type="button" className="secondary" onClick={closeScorecard}>Exit</button>}{showLeaderboard && <button type="button" className="secondary" onClick={() => setShowLeaderboard(false)}>Close</button>}{gameOver && <button type="button" onClick={startGame}><RotateCcw size={15}/> Play again</button>}</div>
         </section>
       </div>}
     </main>
