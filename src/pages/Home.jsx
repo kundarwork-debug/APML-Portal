@@ -113,7 +113,7 @@ function OperationalTelemetry(){
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
     listen('presence','users',snap=>snap.numChildren()||1)
-    listen('analytics/totalPdfDownloads','pdf')
+    listen('analytics/daily_logs','pdf',snap=>Object.values(snap.val()||{}).reduce((total,day)=>total+(Number(day?.pdf)||0),0))
     listen('analytics/totalMediaDownloads','media')
     const startPresence=()=>{
      try{
