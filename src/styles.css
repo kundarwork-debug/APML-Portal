@@ -708,10 +708,13 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media(prefers-reduced-motion:reduce){.apml-crt-mascot{animation:none}}
 
 
-/* Compact APML footer social buttons */
+/* Compact APML footer social buttons — animated slide-in hover */
 .apml-footer-socials{display:flex;align-items:center;gap:10px;margin-top:15px}
-.apml-footer-social{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none;border:1px solid transparent;border-radius:30px;background:transparent;color:#411d83;transition:transform .3s ease,background .3s ease,border-color .3s ease,box-shadow .3s ease}
-.apml-footer-social svg{width:14px;height:14px;stroke-width:2.1}
-.apml-footer-social:hover{transform:scale(1.12);background:#b4232c;border-color:#b4232c;box-shadow:0 6px 14px rgba(180,35,44,.2)}
-.apml-footer-social:active{transform:scale(.9)}
+.apml-footer-social{width:32px;height:32px;flex:none;border:1px solid transparent;border-radius:50%;background:transparent;color:#411d83;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:background-color .3s ease,border-color .3s ease,transform .3s ease,box-shadow .3s ease}
+.apml-footer-social svg{width:14px;height:14px;stroke-width:2.1;fill:none}
+.apml-footer-social svg path{fill:currentColor;stroke:none}
+.apml-footer-social:hover{background:#b4232c;border-color:#b4232c;color:#fff;box-shadow:0 5px 13px rgba(180,35,44,.2)}
+.apml-footer-social:active{transform:scale(.9);transition-duration:.3s}
+.apml-footer-social:hover svg{animation:apml-social-slide-in-top .3s both}
+@keyframes apml-social-slide-in-top{0%{transform:translateY(-50px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @media(max-width:600px){.apml-footer-socials{gap:9px;margin-top:12px}.apml-footer-social{width:30px;height:30px}.apml-footer-social svg{width:13px;height:13px}}
