@@ -502,3 +502,10 @@ input::placeholder,textarea::placeholder{color:#706761;opacity:1}
 :where(input,textarea,select):focus-visible{outline:2px solid rgba(180,35,44,.55);outline-offset:2px}
 :where(button,a):focus-visible{outline:2px solid rgba(180,35,44,.65);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* APML legacy ambient background — restored from the original portal */
+:root{--canvas:#F8F5F0}
+html,body{background:var(--canvas)}
+body{position:relative;isolation:isolate}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(circle at 50% 10%,rgba(185,28,28,.035) 0%,transparent 50%),linear-gradient(to right,rgba(220,212,204,.58) 1px,transparent 1px),linear-gradient(to bottom,rgba(220,212,204,.58) 1px,transparent 1px);background-size:100% 100%,64px 64px,64px 64px;opacity:.58}
