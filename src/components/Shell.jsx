@@ -87,7 +87,12 @@ function FloatingMascot({pagePath}){
    const footerHeight=footer?footer.offsetHeight:0
    const nearBottom=scrollPosition>(bodyHeight-footerHeight+20)
    setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&pageKey!=='play'&&(!isIndexPage||scrollY>250)&&!nearBottom)
-   if(nearBottom){clearTimeout(timers.current.hide);setBubbleVisible(false)}
+   if(nearBottom){
+    clearTimeout(timers.current.hide)
+    if(!pinnedRef.current)setBubbleVisible(false)
+   }else if(pinnedRef.current){
+    setBubbleVisible(true)
+   }
   }
   update()
   window.addEventListener('scroll',update,{passive:true})
