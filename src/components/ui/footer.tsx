@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Instagram, Linkedin, MessageCircle, AtSign } from "lucide-react";
+import { Github, Mail, MessageCircle } from "lucide-react";
 
 interface SocialLink {
   name: string;
@@ -53,7 +53,7 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
             <div className="apml-footer-socials" aria-label="Social links">
               {socialLinks.map((link) => {
                 const key = link.name.toLowerCase();
-                const Icon = key.includes("instagram") ? Instagram : key.includes("linkedin") ? Linkedin : key.includes("whatsapp") ? MessageCircle : key.includes("email") ? AtSign : null;
+                const Icon = key.includes("whatsapp") ? MessageCircle : key.includes("github") ? Github : key.includes("gmail") || key.includes("email") ? Mail : null;
                 return (
                   <FooterHref key={link.name} href={link.href} className="apml-footer-social" ariaLabel={link.name}>
                     {Icon ? <Icon aria-hidden="true" /> : <span aria-hidden="true">{link.name === "X" ? "𝕏" : "GH"}</span>}
