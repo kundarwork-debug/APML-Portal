@@ -154,7 +154,7 @@ export default function NotFound() {
       const nextLevel = Math.floor(nextScore / 250) + 1
       statsRef.current.score = nextScore
       setScore(nextScore)
-      if (nextScore > highScore) {
+      if (nextScore > Number(localStorage.getItem(HIGH_SCORE_KEY) || 0)) {
         setHighScore(nextScore)
         localStorage.setItem(HIGH_SCORE_KEY, String(nextScore))
       }
@@ -316,7 +316,7 @@ export default function NotFound() {
       window.removeEventListener('touchmove', touchMove)
       window.removeEventListener('keydown', keydown)
     }
-  }, [running, highScore])
+  }, [running])
 
   const saveScore = async event => {
     event.preventDefault()
