@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Instagram, Linkedin, MessageCircle, AtSign } from "lucide-react";
 
 interface SocialLink {
   name: string;
@@ -49,16 +50,17 @@ export const Footer = React.forwardRef<HTMLElement, FooterProps>(
             <p className="mt-2 max-w-md text-sm leading-6 text-foreground/60">
               {brand.description}
             </p>
-            <p className="mt-3 text-sm font-light text-foreground/55">
-              {socialLinks.map((link, index) => (
-                <React.Fragment key={link.name}>
-                  <FooterHref href={link.href} className="transition-colors hover:text-foreground/90">
-                    {link.name}
+            <div className="apml-footer-socials" aria-label="Social links">
+              {socialLinks.map((link) => {
+                const key = link.name.toLowerCase();
+                const Icon = key.includes("instagram") ? Instagram : key.includes("linkedin") ? Linkedin : key.includes("whatsapp") ? MessageCircle : key.includes("email") ? AtSign : null;
+                return (
+                  <FooterHref key={link.name} href={link.href} className="apml-footer-social" aria-label={link.name}>
+                    {Icon ? <Icon aria-hidden="true" /> : <span aria-hidden="true">{link.name === "X" ? "𝕏" : "GH"}</span>}
                   </FooterHref>
-                  {index < socialLinks.length - 1 && "  "}
-                </React.Fragment>
-              ))}
-            </p>
+                );
+              })}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 md:col-span-8 lg:col-span-9 lg:grid-cols-4 lg:gap-6">
