@@ -555,3 +555,15 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .apml-floating-mascot.is-speaking>div>button{
   animation:none!important;
 }
+
+
+/* Slightly reduce the APML header height while preserving its layout. */
+.portal-header-inner{
+  min-height:68px;
+  padding-top:7px;
+  padding-bottom:7px;
+}
+.portal-brand img{width:38px;height:38px}
+@media(max-width:900px){
+  .portal-header-inner{min-height:60px;padding-top:6px;padding-bottom:6px}
+}
