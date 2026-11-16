@@ -478,7 +478,7 @@ export default function Gallery() {
               <div className="gallery-card-meta"><span><i style={{ background: source.color }}/> {source.label}</span><span>{formatBytes(item.size)}</span></div>
               <div className="gallery-card-stats"><span>{Number(item.viewsCount) || 0} views</span><span>{Number(item.downloadsCount) || 0} downloads</span></div>
               <div className="gallery-card-footer">
-                <button className="gallery-download apml-download-btn" onClick={() => downloadMedia(item)}><Download size={14}/><span className="apml-download-label">Download</span></button>
+                <button className="gallery-download apml-download-btn" onClick={() => downloadMedia(item)}><Download size={14}/><span className="apml-download-label">Download</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button>
                 <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><ExternalLink size={15}/></a>
                 {activeFolder === 'deleted' && admin && <div className="gallery-admin-actions">
                   <button title="Restore media" onClick={() => move(item, 'others')}><RotateCcw size={14}/></button>
@@ -501,7 +501,7 @@ export default function Gallery() {
       <button className="gallery-lightbox-close" onClick={() => setLightbox(null)} aria-label="Close preview"><X size={23}/></button>
       <div className="gallery-lightbox-content">
         {lightbox.isVideo ? <video src={lightbox.url} controls autoPlay playsInline/> : <img src={lightbox.url} alt={lightbox.name || 'Gallery media'}/>}
-        <div><strong>{lightbox.name || 'Untitled media'}</strong><button className="apml-download-btn" onClick={() => downloadMedia(lightbox)}><Download size={14}/><span className="apml-download-label">Download original</span></button></div>
+        <div><strong>{lightbox.name || 'Untitled media'}</strong><button className="apml-download-btn" onClick={() => downloadMedia(lightbox)}><Download size={14}/><span className="apml-download-label">Download original</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
       </div>
     </div>}
   </main>
