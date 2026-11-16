@@ -11,8 +11,9 @@ const links = [
  {to:'/directory',label:'Branch Directory',icon:MapPinned},{to:'/field-officer',label:'Field Officers',icon:Users},
  {to:'/drive',label:'APML Drive',icon:Cloud},{to:'/gallery',label:'Gallery',icon:Images},
  {to:'/local-rate',label:'Local Rate',icon:Calculator},{to:'/car-rate',label:'Car Rate',icon:Truck},
+ {to:'/apml-lite',label:'APML Lite',icon:BriefcaseBusiness},
  {to:'/system-health',label:'System Health',icon:Activity},{to:'/admin',label:'Admin',icon:LockKeyhole},
- {to:'/apml-lite',label:'APML Lite',icon:BriefcaseBusiness},{to:'/about',label:'About',icon:CircleHelp}
+ {to:'/about',label:'About',icon:CircleHelp}
 ]
 function FloatingMascot({pagePath}){
  const [visible,setVisible]=useState(false)
