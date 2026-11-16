@@ -5,3 +5,6 @@
 .about-github-link:hover .about-github-tooltip,.about-github-link:focus-visible .about-github-tooltip{opacity:1;transform:translate(-50%,0) scale(1);}
 @media(max-width:520px){.about-actions .about-github-link{flex:0 0 52px;}}
 @media(prefers-reduced-motion:reduce){.about-github-link,.about-github-tooltip{transition:none;}}
+
+.about-support-link{font:inherit;}
+.about-support-link:hover,.about-support-link:focus-visible{color:var(--primary);border-color:var(--primary);}
