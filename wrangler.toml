@@ -2,6 +2,7 @@ name = "apml-drive-api"
 main = "cloudflare/worker.js"
 compatibility_date = "2026-11-11"
 workers_dev = true
+keep_vars = true
 
 [[kv_namespaces]]
 binding = "ANNOUNCE_KV"
