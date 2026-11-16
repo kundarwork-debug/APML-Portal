@@ -1,3 +1,4 @@
+// APML Portal production Worker — maintained in kundarwork-debug/APML-Portal.
 // Cloudflare Git deployment trigger — no runtime behavior change.
 // apml-drive-api — Cloudflare Worker
 
