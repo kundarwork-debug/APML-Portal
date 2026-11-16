@@ -39,3 +39,54 @@
 .analytics-sparkline{display:block;width:100%;height:34px;overflow:visible}
 .analytics-sparkline-area{fill:currentColor;opacity:.12}.analytics-sparkline-line{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 .analytics-sparkline-empty{height:34px;border-bottom:1px dashed #e5e1d9;opacity:.7}
+
+
+/* Legacy APML analytics visual language: richer cards, stronger hierarchy and full-year calendar. */
+.analytics-page{max-width:1420px;padding-top:28px}
+.analytics-head{align-items:flex-end;margin-bottom:25px}
+.analytics-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(185,28,28,.08);color:#b4232c}
+.analytics-head h1{font-size:clamp(30px,4vw,39px);letter-spacing:-.045em}
+.analytics-head p{font-size:13px;max-width:620px}
+.analytics-head-meta{font-size:10.5px;gap:16px}
+.analytics-toolbar{padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.96);box-shadow:0 3px 14px rgba(28,25,23,.045)}
+.analytics-range-tabs button{min-height:35px;padding:8px 13px;border-radius:999px}
+.analytics-kpis{gap:16px;margin-bottom:20px}
+.analytics-kpi{padding:19px 20px 16px;border-radius:21px;box-shadow:0 1px 2px rgba(28,25,23,.04),0 10px 28px -8px rgba(28,25,23,.08);transition:transform .22s ease,box-shadow .22s ease}
+.analytics-kpi:before{left:0;right:0;top:0;bottom:auto;width:auto;height:4px}
+.analytics-kpi:hover{transform:translateY(-3px);box-shadow:0 18px 38px -14px rgba(185,28,28,.18),0 2px 6px rgba(28,25,23,.05)}
+.analytics-kpi-icon{width:37px;height:37px;border-radius:12px}
+.analytics-kpi-label{font-size:12px}
+.analytics-kpi>strong{font-size:clamp(27px,3vw,35px);font-variant-numeric:tabular-nums}
+.analytics-kpi>small{font-size:10.5px}
+.analytics-kpi-trend,.analytics-sparkline{height:38px}
+.analytics-panel{margin-top:19px;padding:23px;border-radius:22px;border:1.5px solid rgba(220,212,204,.8);box-shadow:0 1px 2px rgba(28,25,23,.035),0 10px 28px -8px rgba(28,25,23,.065)}
+.analytics-panel-head{margin-bottom:18px}
+.analytics-panel-head h2{font-size:16px}
+.analytics-panel-head p{font-size:11px}
+.analytics-chart{min-height:350px}
+.analytics-two-col{gap:19px;margin-top:19px}
+.analytics-table-wrap{border-radius:13px}
+.analytics-table-wrap th{background:#f5f0e9}
+.analytics-highlight-grid article,.analytics-mini-kpis article{padding:14px;border-radius:13px;background:#faf8f5}
+.analytics-highlight-grid strong,.analytics-mini-kpis strong{font-size:19px}
+.analytics-insights article{padding:13px 14px;border-radius:13px;background:#faf8f5;font-size:11px}
+.analytics-export-panel{margin-top:19px;border-radius:18px;background:rgba(255,255,255,.96)}
+.analytics-heat-scroll{overflow-x:auto;padding:12px 0 8px}
+.analytics-heat-calendar{width:max-content;min-width:100%}
+.analytics-heat-months{display:grid;grid-template-columns:repeat(53,11px);grid-auto-rows:16px;gap:3px;min-width:0;width:max-content;margin:0 0 7px 29px;color:#625b56;font-size:9px}
+.analytics-heat-months span{white-space:nowrap}
+.analytics-heatmap-layout{display:flex;align-items:flex-start;gap:7px}
+.analytics-weekday-labels{display:grid;grid-template-rows:repeat(7,11px);gap:3px;width:22px;flex:none;color:#625b56;font-size:8px;line-height:11px}
+.analytics-weekday-labels span{height:11px}
+.analytics-heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);grid-auto-columns:11px;gap:3px;width:max-content;min-width:0}
+.analytics-heatmap span,.analytics-heat-legend i{width:11px;height:11px;border-radius:3px}
+.analytics-heatmap .heat-empty{background:transparent!important}
+.analytics-heatmap span:not(.heat-empty){cursor:help}
+.heat-level-0{background:#f1efec!important}.heat-level-1{background:#f2d6d7!important}.heat-level-2{background:#e8a8ab!important}.heat-level-3{background:#d56c72!important}.heat-level-4{background:#a91f29!important}
+@media(max-width:760px){
+ .analytics-page{padding-top:20px}
+ .analytics-panel{padding:17px;border-radius:18px}
+ .analytics-chart{min-height:290px}
+ .analytics-heat-scroll{margin-right:-2px}
+}
+@media(prefers-reduced-motion:reduce){.analytics-kpi{transition:none}.analytics-kpi:hover{transform:none}}
