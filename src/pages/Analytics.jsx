@@ -389,7 +389,7 @@ export default function Analytics() {
       <div className="analytics-head-actions">
         <button className="analytics-btn" onClick={() => range === 'custom' ? loadReport('custom', customStart, customEnd) : loadReport(range)} disabled={busy}><RefreshCw size={15} className={busy ? 'analytics-spin' : ''}/> Refresh</button>
         <button className="analytics-btn" onClick={exportDailyCsv} disabled={!data}><FileSpreadsheet size={15}/> CSV</button>
-        <button className="analytics-btn analytics-btn-primary" onClick={exportPdf} disabled={!data}><FileDown size={15}/> PDF report</button>
+        <button className="analytics-btn analytics-btn-primary apml-download-btn" onClick={exportPdf} disabled={!data}><FileDown size={15}/><span className="apml-download-label">PDF report</span></button>
       </div>
     </header>
 
@@ -480,7 +480,7 @@ export default function Analytics() {
     </section>
 
     <section className="analytics-panel">
-      <div className="analytics-panel-head"><div><h2><Globe2 size={18}/> Visitor intelligence</h2><p>Aggregated consent-based sessions · approximate location only · no individual visitor records exposed.</p></div><button className="analytics-btn" onClick={exportVisitorsCsv}><Download size={14}/> Export visitor summary</button></div>
+      <div className="analytics-panel-head"><div><h2><Globe2 size={18}/> Visitor intelligence</h2><p>Aggregated consent-based sessions · approximate location only · no individual visitor records exposed.</p></div><button className="analytics-btn apml-download-btn" onClick={exportVisitorsCsv}><Download size={14}/><span className="apml-download-label">Export visitor summary</span></button></div>
       <div className="analytics-mini-kpis"><article><small>Recorded sessions</small><strong>{fmt(visitors.sessions)}</strong></article><article><small>Unique browsers</small><strong>{fmt(visitors.uniqueBrowsers)}</strong></article><article><small>New browsers</small><strong>{fmt(visitors.newBrowsers)}</strong></article><article><small>Online now</small><strong>{fmt(visitors.activeNow)}</strong></article><article><small>Returning browsers</small><strong>{fmt(visitors.returningBrowsers)}</strong></article><article><small>Average session</small><strong>{duration(visitors.averageSessionSeconds)}</strong></article><article><small>Page views</small><strong>{fmt(visitors.pageViews)}</strong></article></div>
       <div className="analytics-two-col analytics-visitor-charts"><div><h3>Daily visitor sessions</h3><div className="analytics-small-chart" ref={visitorRef}/></div><div><h3>Peak visiting hours · IST</h3>{peakHours.length ? <div className="analytics-ranked">{peakHours.map(row=><div key={row.hour}><span>{row.label}</span><b>{fmt(row.count)}</b></div>)}</div> : <p className="analytics-muted">Not enough session data yet.</p>}</div></div>
       <div className="analytics-two-col">
@@ -494,7 +494,7 @@ export default function Analytics() {
       <div><h3>Mobile vs desktop experience</h3><div className="analytics-table-wrap"><table><thead><tr><th>Device</th><th>Sessions</th><th>Avg. time</th><th>Views / session</th><th>Avg. load</th></tr></thead><tbody>{deviceRows.map(row=><tr key={row.name}><td>{row.name}</td><td>{fmt(row.sessions)}</td><td>{duration(row.averageSeconds)}</td><td>{row.viewsPerSession}</td><td>{ms(row.averageLoadMs)}</td></tr>)}{!deviceRows.length && <tr><td colSpan="5" className="analytics-empty-cell">No device comparison data yet.</td></tr>}</tbody></table></div></div>
     </section>
 
-    <section className="analytics-export-panel"><div><h2><FileDown size={18}/> Download all analytics data</h2><p>Export selected-period daily totals, rolling heatmap, visitor intelligence and performance summaries together. Individual visitor IDs and raw session records are excluded.</p></div><button className="analytics-btn analytics-btn-primary" onClick={exportAllJson} disabled={!data}><Download size={15}/> Download complete JSON</button></section>
+    <section className="analytics-export-panel"><div><h2><FileDown size={18}/> Download all analytics data</h2><p>Export selected-period daily totals, rolling heatmap, visitor intelligence and performance summaries together. Individual visitor IDs and raw session records are excluded.</p></div><button className="analytics-btn analytics-btn-primary apml-download-btn" onClick={exportAllJson} disabled={!data}><Download size={15}/><span className="apml-download-label">Download complete JSON</span></button></section>
     <p className="analytics-footnote">{(data?.dataNotes || []).join(' ')} All dates and reporting boundaries use India Standard Time.</p>
   </main>
 }
