@@ -1507,3 +1507,111 @@ html[data-theme="dark"] .portal-page-content select{
 }
 html[data-theme="dark"] ::placeholder{color:#94a3b8}
 html[data-theme="dark"] :is(.swal2-popup,.swal2-html-container,.swal2-title){color:#f8fafc}
+
+
+/* APML dark theme: cross-page fallback for legacy page-specific CSS.
+   Keep the quotation itself white because it is a printable A4 document. */
+html[data-theme="dark"] .portal-page-content{
+  color:#e2e8f0!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  h1,h2,h3,h4,h5,h6,p,span,label,strong,b,small,em,li,dt,dd,
+  th,td,legend,figcaption,caption
+):not(.quote-document *){
+  color:#e2e8f0!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  [class*="page"],[class*="screen"],[class*="workspace"]
+):not(.quote-document){
+  color:#e2e8f0;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  [class*="card"],[class*="panel"],[class*="toolbar"],[class*="table-wrap"],
+  [class*="empty"],[class*="modal"],[class*="dialog"],[class*="section"],
+  [class*="stat"],[class*="filter"],[class*="control"],[class*="form"],
+  [class*="list-item"],[class*="accordion"],[class*="notice"],[class*="summary"],
+  [class*="result"],[class*="metric"],[class*="insight"],[class*="widget"],
+  [class*="tile"],[class*="info-box"],[class*="upload"]
+):not(.quote-document):not(.quote-document *){
+  background-color:#151e2e!important;
+  border-color:#334155!important;
+  color:#e2e8f0!important;
+  box-shadow:0 5px 20px rgba(0,0,0,.14);
+}
+html[data-theme="dark"] .portal-page-content :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,select
+){
+  background-color:#1e293b!important;
+  border-color:#475569!important;
+  color:#f8fafc!important;
+  color-scheme:dark;
+}
+html[data-theme="dark"] .portal-page-content :is(input,textarea,select)::placeholder{
+  color:#94a3b8!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  button,a,[role="button"]
+):not(.quote-document *){
+  border-color:#475569;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  button:not([class*="primary"]):not([class*="danger"]):not([class*="delete"]),
+  [role="button"]:not([class*="primary"])
+):not(.quote-document *){
+  background-color:#1e293b;
+  color:#e2e8f0;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  [class*="primary"],[class*="brand"],[class*="accent"],[class*="danger"],
+  [class*="delete"],[class*="active"],[class*="selected"],[class*="badge"]
+):not(.quote-document *){
+  color:inherit;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  .quote-document,.quote-document *,
+  .preview-paper,.preview-paper *,
+  [class*="pdf-preview"] *
+){
+  color:revert!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  .quote-document,.preview-paper
+){
+  background:#fff!important;
+  color:#111!important;
+  border-color:initial!important;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  .quote-document input,.quote-document textarea,.quote-document select
+){
+  color-scheme:light;
+}
+html[data-theme="dark"] .portal-page-content hr{
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  [class*="muted"],[class*="subtitle"],[class*="description"],
+  [class*="caption"],[class*="hint"],[class*="helper"],[class*="eyebrow"]
+):not(.quote-document *){
+  color:#a8b5c7!important;
+}
+html[data-theme="dark"] .portal-site-footer{
+  background:#0b1120!important;
+  color:#a8b5c7!important;
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-site-footer a{color:#cbd5e1!important}
+html[data-theme="dark"] .swal2-popup{
+  background:#151e2e!important;
+  color:#e2e8f0!important;
+  border:1px solid #334155!important;
+}
+html[data-theme="dark"] .swal2-title,
+html[data-theme="dark"] .swal2-html-container{color:#f8fafc!important}
+html[data-theme="dark"] .swal2-input,
+html[data-theme="dark"] .swal2-textarea,
+html[data-theme="dark"] .swal2-select{
+  background:#1e293b!important;color:#f8fafc!important;border-color:#475569!important;
+}
