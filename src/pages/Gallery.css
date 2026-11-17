@@ -44,3 +44,7 @@
  .gallery-card-footer{gap:5px}
 }
 @media(max-width:360px){.gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery-media-preview{height:108px}}
+
+/* Font Awesome category icons for Gallery folder tabs */
+.gallery-folder-tab>button>i.fa-solid{display:inline-flex;align-items:center;justify-content:center;width:16px;min-width:16px;font-size:14px;line-height:1;color:#b4232c}
+.gallery-folder-tab>button.selected>i.fa-solid{color:currentColor}
