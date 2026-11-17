@@ -2,7 +2,7 @@ import {useEffect,useMemo,useRef,useState} from 'react'
 import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, File, Download, ExternalLink, Pencil, Trash2, RotateCcw, ChevronLeft, ChevronRight, Upload, Plus, HardDrive, ShieldCheck, FolderPlus, Link2 } from 'lucide-react'
 import './Drive.css'
 import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { getApmlDatabase } from '../lib/firebase'
 const cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-work.workers.dev';const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
 export default function Drive(){const [folders,setFolders]=useState([]),[files,setFiles]=useState([]),[parent,setParent]=useState('root'),[busy,setBusy]=useState(false),[status,setStatus]=useState('Connecting to cloud drive…'),[page,setPage]=useState(1);const input=useRef();const {admin,signIn,signOut}=useApmlAdminAuth()
