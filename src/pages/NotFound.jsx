@@ -215,9 +215,8 @@ export default function NotFound() {
       ctx.shadowColor = '#7dd3fc'
       ctx.shadowBlur = 18
       if (crtDirections.complete && crtDirections.naturalWidth) {
-        const direction = ((Math.round((Math.atan2(Math.sin(angle), Math.cos(angle)) + Math.PI) / (Math.PI / 4)) % 8) + 8) % 8
-        const frames = [[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1],[0,0]]
-        const [col,row] = frames[direction]
+        const col = Math.cos(angle) < -0.38 ? 0 : Math.cos(angle) > 0.38 ? 2 : 1
+        const row = Math.sin(angle) < -0.38 ? 0 : Math.sin(angle) > 0.38 ? 2 : 1
         const frameSize = crtDirections.naturalWidth / 3
         ctx.drawImage(crtDirections, col * frameSize, row * frameSize, frameSize, frameSize, shipX - 30, shipY - 30, 60, 60)
       } else {
