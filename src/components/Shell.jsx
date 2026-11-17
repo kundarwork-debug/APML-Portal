@@ -264,7 +264,7 @@ export default function Shell(){
     try{startedAt=Number(sessionStorage.getItem('apml_vi_started_at'))||now;sessionStorage.setItem('apml_vi_started_at',String(startedAt))}catch(_){}
     let visitorId=''
     try{visitorId=localStorage.getItem('apml_vi_visitor_id')||'';if(!visitorId){visitorId='v_'+Math.random().toString(36).slice(2,12);localStorage.setItem('apml_vi_visitor_id',visitorId)}}catch(_){visitorId='v_'+Math.random().toString(36).slice(2,12)}
-    const key=user.uid+'_'+startedAt
+    const key=startedAt+'_'+user.uid
     const ref=db.ref('analytics/visitor_sessions/'+key)
     const path=location.pathname||'/'
     const pageKey=path.replace(/[^a-z0-9]/gi,'_').slice(0,80)||'root'
