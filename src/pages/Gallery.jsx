@@ -36,6 +36,23 @@ const DEFAULT_FOLDERS = [
 ]
 const PROTECTED_FOLDERS = DEFAULT_FOLDERS.map(folder => folder.id)
 
+const FOLDER_ICON_CLASSES = {
+  truck: 'fa-truck',
+  crockery: 'fa-utensils',
+  'packing-images': 'fa-box-open',
+  'bike-packing': 'fa-motorcycle',
+  'car-transportation': 'fa-car',
+  'solid-box': 'fa-box',
+  'tv-box': 'fa-tv',
+  electronic: 'fa-laptop',
+  furniture: 'fa-couch',
+  miscellaneous: 'fa-toolbox',
+  others: 'fa-folder'
+}
+function folderIconClass(folder) {
+  return FOLDER_ICON_CLASSES[folder.id] || 'fa-folder'
+}
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = [...document.scripts].find(script => script.src === src)
@@ -452,7 +469,7 @@ export default function Gallery() {
       <div className="gallery-folder-tabs">
         <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><Grid2X2 size={15}/> All Media</button>
         {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
-          <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><span>{folder.icon || '📁'}</span>{folder.label}</button>
+          <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><i className={`fa-solid ${folderIconClass(folder)}`} aria-hidden="true"/>{folder.label}</button>
           {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><Pencil size={12}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><X size={13}/></button></>}
         </span>)}
         {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><Trash2 size={14}/> Trash Archive</button>}
