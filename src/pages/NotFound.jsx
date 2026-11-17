@@ -205,23 +205,41 @@ export default function NotFound() {
       }
     }
 
+    const crtDirections = new Image()
+    crtDirections.src = 'https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-directions.webp'
+    const crtReactions = new Image()
+    crtReactions.src = 'https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-reactions.webp'
+    let timeNowForShip = 0
     const drawShip = () => {
       ctx.save()
-      ctx.translate(shipX, shipY)
-      ctx.rotate(angle + Math.PI / 2)
-      ctx.shadowColor = '#fb6b52'
-      ctx.shadowBlur = 20
-      ctx.fillStyle = '#f8fafc'
-      ctx.beginPath()
-      ctx.moveTo(0, -20); ctx.lineTo(14, 15); ctx.lineTo(0, 8); ctx.lineTo(-14, 15)
-      ctx.closePath(); ctx.fill()
-      ctx.fillStyle = '#ef4444'
-      ctx.beginPath(); ctx.moveTo(-6, 14); ctx.lineTo(0, 25 + Math.random() * 5); ctx.lineTo(6, 14); ctx.fill()
+      ctx.shadowColor = '#7dd3fc'
+      ctx.shadowBlur = 18
+      if (crtDirections.complete && crtDirections.naturalWidth) {
+        const direction = ((Math.round((Math.atan2(Math.sin(angle), Math.cos(angle)) + Math.PI) / (Math.PI / 4)) % 8) + 8) % 8
+        const frames = [[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1],[0,0]]
+        const [col,row] = frames[direction]
+        const frameSize = crtDirections.naturalWidth / 3
+        ctx.drawImage(crtDirections, col * frameSize, row * frameSize, frameSize, frameSize, shipX - 30, shipY - 30, 60, 60)
+      } else {
+        ctx.translate(shipX, shipY)
+        ctx.rotate(angle + Math.PI / 2)
+        ctx.fillStyle = '#f8fafc'
+        ctx.beginPath()
+        ctx.moveTo(0, -20); ctx.lineTo(14, 15); ctx.lineTo(0, 8); ctx.lineTo(-14, 15)
+        ctx.closePath(); ctx.fill()
+        ctx.fillStyle = '#ef4444'
+        ctx.beginPath(); ctx.moveTo(-6, 14); ctx.lineTo(0, 25 + Math.random() * 5); ctx.lineTo(6, 14); ctx.fill()
+      }
+      if (timeNowForShip < shieldUntil && crtReactions.complete && crtReactions.naturalWidth) {
+        const frameSize = crtReactions.naturalWidth / 3
+        ctx.drawImage(crtReactions, frameSize, frameSize, frameSize, frameSize, shipX - 30, shipY - 30, 60, 60)
+      }
       ctx.restore()
     }
 
     const loop = time => {
       const w = window.innerWidth, h = window.innerHeight
+      timeNowForShip = time
       const dt = Math.min(2.2, (time - (lastTime || time)) / 16.67 || 1)
       lastTime = time
       ctx.clearRect(0, 0, w, h)
