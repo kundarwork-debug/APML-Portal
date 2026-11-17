@@ -248,12 +248,18 @@ export default function Analytics() {
           yaxis: { min: 0, forceNiceScale: true, labels: { style: { colors: '#8b8580' } } },
           noData: { text: 'No activity recorded in this period' }
         }
+        // Build every trend series from the same date axis. The API's visitor
+        // session series can have fewer dates than daily activity; passing
+        // arrays of different lengths can leave ApexCharts with missing x points.
+        const dateKeyForChart = row => String(row?.date || '')
+        const visitorByDate = new Map(visitorDaily.map(row => [dateKeyForChart(row), row]))
+        const safeNumber = value => Number.isFinite(Number(value)) ? Number(value) : 0
         const labels = daily.map(row => new Date(row.date + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }))
         if (trendRef.current) {
           const series = [
-            { name: 'Unique visitors', data: visitorDaily.map(row => visible.visitors ? row.uniqueVisitors : null) },
-            { name: 'PDF quotations', data: daily.map(row => visible.pdf ? row.pdf : null) },
-            { name: 'Media downloads', data: daily.map(row => visible.media ? row.media : null) }
+            { name: 'Unique visitors', data: daily.map(row => visible.visitors ? safeNumber(visitorByDate.get(dateKeyForChart(row))?.uniqueVisitors) : 0) },
+            { name: 'PDF quotations', data: daily.map(row => visible.pdf ? safeNumber(row.pdf) : 0) },
+            { name: 'Media downloads', data: daily.map(row => visible.media ? safeNumber(row.media) : 0) }
           ]
           const chart = new window.ApexCharts(trendRef.current, {
             ...common, chart: { ...common.chart, type: chartType === 'bar' ? 'bar' : 'area' },
@@ -269,7 +275,7 @@ export default function Analytics() {
         if (visitorRef.current) {
           const chart = new window.ApexCharts(visitorRef.current, {
             ...common, chart: { ...common.chart, type: 'area', height: 240 },
-            series: [{ name: 'Sessions', data: visitorDaily.map(row => row.sessions) }],
+            series: [{ name: 'Sessions', data: visitorDaily.map(row => safeNumber(row.sessions)) }],
             colors: ['#b4232c'],
             xaxis: { ...common.xaxis, categories: visitorDaily.map(row => new Date(row.date + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })) },
             tooltip: { y: { formatter: value => fmt(value) + ' sessions' } }
@@ -281,7 +287,7 @@ export default function Analytics() {
         if (performanceRef.current) {
           const chart = new window.ApexCharts(performanceRef.current, {
             ...common, chart: { ...common.chart, type: 'area', height: 240 },
-            series: [{ name: 'Average load', data: (performance.daily || []).map(row => row.averageLoadMs) }],
+            series: [{ name: 'Average load', data: (performance.daily || []).map(row => safeNumber(row.averageLoadMs)) }],
             colors: ['#3977c8'],
             xaxis: { ...common.xaxis, categories: (performance.daily || []).map(row => new Date(row.date + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })) },
             yaxis: { ...common.yaxis, labels: { formatter: value => ms(value) } },
