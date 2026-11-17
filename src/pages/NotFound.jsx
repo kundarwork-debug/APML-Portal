@@ -51,21 +51,31 @@ export default function NotFound() {
 
   useEffect(() => {
     let alive = true
-    getApmlDatabase().then(db => {
-      db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value').then(snapshot => {
+    const loadLeaderboard = async () => {
+      try {
+        // getApmlDatabase() returns the compat Database synchronously.
+        const db = getApmlDatabase()
+        const snapshot = await db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value')
         if (!alive) return
         const entries = []
-        snapshot.forEach(child => entries.push(child.val()))
-        entries.sort((a, b) => (b.score || 0) - (a.score || 0))
+        snapshot.forEach(child => {
+          const value = child.val()
+          if (value && typeof value === 'object') entries.push(value)
+        })
+        entries.sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
         setLeaderboard(entries.length ? entries : readLocalScores())
         const best = Math.max(0, ...entries.map(item => Number(item.score) || 0))
         if (best) setHighScore(current => {
           const next = Math.max(current, best)
-          localStorage.setItem(HIGH_SCORE_KEY, String(next))
+          try { localStorage.setItem(HIGH_SCORE_KEY, String(next)) } catch {}
           return next
         })
-      })
-    }).catch(() => {})
+      } catch (error) {
+        if (alive) setLeaderboard(readLocalScores())
+        console.warn('APML arcade leaderboard unavailable; using local scores.', error)
+      }
+    }
+    loadLeaderboard()
     return () => { alive = false }
   }, [])
 
@@ -307,7 +317,17 @@ export default function NotFound() {
             if (a.hp <= 0) {
               asteroids.splice(i, 1)
               if (a.boss) { bossActive = false; addPoints(250, a.x, a.y, '#fbbf24'); powerUps.push({ x: a.x, y: a.y, type: 'repair', life: 900 }); toastMessage('BOSS DESTROYED · BONUS SECURED') }
-              else { addPoints(10, a.x, a.y); if (a.r > 24) { for (let n = 0; n < 2; n++) asteroids.push({ x: a.x, y: a.y, vx: (Math.random() - .5) * 4, vy: (Math.random() - .5) * 4, r: a.r * .52, sides: 7, angle: 0, spin: .03, boss: false, hp: 1, maxHp: 1 }) } }
+              else {
+                addPoints(10, a.x, a.y)
+                // Ordinary asteroids can drop the advertised temporary power-ups.
+                if (Math.random() < 0.12) {
+                  const type = ['shield', 'rapid', 'repair'][Math.floor(Math.random() * 3)]
+                  powerUps.push({ x: a.x, y: a.y, type, life: 900 })
+                }
+                if (a.r > 24) {
+                  for (let n = 0; n < 2; n++) asteroids.push({ x: a.x, y: a.y, vx: (Math.random() - .5) * 4, vy: (Math.random() - .5) * 4, r: a.r * .52, sides: 7, angle: 0, spin: .03, boss: false, hp: 1, maxHp: 1 })
+                }
+              }
               destroyed = true
             }
             break
