@@ -264,6 +264,72 @@ async function trimQuotations(env, firebaseToken) {
 
 }
 
+
+async function firebaseServiceAccessToken(env) {
+  if (!env.FIREBASE_SERVICE_ACCOUNT_JSON) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON secret is not configured');
+  const account = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  const decode = value => Uint8Array.from(atob(value.replace(/-----[^-]+-----/g, '').replace(/\\s/g, '')), c => c.charCodeAt(0));
+  const base64url = value => btoa(String.fromCharCode(...new Uint8Array(value))).replace(/=/g, '').replace(/\\+/g, '-').replace(/\\//g, '_');
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64url(new TextEncoder().encode(JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
+  const claim = base64url(new TextEncoder().encode(JSON.stringify({ iss: account.client_email, scope: 'https://www.googleapis.com/auth/firebase.database https://www.googleapis.com/auth/userinfo.email', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 })));
+  const unsigned = header + '.' + claim;
+  const key = await crypto.subtle.importKey('pkcs8', decode(account.private_key), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned));
+  const assertion = unsigned + '.' + base64url(signature);
+  const response = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }) });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || !body.access_token) throw new Error(body.error_description || body.error || 'Could not obtain Firebase service access token');
+  return body.access_token;
+}
+
+async function cleanupExpiredTrash(env) {
+  const token = await firebaseServiceAccessToken(env);
+  const base = CONFIG.FIREBASE_DB_URL;
+  const request = (path, options = {}) => fetch(`${base}/${path}.json?access_token=${encodeURIComponent(token)}`, options);
+  const [driveFilesRes, driveFoldersRes, galleryRes] = await Promise.all([request('catbox_gdrive_files'), request('catbox_gdrive_folders'), request('apml_ranked_gallery')]);
+  if (![driveFilesRes, driveFoldersRes, galleryRes].every(r => r.ok)) throw new Error('Could not read one or more APML trash collections');
+  const [driveFiles, driveFolders, gallery] = await Promise.all([driveFilesRes.json(), driveFoldersRes.json(), galleryRes.json()]);
+  const cutoff = Date.now() - 30 * 86400000;
+  const expired = value => value && value.parentId === 'deleted' && Number(value.deletedAt) > 0 && Number(value.deletedAt) <= cutoff;
+  let driveDeleted = 0, galleryDeleted = 0, cloudinaryDeleted = 0;
+  const failed = [];
+  const deleteCloudinary = async url => {
+    const parsed = parseCloudinaryUrl(url);
+    if (!parsed) return;
+    if (!env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) throw new Error('Cloudinary API credentials are not configured');
+    const result = await cloudinaryDelete(env, [parsed]);
+    if (result.some(item => !item.ok)) throw new Error(result.find(item => !item.ok)?.error || 'Cloudinary deletion failed');
+    cloudinaryDeleted++;
+  };
+  for (const [key, item] of Object.entries(driveFiles || {})) {
+    if (!expired(item)) continue;
+    try {
+      await deleteCloudinary(item.fileId);
+      const res = await request('catbox_gdrive_files/' + encodeURIComponent(key), { method: 'DELETE' });
+      if (!res.ok) throw new Error('Firebase record deletion failed');
+      driveDeleted++;
+    } catch (error) { failed.push({ collection: 'drive', key, error: error.message }); }
+  }
+  for (const [key, item] of Object.entries(gallery || {})) {
+    if (!expired({ parentId: item?.folder, deletedAt: item?.deletedAt })) continue;
+    try {
+      await deleteCloudinary(item.url);
+      const res = await request('apml_ranked_gallery/' + encodeURIComponent(key), { method: 'DELETE' });
+      if (!res.ok) throw new Error('Firebase record deletion failed');
+      galleryDeleted++;
+    } catch (error) { failed.push({ collection: 'gallery', key, error: error.message }); }
+  }
+  for (const [key, item] of Object.entries(driveFolders || {})) {
+    if (!expired(item)) continue;
+    try {
+      const res = await request('catbox_gdrive_folders/' + encodeURIComponent(key), { method: 'DELETE' });
+      if (!res.ok) throw new Error('Firebase folder deletion failed');
+    } catch (error) { failed.push({ collection: 'folders', key, error: error.message }); }
+  }
+  return { driveDeleted, galleryDeleted, cloudinaryDeleted, failed };
+}
+
 const TG_EMOJI = { pdf: '🧾', drive: '📥', gallery: '🖼️', visit: '🟢', bug: '🚨', error: '🧯' };
 
 
@@ -2232,6 +2298,7 @@ export default {
   async scheduled(event, env, ctx) {
 
     ctx.waitUntil(sendHourlyAnalyticsSummary(env));
+    ctx.waitUntil(cleanupExpiredTrash(env).catch(error => console.error('APML trash cleanup failed:', error.message)));
 
   },
 
