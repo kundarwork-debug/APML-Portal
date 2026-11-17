@@ -223,7 +223,7 @@ async function getFirebaseAdminEmail(request) {
   }
 }
 
-async function trimQuotations(env) {
+async function trimQuotations(env, firebaseToken) {
 
   const base = CONFIG.FIREBASE_DB_URL;
 
@@ -285,7 +285,7 @@ async function trimQuotations(env) {
 
   for (const f of oldest) {
 
-    await fetch(`${base}/catbox_gdrive_files/${f.key}.json`, { method: 'DELETE' });
+    await fetch(`${base}/catbox_gdrive_files/${f.key}.json?auth=${encodeURIComponent(firebaseToken)}`, { method: 'DELETE' });
 
   }
 
@@ -2233,7 +2233,10 @@ export default {
 
       if (path === '/trim-quotations') {
 
-        return json(await trimQuotations(env));
+        const firebaseToken = (request.headers.get('Authorization') || '').replace(/^Bearer\\s+/i, '').trim();
+        const admin = await getFirebaseAdminEmail(request);
+        if (!admin) return json({ ok: false, error: 'Firebase admin sign-in required' }, 401);
+        return json(await trimQuotations(env, firebaseToken));
 
       }
 
