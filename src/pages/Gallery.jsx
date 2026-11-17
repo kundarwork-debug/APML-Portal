@@ -146,6 +146,8 @@ export default function Gallery() {
         : item.folder === activeFolder)
     .sort((a, b) => (Number(b.downloadsCount) * 2 + Number(b.viewsCount)) - (Number(a.downloadsCount) * 2 + Number(a.viewsCount)) || (b.timestamp || 0) - (a.timestamp || 0)),
   [items, activeFolder])
+  const daysLeft = item => Math.max(0, Math.ceil(((Number(item.deletedAt) || Date.now()) + 30 * 86400000 - Date.now()) / 86400000))
+  const expiryLabel = item => { const days = daysLeft(item); return days === 0 ? 'Expires today' : `${days} day${days === 1 ? '' : 's'} left` }
   const pageCount = Math.max(1, Math.ceil(visible.length / pageSize))
   const currentPage = Math.min(page, pageCount)
   const pageItems = visible.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -362,7 +364,7 @@ export default function Gallery() {
   async function move(item, folder) {
     if (!admin) return
     try {
-      await getApmlDatabase().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
+      await getApmlDatabase().ref(`apml_ranked_gallery/${item.key}`).update(folder === 'deleted' ? { folder, deletedAt: item.deletedAt || Date.now() } : { folder, deletedAt: null })
       await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
   }
@@ -459,7 +461,7 @@ export default function Gallery() {
             </button>
             <div className="gallery-card-body">
               <div className="gallery-card-meta"><span><i style={{ background: source.color }}/> {source.label}</span><span>{formatBytes(item.size)}</span></div>
-              <div className="gallery-card-stats"><span>{Number(item.viewsCount) || 0} views</span><span>{Number(item.downloadsCount) || 0} downloads</span></div>
+              <div className="gallery-card-stats">{activeFolder === 'deleted' ? <><span>In Trash</span><span className="gallery-trash-countdown">{expiryLabel(item)}</span></> : <><span>{Number(item.viewsCount) || 0} views</span><span>{Number(item.downloadsCount) || 0} downloads</span></>}</div>
               <div className="gallery-card-footer">
                 <button className="gallery-download apml-download-btn" onClick={() => downloadMedia(item)}><Download size={14}/><span className="apml-download-label">Download</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button>
                 <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><ExternalLink size={15}/></a>
