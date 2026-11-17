@@ -12,7 +12,7 @@
 .nf-content h1{margin:0 0 9px;font:800 clamp(25px,4vw,36px)/1.15 'Space Grotesk','Plus Jakarta Sans',sans-serif;letter-spacing:-.04em}
 .nf-content>p{max-width:530px;margin:0;color:#a9b7ca;font-size:13px;line-height:1.75}
 .nf-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:19px}
-.nf-actions a,.nf-actions button,.nf-start-button,.nf-leaderboard-button,.nf-modal-actions button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 15px;border-radius:12px;font:750 12px/1.2 inherit;text-decoration:none;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease}
+.nf-actions a,.nf-actions button,.nf-start-button,.nf-leaderboard-button,.nf-modal-actions button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 15px;border-radius:12px;font:750 12px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-decoration:none;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease}
 .nf-actions a:hover,.nf-actions button:hover,.nf-start-button:hover,.nf-leaderboard-button:hover{transform:translateY(-2px)}
 .nf-primary,.nf-start-button{border:1px solid #38bdf8;background:linear-gradient(135deg,#0284c7,#0369a1);color:#f0f9ff;box-shadow:0 7px 22px #0284c744}
 .nf-primary:hover,.nf-start-button:hover{background:linear-gradient(135deg,#0ea5e9,#075985)}
