@@ -87,14 +87,12 @@ export default function Directory(){
     }catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}
   }
   async function updateFlag(id,patch){
-    if(!authorized())return notify('Admin access required')
     if(patch.isDeleted===true && !(await driveConfirm('Hide this contact?','It will move to deleted records and remain recoverable by admins.','Hide contact')))return
     if(patch.isDeleted===false && !(await driveConfirm('Restore this contact?','It will become visible in the public directory again.','Restore contact','question')))return
     try{setBusy(true);await db.child(id).update(patch);notify(patch.isDeleted?'Contact moved to deleted records':patch.isDeleted===false?'Contact restored':'Contact updated')}
     catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}
   }
   async function permanentlyDelete(id){
-    if(!authorized())return notify('Admin access required')
     if(!(await driveConfirm('Delete permanently?','This contact will be permanently removed. This cannot be undone.','Delete permanently','error')))return
     try{setBusy(true);await db.child(id).remove();notify('Contact permanently deleted')}
     catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}
@@ -189,7 +187,7 @@ export default function Directory(){
             <div className="directory-location"><b>{item.location||'N/A'}</b><small>{item.region||''}</small></div>
             {item.contact?<button type="button" className="directory-phone directory-copy-phone" onClick={()=>copyNumber(item.contact)} title="Copy phone number" aria-label={'Copy phone number '+item.contact}><Phone size={14}/>{item.contact}</button>:<span className="directory-phone"><Phone size={14}/>No number</span>}
             <div className="directory-address"><span>{item.address||'No address specified'}</span><div><a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(item.address||item.location||'')} target="_blank" rel="noreferrer"><MapPin size={13}/> Maps <ExternalLink size={11}/></a><button onClick={()=>copyAddress(item.address||'')}><Copy size={13}/> Copy</button></div></div>
-            <div className="directory-row-actions">{isDeleted?(admin?<><button title="Restore contact" onClick={()=>updateFlag(item.id,{isDeleted:false})}><RotateCcw size={16}/></button><button className="danger" title="Delete permanently" onClick={()=>permanentlyDelete(item.id)}><Trash2 size={16}/></button></>:null):<><button title="Edit contact" onClick={()=>setEdit({...item})}><Pencil size={16}/></button>{admin&&<button className="danger" title="Delete contact" onClick={()=>updateFlag(item.id,{isDeleted:true})}><Trash2 size={16}/></button>}</>}</div>
+            <div className="directory-row-actions">{isDeleted?(admin?<><button title="Restore contact" onClick={()=>updateFlag(item.id,{isDeleted:false})}><RotateCcw size={16}/></button><button className="danger" title="Delete permanently" onClick={()=>permanentlyDelete(item.id)}><Trash2 size={16}/></button></>:null):<><button title="Edit contact" onClick={()=>setEdit({...item})}><Pencil size={16}/></button><button className="danger" title="Delete contact" onClick={()=>updateFlag(item.id,{isDeleted:true})}><Trash2 size={16}/></button></>}</div>
           </article>
         })}
       </div>}
