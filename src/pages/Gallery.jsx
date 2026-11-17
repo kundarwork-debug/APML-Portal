@@ -6,18 +6,9 @@ import {
 } from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
-import '../lib/firebase'
+import { getApmlDatabase } from '../lib/firebase'
 import './Gallery.css'
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
-  authDomain: 'apml-portal.firebaseapp.com',
-  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
-  projectId: 'apml-portal',
-  storageBucket: 'apml-portal.firebasestorage.app',
-  messagingSenderId: '479017159240',
-  appId: '1:479017159240:web:0853422718e6195b74a67d'
-}
 const CLOUDINARY_UPLOAD = 'https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload'
 const DRIVE_API_URL = 'https://apml-drive-api.kundar-work.workers.dev'
 const FOLDER_STORAGE_KEY = 'apml_unlimited_gallery_folders_v7'
@@ -54,25 +45,6 @@ function folderIconClass(folder) {
   return FOLDER_ICON_CLASSES[folder.id] || 'fa-folder'
 }
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const existing = [...document.scripts].find(script => script.src === src)
-    if (existing) {
-      const ready = src.includes('firebase-auth') ? !!window.firebase?.auth
-        : src.includes('firebase-database') ? !!window.firebase?.database
-          : src.includes('firebase-app') ? !!window.firebase : existing.dataset.loaded === '1'
-      if (ready || existing.dataset.loaded === '1') return resolve()
-      existing.addEventListener('load', resolve, { once: true })
-      existing.addEventListener('error', reject, { once: true })
-      return
-    }
-    const script = document.createElement('script')
-    script.src = src
-    script.onload = () => { script.dataset.loaded = '1'; resolve() }
-    script.onerror = reject
-    document.head.appendChild(script)
-  })
-}
 function optimizedUrl(url, width = 420) {
   if (!url || !url.includes('cloudinary.com')) return url
   return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width},c_limit/`)
@@ -137,10 +109,7 @@ export default function Gallery() {
     let handler
     ;(async () => {
       try {
-        await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-        await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
-        if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseConfig)
-        ref = window.firebase.database().ref('apml_ranked_gallery')
+        ref = getApmlDatabase().ref('apml_ranked_gallery')
         dbRef.current = ref
         handler = ref.on('value', snapshot => {
           if (!live) return
@@ -207,6 +176,7 @@ export default function Gallery() {
     } finally { setBusy(false) }
   }
   async function addFolder() {
+    if (!admin) return
     const label = await driveInput('Create gallery folder', { placeholder: 'e.g. Fragile Items' })
     if (!label) return
     const id = label.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -241,7 +211,7 @@ export default function Gallery() {
     return folder
   }
   async function upload(files) {
-    if (!files?.length) return
+    if (!admin || !files?.length) return
     const folder = requireDestination()
     if (!folder) { if (input.current) input.current.value = ''; return }
     setBusy(true)
@@ -263,7 +233,7 @@ export default function Gallery() {
           const response = await fetch(CLOUDINARY_UPLOAD, { method: 'POST', body: form })
           const data = await response.json().catch(() => ({}))
           if (!response.ok || !data.secure_url) throw new Error(data.error?.message || `HTTP ${response.status}`)
-          await window.firebase.database().ref('apml_ranked_gallery').push({
+          await getApmlDatabase().ref('apml_ranked_gallery').push({
             url: data.secure_url, folder, name: file.name, size: file.size, isVideo,
             viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
           })
@@ -279,6 +249,7 @@ export default function Gallery() {
     if (failures.length) await driveAlert('Some files were not uploaded', failures.join('\n'), 'warning')
   }
   async function addCatboxLink() {
+    if (!admin) return
     const folder = requireDestination()
     if (!folder) return
     const Swal = await getSwal()
@@ -309,7 +280,7 @@ export default function Gallery() {
     const info = result.value
     const name = info.file.replace(/['"`<>\\]/g, '').trim() || info.file
     try {
-      await window.firebase.database().ref('apml_ranked_gallery').push({
+      await getApmlDatabase().ref('apml_ranked_gallery').push({
         url: info.url, folder, name, size: 0, isVideo: info.isVideo,
         viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
       })
@@ -317,8 +288,9 @@ export default function Gallery() {
     } catch (error) { await driveAlert('Could not add Catbox link', error.message, 'error') }
   }
   async function metric(item, field) {
+    if (!admin) return
     try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}/${field}`).transaction(value => (Number(value) || 0) + 1)
+      await getApmlDatabase().ref(`apml_ranked_gallery/${item.key}/${field}`).transaction(value => (Number(value) || 0) + 1)
     } catch {}
   }
   function openMedia(item) {
@@ -330,8 +302,8 @@ export default function Gallery() {
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     await metric(item, 'downloadsCount')
     try {
-      if (window.apmlHasAnalyticsConsent?.()) {
-        await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+      if (admin && window.apmlHasAnalyticsConsent?.()) {
+        await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
       }
     } catch {}
     try {
@@ -390,7 +362,7 @@ export default function Gallery() {
   async function move(item, folder) {
     if (!admin) return
     try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
+      await getApmlDatabase().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
       await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
   }
@@ -399,18 +371,13 @@ export default function Gallery() {
     const confirmed = await driveConfirm('Delete permanently?', `“${item.name || 'This media'}” will be permanently deleted. This cannot be undone.`, 'Delete permanently', 'error')
     if (!confirmed) return
     try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).remove()
+      await getApmlDatabase().ref(`apml_ranked_gallery/${item.key}`).remove()
       await driveToast('Media permanently deleted')
     } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
   }
   async function trashMedia(item) {
-    if (admin) return move(item, 'deleted')
-    const confirmed = await driveConfirm('Move media to trash?', 'This media item will be moved to the Trash Archive.', 'Move to trash')
-    if (!confirmed) return
-    try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder: 'deleted' })
-      await driveToast('Media moved to trash')
-    } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
+    if (!admin) return
+    return move(item, 'deleted')
   }
   function handleDrop(event, folderId) {
     event.preventDefault()
@@ -459,10 +426,10 @@ export default function Gallery() {
           <option value="">Select destination folder…</option>
           {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}
         </select></label>
-        <button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={busy}><Upload size={15}/> Upload Media</button>
+        {admin&&<><button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={busy}><Upload size={15}/> Upload Media</button>
         <button className="gallery-action" onClick={addCatboxLink} disabled={busy}><Link2 size={15}/> Catbox Link</button>
         <button className="gallery-action" onClick={addFolder} disabled={busy}><FolderPlus size={15}/> Add Folder</button>
-        <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/>
+        <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/></>}
       </div>
     </section>
 
@@ -502,7 +469,7 @@ export default function Gallery() {
                 </div>}
                 {activeFolder !== 'deleted' && <div className="gallery-admin-actions">
                   {admin && <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
-                  <button title="Move to trash" onClick={() => trashMedia(item)}><Trash2 size={14}/></button>
+                  {admin&&<button title="Move to trash" onClick={() => trashMedia(item)}><Trash2 size={14}/></button>}
                 </div>}
               </div>
             </div>
