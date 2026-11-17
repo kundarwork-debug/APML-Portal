@@ -320,8 +320,25 @@ async function cleanupExpiredTrash(env) {
       galleryDeleted++;
     } catch (error) { failed.push({ collection: 'gallery', key, error: error.message }); }
   }
-  for (const [key, item] of Object.entries(driveFolders || {})) {
-    if (!expired(item)) continue;
+  const expiredFolderKeys = new Set(Object.entries(driveFolders || {}).filter(([, item]) => expired(item)).map(([key]) => key));
+  const cascadeKeys = new Set(expiredFolderKeys);
+  let expanded = true;
+  while (expanded) {
+    expanded = false;
+    for (const [key, folder] of Object.entries(driveFolders || {})) {
+      if (folder && cascadeKeys.has(folder.parentId) && !cascadeKeys.has(key)) { cascadeKeys.add(key); expanded = true; }
+    }
+  }
+  for (const [key, item] of Object.entries(driveFiles || {})) {
+    if (!item || !cascadeKeys.has(item.parentId) || expired(item)) continue;
+    try {
+      await deleteCloudinary(item.fileId);
+      const res = await request('catbox_gdrive_files/' + encodeURIComponent(key), { method: 'DELETE' });
+      if (!res.ok) throw new Error('Firebase child-file deletion failed');
+      driveDeleted++;
+    } catch (error) { failed.push({ collection: 'drive-folder-child', key, error: error.message }); }
+  }
+  for (const key of cascadeKeys) {
     try {
       const res = await request('catbox_gdrive_folders/' + encodeURIComponent(key), { method: 'DELETE' });
       if (!res.ok) throw new Error('Firebase folder deletion failed');
