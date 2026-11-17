@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
+    "directory": {
+      ".read": true,
+      ".write": true
+    },
+    "field_officers": {
+      ".read": true,
+      ".write": true
+    },
+    "arcade_scores": {
+      ".indexOn": ["score"]
+    }
+  }
+}
