@@ -2118,7 +2118,7 @@ async function handleNovaAnalytics(request, env) {
     ok: true, generatedAt: now, timezone: 'Asia/Kolkata', periodDays: rangeDays, startDate: startKey, endDate: endKey,
     daily, previousDaily, heatmap,
     totals: { ...totals,
-      totalPdfsLifetime: Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).pdf : 0), 0),
+      totalPdfsLifetime: pdfResult.ok && Number.isFinite(Number(pdfResult.value)) ? Number(pdfResult.value) : Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).pdf : 0), 0),
       totalMediaLifetime: mediaResult.ok && Number.isFinite(Number(mediaResult.value)) ? Number(mediaResult.value) : null },
     previousTotals,
     visitorIntelligence: {
