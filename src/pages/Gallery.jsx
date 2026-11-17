@@ -516,7 +516,7 @@ export default function Gallery() {
       <button className="gallery-lightbox-close" onClick={() => setLightbox(null)} aria-label="Close preview"><X size={23}/></button>
       <div className="gallery-lightbox-content">
         {lightbox.isVideo ? <video src={lightbox.url} controls autoPlay playsInline/> : <img src={lightbox.url} alt={lightbox.name || 'Gallery media'}/>}
-        <div><strong>{lightbox.name || 'Untitled media'}</strong><button className="apml-download-btn" onClick={() => downloadMedia(lightbox)}><Download size={14}/><span className="apml-download-label">Download original</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
+        <div><button className="apml-download-btn" onClick={() => downloadMedia(lightbox)}><Download size={14}/><span className="apml-download-label">Download original</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
       </div>
     </div>}
   </main>
