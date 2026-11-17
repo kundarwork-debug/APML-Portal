@@ -12,3 +12,20 @@
 
 
 .legacy-not-found-frame{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;border:0;display:block;background:#fdf8f5;z-index:999999;}
+
+
+/* React 404 arcade: full-screen play surface and rocket-as-pointer controls */
+.apml-arcade-live{position:fixed;inset:0;z-index:100000;width:100vw;height:100vh;height:100dvh;overflow:hidden;background:#080d17;touch-action:none;cursor:none!important}
+.apml-arcade-live,.apml-arcade-live *{cursor:none!important}
+.apml-arcade-live canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:none!important}
+.apml-arcade-scoreboard{position:absolute;top:max(14px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:clamp(8px,2vw,20px);padding:9px 13px 9px 17px;border:1px solid #ffffff28;border-radius:999px;background:#111827e8;backdrop-filter:blur(16px);box-shadow:0 12px 35px #0008;color:#e2e8f0;white-space:nowrap;pointer-events:auto}
+.apml-arcade-scoreboard>span{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:800;letter-spacing:.08em;color:#94a3b8}
+.apml-arcade-scoreboard b{font:800 14px 'Space Grotesk',sans-serif;color:#fca5a5}
+.apml-arcade-scoreboard i{height:16px;width:1px;background:#ffffff24}
+.apml-arcade-scoreboard .apml-arcade-lives{color:#fb7185}
+.apml-arcade-scoreboard button{display:flex;align-items:center;gap:5px;border:1px solid #ef444466;border-radius:999px;background:#b91c1c30;color:#fecaca;padding:7px 11px;font-size:10px;font-weight:800;cursor:pointer!important}
+.apml-arcade-toast{position:absolute;top:76px;left:50%;transform:translateX(-50%);z-index:4;padding:9px 15px;border:1px solid #fb923c66;border-radius:999px;background:#7c2d12e8;color:#ffedd5;font-size:11px;font-weight:850;letter-spacing:.06em;white-space:nowrap;pointer-events:none}
+.apml-arcade-hint{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:2;padding:8px 13px;border:1px solid #ffffff1a;border-radius:999px;background:#0f172acc;color:#94a3b8;font-size:9px;font-weight:800;letter-spacing:.1em;white-space:nowrap;pointer-events:none}
+.apml-mobile-fire{display:none;position:absolute;right:20px;bottom:max(24px,env(safe-area-inset-bottom));z-index:5;align-items:center;gap:8px;padding:14px 18px;border:1px solid #7dd3fc88;border-radius:999px;background:#075985dd;color:#e0f2fe;font-size:12px;font-weight:900;touch-action:manipulation;cursor:pointer!important}
+@media(max-width:760px){.apml-arcade-scoreboard{gap:7px;padding:7px 9px}.apml-arcade-scoreboard>span{gap:3px;font-size:8px}.apml-arcade-scoreboard b{font-size:12px}.apml-arcade-scoreboard button{padding:6px 8px;font-size:9px}.apml-arcade-hint{bottom:max(16px,env(safe-area-inset-bottom));font-size:7px;letter-spacing:.05em}.apml-mobile-fire{display:flex}.apml-arcade-live{touch-action:none}}
+@media(max-width:390px){.apml-arcade-scoreboard{gap:5px;padding:6px 7px}.apml-arcade-scoreboard>span{font-size:7px}.apml-arcade-scoreboard b{font-size:11px}.apml-arcade-scoreboard i{height:12px}.apml-arcade-scoreboard button{font-size:8px;padding:5px 6px}}
