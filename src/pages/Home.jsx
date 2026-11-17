@@ -112,7 +112,7 @@ function OperationalTelemetry(){
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
-    listen('presence','users',snap=>{const now=Date.now(),cutoff=now-90000;return Object.values(snap.val()||{}).filter(record=>{const lastSeen=Number(record?.lastSeen||record?.timestamp||0);return record?.online!==false&&lastSeen>=cutoff&&lastSeen<=now+30000}).length})
+    listen('presence','users',snap=>{const presence=snap.val()||{};return Object.values(presence).reduce((total,sessions)=>{if(!sessions||typeof sessions!=='object')return total;const active=Object.values(sessions).some(session=>session&&session.online!==false);return total+(active?1:0)},0)})
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
     const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
     const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
@@ -132,26 +132,20 @@ function OperationalTelemetry(){
       if(!window.apmlHasAnalyticsConsent?.())return
       const auth=getApmlAuth()
       let user=auth.currentUser
-      if(user&&!user.isAnonymous)return
       if(!user)user=(await auth.signInAnonymously()).user
-      const own=db.ref('presence/'+user.uid)
+      const own=db.ref('presence/'+user.uid+'/'+db.ref('presence/'+user.uid).push().key)
       const connected=db.ref('.info/connected')
-      let presenceHeartbeat=null
-      const handleConnection=snap=>{
+      const handleConnection=async snap=>{
        if(snap.val()===true){
-        own.onDisconnect().remove()
-        const now=Date.now()
-        own.set({online:true,timestamp:now,lastSeen:now,uid:user.uid})
-        window.clearInterval(presenceHeartbeat)
-        presenceHeartbeat=window.setInterval(()=>{if(document.visibilityState==='visible'&&hasConsent())own.update({online:true,lastSeen:Date.now()}).catch(()=>{})},30000)
-       }else{
-        window.clearInterval(presenceHeartbeat)
-        presenceHeartbeat=null
+        try{
+         await own.onDisconnect().remove()
+         await own.set({online:true,uid:user.uid,startedAt:Date.now()})
+        }catch(error){console.warn('APML presence registration failed',error)}
        }
       }
       connected.on('value',handleConnection,error=>console.warn('APML presence connection unavailable',error))
       presenceAttached=true
-      refs.push({off:()=>{window.clearInterval(presenceHeartbeat);connected.off('value',handleConnection)}})
+      refs.push({off:()=>{own.onDisconnect().cancel().catch(()=>{});own.remove().catch(()=>{});connected.off('value',handleConnection)}})
      }catch(error){console.warn('APML presence unavailable',error)}
     }
     startPresence()
