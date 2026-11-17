@@ -48,3 +48,5 @@
 /* Font Awesome category icons for Gallery folder tabs */
 .gallery-folder-tab>button>i.fa-solid{display:inline-flex;align-items:center;justify-content:center;width:16px;min-width:16px;font-size:14px;line-height:1;color:#b4232c}
 .gallery-folder-tab>button.selected>i.fa-solid{color:currentColor}
+
+.gallery-trash-countdown{color:#b4232c;font-weight:800}
