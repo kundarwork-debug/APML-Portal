@@ -490,7 +490,6 @@ export default function Gallery() {
               {!item.isVideo && <span className="gallery-image-mark">PHOTO</span>}
             </button>
             <div className="gallery-card-body">
-              <strong className="gallery-card-name" title={item.name}>{item.name || 'Untitled media'}</strong>
               <div className="gallery-card-meta"><span><i style={{ background: source.color }}/> {source.label}</span><span>{formatBytes(item.size)}</span></div>
               <div className="gallery-card-stats"><span>{Number(item.viewsCount) || 0} views</span><span>{Number(item.downloadsCount) || 0} downloads</span></div>
               <div className="gallery-card-footer">
