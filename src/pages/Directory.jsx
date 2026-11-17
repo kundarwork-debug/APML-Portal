@@ -2,37 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, MapPin, Phone, Copy, Pencil, Trash2, RotateCcw, Plus, Upload, LogOut, Users, MapPinned, LoaderCircle, X, ExternalLink } from 'lucide-react'
 import { driveAlert, driveConfirm, driveToast, getSwal } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
-import '../lib/firebase'
+import { getApmlDatabase } from '../lib/firebase'
 import './Directory.css'
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
-  authDomain: 'apml-portal.firebaseapp.com',
-  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
-  projectId: 'apml-portal',
-  storageBucket: 'apml-portal.firebasestorage.app',
-  messagingSenderId: '479017159240',
-  appId: '1:479017159240:web:0853422718e6195b74a67d',
-  measurementId: 'G-4H1HT31DYB'
-}
 const CITIES = ['Mumbai','Pune','Gurgaon','Ahmedabad','Delhi','Bangalore','Kolkata','Hyderabad','Chennai','Indore','Jaipur','Nagpur','Surat','Lucknow']
 const EMPTY = { category:'', location:'', region:'', designation:'', name:'', contact:'', address:'', isDeleted:false }
-let firebasePromise
-function loadScript(src) {
-  if (!firebasePromise) firebasePromise = (async () => {
-    const add = (url) => new Promise((resolve,reject) => {
-      if (document.querySelector('script[data-apml-src="'+url+'"]')) return resolve()
-      const script=document.createElement('script'); script.src=url; script.async=true; script.dataset.apmlSrc=url
-      script.onload=resolve; script.onerror=()=>reject(new Error('Unable to load Firebase services. Check your connection.'))
-      document.head.appendChild(script)
-    })
-    if (!window.firebase) await add('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-    if (!window.firebase.database) await add('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
-    if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseConfig)
-    return window.firebase
-  })()
-  return firebasePromise
-}
 function escapeText(value='') { return String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
 function deleted(record) { return record.isDeleted===true || record.isDeleted==='true' || record.isDeleted===1 }
 function GoogleMark(){return <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.15v3.14C3.15 21.32 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.62H1.15C.42 8.1 0 9.77 0 11.5s.42 3.4 1.15 4.88l4.12-3.14z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.68 1.15 6.62l4.12 3.14c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>}
@@ -43,21 +17,20 @@ export default function Directory(){
   const { admin, userEmail, signIn, signOut } = useApmlAdminAuth()
   const [db,setDb]=useState(null)
   useEffect(()=>{
-    let active=true,ref=null
-    loadScript().then(fb=>{
-      if(!active)return
-      const database=fb.database(),directoryRef=database.ref('directory')
+    let active=true,directoryRef=null,handler=null
+    try{
+      const database=getApmlDatabase()
+      directoryRef=database.ref('directory')
       setDb(directoryRef)
-      ref=directoryRef
-      const unsubscribe=directoryRef.on('value',snapshot=>{
+      handler=snapshot=>{
         if(!active)return
         const data=snapshot.val()||{}
         setRows(Object.entries(data).map(([id,item])=>({id,...(item||{})})))
         setLoading(false);setError('')
-      },err=>{if(active){setError(err.message||'Unable to load directory.');setLoading(false)}})
-      return unsubscribe
-    }).catch(err=>{if(active){setError(err.message);setLoading(false)}})
-    return ()=>{active=false;if(ref)ref.off('value')}
+      }
+      directoryRef.on('value',handler,err=>{if(active){setError(err.message||'Unable to load directory.');setLoading(false)}})
+    }catch(err){setError(err.message||'Unable to connect directory.');setLoading(false)}
+    return ()=>{active=false;if(directoryRef&&handler)directoryRef.off('value',handler)}
   },[])
   const activeCount=rows.filter(r=>!deleted(r)).length
   const visible=useMemo(()=>{
