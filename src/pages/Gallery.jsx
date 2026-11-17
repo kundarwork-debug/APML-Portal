@@ -354,6 +354,7 @@ export default function Gallery() {
       }
       window.logDailyActivity?.('media')
       window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
+      await driveToast('Download started')
     } catch (error) {
       const anchor = document.createElement('a')
       anchor.href = item.url
@@ -365,6 +366,7 @@ export default function Gallery() {
       anchor.remove()
       window.logDailyActivity?.('media')
       console.warn('Gallery download fallback:', error)
+      await driveToast('Download opened in a new tab', 'info')
     }
   }
   async function move(item, folder) {
