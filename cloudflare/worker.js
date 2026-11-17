@@ -16,10 +16,6 @@ const CONFIG = {
 
   FIREBASE_API_KEY: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
 
-  SUPABASE_URL: 'https://jethunntsnnjlwnwsjrh.supabase.co',
-
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpldGh1bm50c25uamx3bndzanJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MTM1MTMsImV4cCI6MjEwMzI4OTUxM30.LscEvNwTob22YmaCqeYQn58eYWJremA5lm6LvQboJN0',
-
   ADMIN_EMAILS: ['kundar.work@gmail.com', 'kundar701@gmail.com'],
 
   QUOTATION_CAP: 200,
@@ -176,28 +172,8 @@ async function cloudinaryDelete(env, items) {
 
 }
 
-async function getAdminEmail(request, env = {}) {
-
-  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-
-  if (!token) return null;
-
-  const supabaseUrl = String(env.APML_SUPABASE_URL || CONFIG.SUPABASE_URL).replace(/\/$/, '');
-  const supabaseKey = env.APML_SUPABASE_ANON_KEY || CONFIG.SUPABASE_ANON_KEY;
-  const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-
-    headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` },
-
-  });
-
-  if (!res.ok) return null;
-
-  const user = await res.json();
-
-  const email = String(user.email || '').trim().toLowerCase();
-
-  return CONFIG.ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(email) ? email : null;
-
+async function getAdminEmail(request) {
+  return getFirebaseAdminEmail(request);
 }
 
 async function getFirebaseAdminEmail(request) {
@@ -2148,7 +2124,7 @@ export default {
         },
         configuration: {
           firebase: !!CONFIG.FIREBASE_DB_URL,
-          supabase: !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY),
+          firebaseAuth: true,
           cloudinary: !!(env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET),
           telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
           telegramWebhookSecret: !!env.TELEGRAM_WEBHOOK_SECRET,
