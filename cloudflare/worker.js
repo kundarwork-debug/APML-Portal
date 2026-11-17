@@ -271,22 +271,17 @@ async function trimQuotations(env, firebaseToken) {
 
   const oldest = inFolder.slice(0, excess);
 
+  const deletions = await Promise.all(oldest.map((file) =>
+    fetch(`${base}/catbox_gdrive_files/${file.key}.json?auth=${encodeURIComponent(firebaseToken)}`, { method: 'DELETE' })
+  ));
+  const failedWrite = deletions.find((response) => !response.ok);
+  if (failedWrite) return { trimmed: 0, error: 'Firebase rejected a quotation record deletion; Cloudinary files were preserved.' };
+
   const parsed = oldest.map((f) => parseCloudinaryUrl(f.fileId)).filter(Boolean);
-
   if (parsed.length) {
-
     const results = await cloudinaryDelete(env, parsed);
-
     const failed = results.find((r) => !r.ok);
-
-    if (failed) return { trimmed: 0, error: failed.error || `HTTP ${failed.status}` };
-
-  }
-
-  for (const f of oldest) {
-
-    await fetch(`${base}/catbox_gdrive_files/${f.key}.json?auth=${encodeURIComponent(firebaseToken)}`, { method: 'DELETE' });
-
+    if (failed) return { trimmed: oldest.length, orphanedAssets: parsed.length, error: failed.error || `HTTP ${failed.status}` };
   }
 
   return { trimmed: oldest.length, count: CONFIG.QUOTATION_CAP };
