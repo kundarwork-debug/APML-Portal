@@ -1363,3 +1363,147 @@ html[data-theme="dark"] .portal-site-footer h3{color:#cbd5e1}
 @media(prefers-reduced-motion:reduce){
  html,html *,html *::before,html *::after{transition-duration:0s!important;animation-duration:.01ms!important}
 }
+
+
+/* =========================================================
+   APML DARK THEME COMPLETION
+   Homepage and bespoke module surfaces that use fixed light
+   colours instead of the shared theme tokens.
+   ========================================================= */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --canvas:#0b1120;
+  --page:#0b1120;
+  --paper:#151e2e;
+  --surface:#151e2e;
+  --surface-card:#151e2e;
+  --surface-raised:#1e293b;
+  --text:#f8fafc;
+  --text-main:#f8fafc;
+  --text-secondary:#cbd5e1;
+  --text-muted:#a8b5c7;
+  --muted:#a8b5c7;
+  --line:#334155;
+  --border:#334155;
+  --border-subtle:#334155;
+  --brand:#f87171;
+  --primary:#f87171;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] #root,
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] .portal-page-content{
+  background-color:transparent;
+  color:#e2e8f0;
+}
+
+/* Homepage hero — previously fixed to dark text on a dark canvas. */
+html[data-theme="dark"] .legacy-home{color:#e2e8f0}
+html[data-theme="dark"] .legacy-hero h1{color:#f8fafc!important}
+html[data-theme="dark"] .legacy-hero h1 span{color:#f87171!important}
+html[data-theme="dark"] .legacy-eyebrow{color:#a8b5c7!important}
+html[data-theme="dark"] .legacy-hero-description{color:#cbd5e1!important}
+html[data-theme="dark"] .legacy-hero-note{color:#94a3b8!important}
+html[data-theme="dark"] .legacy-section-bar{border-color:#334155!important}
+html[data-theme="dark"] .legacy-section-bar h2,
+html[data-theme="dark"] .legacy-telemetry-head h2{color:#f8fafc!important}
+html[data-theme="dark"] .legacy-section-bar h2 svg,
+html[data-theme="dark"] .legacy-telemetry-head h2 svg{color:#f87171!important}
+html[data-theme="dark"] .legacy-section-bar p,
+html[data-theme="dark"] .legacy-telemetry-head p{color:#a8b5c7!important}
+html[data-theme="dark"] .legacy-section-bar>span{
+  background:#251b25!important;border-color:#56323b!important;color:#fca5a5!important;
+}
+html[data-theme="dark"] .legacy-tool-card,
+html[data-theme="dark"] .legacy-telemetry>a{
+  background:#151e2e!important;border-color:#334155!important;color:#e2e8f0!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.22)!important;
+}
+html[data-theme="dark"] .legacy-tool-card:hover{border-color:#9f454d!important}
+html[data-theme="dark"] .legacy-tool-card h3,
+html[data-theme="dark"] .legacy-telemetry-stats strong{color:#f8fafc!important}
+html[data-theme="dark"] .legacy-tool-card p,
+html[data-theme="dark"] .legacy-empty{color:#a8b5c7!important}
+html[data-theme="dark"] .legacy-card-head span{
+  background:#321e27!important;border-color:#633943!important;color:#fca5a5!important;
+}
+html[data-theme="dark"] .legacy-tags small{
+  background:#1e293b!important;border-color:#334155!important;color:#cbd5e1!important;
+}
+html[data-theme="dark"] .legacy-card-footer{border-color:#334155!important}
+html[data-theme="dark"] .legacy-card-footer>span,
+html[data-theme="dark"] .legacy-card-footer b{color:#f87171!important}
+html[data-theme="dark"] .legacy-telemetry-head>span{
+  background:#172b29!important;border-color:#28564b!important;color:#a7f3d0!important;
+}
+html[data-theme="dark"] .legacy-telemetry-stats em{color:#a8b5c7!important}
+html[data-theme="dark"] .legacy-telemetry-stats>div{border-color:#334155!important}
+html[data-theme="dark"] .hub-loading-screen{
+  background:#0b1120!important;color:#f8fafc!important;
+}
+html[data-theme="dark"] .hub-loading-screen small{color:#a8b5c7!important}
+
+/* Drive, Gallery and Field Officer — bespoke cards/toolbars. */
+html[data-theme="dark"] :is(.drive-action-bar,.drive-toolbar,.drive-file-card,.drive-pagination,.drive-empty-state,.drive-folder-card,.drive-folder-item,.drive-stat,.drive-trash-note),
+html[data-theme="dark"] :is(.gallery-action-bar,.gallery-toolbar,.gallery-card,.gallery-empty,.gallery-folder-card,.gallery-stat,.gallery-folder-select),
+html[data-theme="dark"] :is(.fo-action-bar,.fo-toolbar,.fo-card,.fo-empty,.fo-stat,.fo-stats>span),
+html[data-theme="dark"] :is(.directory-panel,.directory-live,.directory-card,.directory-empty,.directory-chips button){
+  background-color:#151e2e!important;color:#e2e8f0!important;border-color:#334155!important;
+}
+html[data-theme="dark"] :is(.drive-title,.drive-section-heading h2,.drive-file-name,.drive-empty-state strong,.drive-crumb-part button.current),
+html[data-theme="dark"] :is(.gallery-title,.gallery-section-heading h2,.gallery-card-name,.gallery-empty strong),
+html[data-theme="dark"] :is(.fo-title,.fo-results-heading h2,.fo-card-person strong,.fo-action-intro strong),
+html[data-theme="dark"] :is(.directory-heading h1,.directory-panel-title,.directory-empty b){
+  color:#f8fafc!important;
+}
+html[data-theme="dark"] :is(.drive-eyebrow,.drive-subtitle,.drive-breadcrumb,.drive-file-date,.drive-file-meta,.drive-section-heading>span,.drive-live-status,.drive-status-count,.drive-trash-note),
+html[data-theme="dark"] :is(.gallery-eyebrow,.gallery-subtitle,.gallery-card-meta,.gallery-card-stats,.gallery-live-status,.gallery-section-heading>span,.gallery-action-heading small),
+html[data-theme="dark"] :is(.fo-eyebrow,.fo-subtitle,.fo-card-person small,.fo-live-status,.fo-status-count,.fo-results-heading>span,.fo-action-intro small),
+html[data-theme="dark"] :is(.directory-kicker,.directory-heading p,.directory-footer-count){
+  color:#a8b5c7!important;
+}
+html[data-theme="dark"] :is(.drive-action,.drive-search,.drive-pagination button,.drive-file-preview,.drive-empty-state),
+html[data-theme="dark"] :is(.gallery-action,.gallery-search,.gallery-folder-select,.gallery-empty),
+html[data-theme="dark"] :is(.fo-action,.fo-filter-tabs button,.fo-quick-filters button,.fo-toolbar),
+html[data-theme="dark"] :is(.directory-btn,.directory-admin,.directory-search,.directory-chips button){
+  background-color:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important;
+}
+html[data-theme="dark"] :is(.drive-search input,.gallery-search input,.fo-search input,.directory-search input){
+  background:transparent!important;color:#f8fafc!important;
+}
+html[data-theme="dark"] :is(.drive-file-type,.gallery-card-meta,.fo-card-person small){color:#cbd5e1}
+html[data-theme="dark"] :is(.drive-file-preview.pdf-preview,.drive-file-preview.sheet-preview,.drive-file-preview.doc-preview){
+  background:#1e293b!important;
+}
+html[data-theme="dark"] .fo-card.deleted{background:#2b1b23!important;border-color:#67343c!important}
+html[data-theme="dark"] .directory-chips button.selected,
+html[data-theme="dark"] .fo-filter-tabs button.selected{background:#7f2933!important;color:#fff!important}
+
+/* Analytics tables, toolbar and insight cards. */
+html[data-theme="dark"] :is(.analytics-toolbar,.analytics-loading-indicator,.analytics-table-wrap,.analytics-insights article,.analytics-highlight-grid article,.analytics-mini-kpis article,.analytics-kpi,.analytics-panel,.analytics-card){
+  background:#151e2e!important;color:#e2e8f0!important;border-color:#334155!important;
+}
+html[data-theme="dark"] .analytics-table-wrap th{background:#1e293b!important;color:#cbd5e1!important;border-color:#334155!important}
+html[data-theme="dark"] .analytics-table-wrap td{color:#cbd5e1!important;border-color:#334155!important}
+html[data-theme="dark"] .analytics-table-wrap tbody tr:hover{background:#202c3c!important}
+html[data-theme="dark"] :is(.analytics-page h1,.analytics-page h2,.analytics-page h3,.analytics-insights b){color:#f8fafc}
+html[data-theme="dark"] .analytics-error{background:#321d25!important;border-color:#71343d!important;color:#fecaca!important}
+html[data-theme="dark"] .analytics-btn:not(.analytics-btn-primary){background:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important}
+
+/* Shared controls, menus, popovers and native form widgets. */
+html[data-theme="dark"] .portal-menu-toggle{
+  background:#1e293b!important;color:#f8fafc!important;border-color:#475569!important;
+}
+html[data-theme="dark"] .portal-nav{background:#0f172a!important}
+html[data-theme="dark"] :is(.install-prompt,.policy-card,.health-overall,.health-service,.health-panel,.migration-card,.info-grid article,.other-project-card){
+  background:#151e2e!important;color:#e2e8f0!important;border-color:#334155!important;
+}
+html[data-theme="dark"] :is(.install-prompt strong,.policy-card h1,.policy-card h2,.health-overall h2,.health-service h3,.health-panel h2,.info-grid h3){color:#f8fafc!important}
+html[data-theme="dark"] :is(.install-prompt span,.policy-card p,.health-service p,.health-disclaimer,.info-grid p,.migration-card p){color:#a8b5c7!important}
+html[data-theme="dark"] .portal-page-content input,
+html[data-theme="dark"] .portal-page-content textarea,
+html[data-theme="dark"] .portal-page-content select{
+  color-scheme:dark;
+}
+html[data-theme="dark"] ::placeholder{color:#94a3b8}
+html[data-theme="dark"] :is(.swal2-popup,.swal2-html-container,.swal2-title){color:#f8fafc}
