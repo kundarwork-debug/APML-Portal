@@ -125,8 +125,10 @@ function OperationalTelemetry(){
     foldersRef.on('value',snap=>{const folders=snap.val()||{};quotationFolderIds=new Set(Object.keys(folders).filter(id=>folders[id]?.parentId==='root'&&String(folders[id]?.name||'').trim().toLowerCase()==='quotation'));updateArchiveCount()},error=>console.warn('APML quotation folder telemetry unavailable',error))
     filesRef.on('value',snap=>{quotationFiles=snap.val()||{};updateArchiveCount()},error=>console.warn('APML quotation archive telemetry unavailable',error))
     listen('analytics/totalMediaDownloads','media')
+    let presenceAttached=false
     const startPresence=async()=>{
      try{
+      if(presenceAttached)return
       if(!window.apmlHasAnalyticsConsent?.())return
       const auth=getApmlAuth()
       let user=auth.currentUser
@@ -138,6 +140,7 @@ function OperationalTelemetry(){
        if(snap.val()===true){own.onDisconnect().remove();own.set({online:true,timestamp:Date.now(),uid:user.uid})}
       }
       connected.on('value',handleConnection,error=>console.warn('APML presence connection unavailable',error))
+      presenceAttached=true
       refs.push({off:()=>connected.off('value',handleConnection)})
      }catch(error){console.warn('APML presence unavailable',error)}
     }
