@@ -1,3 +1,7 @@
+import firebase from 'firebase/compat/app'
+import 'firebase/compat/auth'
+import 'firebase/compat/database'
+
 const config = {
   apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
   authDomain: 'apml-portal.firebaseapp.com',
@@ -8,48 +12,18 @@ const config = {
   appId: '1:479017159240:web:0853422718e6195b74a67d'
 }
 
-const scriptLoads = new Map()
+export const firebaseApp = firebase.apps.length
+  ? firebase.app()
+  : firebase.initializeApp(config)
 
-function loadFirebaseScript(src, ready) {
-  if (ready()) return Promise.resolve()
+// A few existing portal modules still use the namespaced compat API directly.
+// Keep that shared instance available until those call sites are migrated.
+if (typeof window !== 'undefined') window.firebase = firebase
 
-  if (!scriptLoads.has(src)) {
-    const promise = new Promise((resolve, reject) => {
-      const script = document.createElement('script')
-      script.src = src
-      script.async = true
-      script.onload = resolve
-      script.onerror = () => reject(new Error(`Unable to load Firebase SDK: ${src}`))
-      document.head.appendChild(script)
-    })
-    scriptLoads.set(src, promise)
-  }
-
-  return scriptLoads.get(src).then(() => {
-    if (!ready()) throw new Error(`Firebase SDK did not initialise: ${src}`)
-  })
+export function getApmlDatabase() {
+  return firebase.database(firebaseApp)
 }
 
-export async function getApmlDatabase() {
-  await loadFirebaseScript(
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
-    () => !!window.firebase?.apps
-  )
-  await loadFirebaseScript(
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
-    () => !!window.firebase?.database
-  )
-
-  if (!window.firebase.apps.length) window.firebase.initializeApp(config)
-  return window.firebase.database()
-}
-
-
-export async function getApmlAuth() {
-  await getApmlDatabase()
-  await loadFirebaseScript(
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
-    () => !!window.firebase?.auth
-  )
-  return window.firebase.auth()
+export function getApmlAuth() {
+  return firebase.auth(firebaseApp)
 }
