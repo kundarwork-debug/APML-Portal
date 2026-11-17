@@ -44,3 +44,5 @@
 @media(max-width:360px){.drive-files-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.drive-file-preview{height:105px}}
 
 .drive-rename-file{display:grid;place-items:center;flex:none;width:32px;height:32px;border:0;border-radius:50%;background:#f6f5f3;color:#625b56;cursor:pointer;transition:background .18s,color .18s}.drive-rename-file:hover{background:#f8e9e9;color:#b4232c}@media(max-width:760px){.drive-rename-file{width:28px;height:28px}}
+
+.drive-folder-caption{color:#b4232c;font-weight:750}.drive-file-date{color:#b4232c;font-weight:750}
