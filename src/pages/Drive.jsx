@@ -3,6 +3,7 @@ import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, F
 import './Drive.css'
 import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import '../lib/firebase'
 const cfg={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
 const cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-work.workers.dev';const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
 function script(src){return new Promise((ok,no)=>{let s=[...document.scripts].find(x=>x.src===src);const ready=()=>src.includes('firebase-auth')?!!window.firebase?.auth:src.includes('firebase-database')?!!window.firebase?.database:src.includes('firebase-app')?!!window.firebase?.apps:!!s?.dataset.loaded;if(ready()){ok();return}if(s){s.addEventListener('load',ok,{once:true});s.addEventListener('error',no,{once:true});return}s=document.createElement('script');s.src=src;s.onload=()=>{s.dataset.loaded='1';ok()};s.onerror=no;document.head.append(s)})}
