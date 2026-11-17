@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Home, Rocket, RotateCcw, ShieldAlert, Trophy, Zap, Heart, X } from 'lucide-react'
+import { ArrowLeft, Home, RotateCcw, Trophy, ShieldAlert, Gamepad2, Heart, X, Sparkles } from 'lucide-react'
 import { getApmlDatabase } from '../lib/firebase'
 import './NotFound.css'
 
 const LOCAL_SCORES_KEY = 'apml_local_leaderboard'
 const PILOT_KEY = 'apml_pilot_name'
-const HIGH_SCORE_KEY = 'apml_global_highest_score'
+const HIGH_SCORE_KEY = 'apml_breakout_high_score'
 
 function readLocalScores() {
   try {
@@ -19,27 +19,23 @@ function readLocalScores() {
 
 export default function NotFound() {
   const canvasRef = useRef(null)
-  const fireRef = useRef(null)
-  const mascotRef = useRef(null)
-  const statsRef = useRef({ score: 0, lives: 5, level: 1 })
   const [running, setRunning] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
-  const [lives, setLives] = useState(5)
+  const [lives, setLives] = useState(3)
   const [level, setLevel] = useState(1)
   const [highScore, setHighScore] = useState(() => Number(localStorage.getItem(HIGH_SCORE_KEY) || 0))
   const [pilot, setPilot] = useState(() => localStorage.getItem(PILOT_KEY) || '')
   const [leaderboard, setLeaderboard] = useState(readLocalScores)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [toast, setToast] = useState('')
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [toast, setToast] = useState('')
 
   useEffect(() => {
     let alive = true
-    const loadLeaderboard = async () => {
+    const load = async () => {
       try {
-        // getApmlDatabase() returns the compat Database synchronously.
         const db = getApmlDatabase()
         const snapshot = await db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value')
         if (!alive) return
@@ -53,25 +49,26 @@ export default function NotFound() {
         const best = Math.max(0, ...entries.map(item => Number(item.score) || 0))
         if (best) setHighScore(current => {
           const next = Math.max(current, best)
-          try { localStorage.setItem(HIGH_SCORE_KEY, String(next)) } catch {}
+          localStorage.setItem(HIGH_SCORE_KEY, String(next))
           return next
         })
       } catch (error) {
         if (alive) setLeaderboard(readLocalScores())
-        console.warn('APML arcade leaderboard unavailable; using local scores.', error)
+        console.warn('APML scoreboard unavailable; using local scores.', error)
       }
     }
-    loadLeaderboard()
+    load()
     return () => { alive = false }
   }, [])
 
   const startGame = useCallback(() => {
-    statsRef.current = { score: 0, lives: 5, level: 1 }
     setScore(0)
-    setLives(5)
+    setLives(3)
     setLevel(1)
     setGameOver(false)
+    setShowLeaderboard(false)
     setSaved(false)
+    setToast('')
     setRunning(true)
   }, [])
 
@@ -81,336 +78,277 @@ export default function NotFound() {
     if (!canvas) return undefined
     const ctx = canvas.getContext('2d')
     let raf = 0
-    let lastTime = 0
-    let lastSpawn = 0
-    let lastToast = 0
-    let shipX = window.innerWidth / 2
-    let shipY = window.innerHeight * .68
-    let targetX = shipX
-    let targetY = shipY
-    let angle = -Math.PI / 2
-    let pointerAngle = angle
-    let pointerX = shipX
-    let pointerY = shipY
-    let shieldUntil = 0
-    let rapidUntil = 0
-    let bossSpawnedAt = 0
-    let bossActive = false
-    const missiles = []
-    const asteroids = []
-    const particles = []
-    const powerUps = []
-    const stars = Array.from({ length: 130 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.7 + .3, speed: Math.random() * .12 + .025 }))
+    let last = 0
+    let width = 0
+    let height = 0
+    let currentScore = 0
+    let currentLives = 3
+    let currentLevel = 1
+    let paddle = { x: 0, y: 0, width: 112, height: 12, targetX: 0 }
+    let ball = { x: 0, y: 0, vx: 4, vy: -5, radius: 7, stuck: true }
+    let bricks = []
+    let particles = []
+    let keys = {}
+    let messageTimer = 0
+    let ended = false
 
+    const palette = ['#fb7185', '#f97316', '#fbbf24', '#34d399', '#38bdf8', '#a78bfa']
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      const w = window.innerWidth
-      const h = window.innerHeight
-      canvas.width = Math.floor(w * dpr)
-      canvas.height = Math.floor(h * dpr)
-      canvas.style.width = w + 'px'
-      canvas.style.height = h + 'px'
+      const rect = canvas.getBoundingClientRect()
+      width = rect.width || window.innerWidth
+      height = rect.height || Math.max(420, window.innerHeight * .62)
+      canvas.width = Math.floor(width * dpr)
+      canvas.height = Math.floor(height * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      paddle.y = height - 42
+      paddle.x = Math.max(paddle.width / 2, Math.min(width - paddle.width / 2, paddle.x || width / 2))
+      paddle.targetX = paddle.x
+      if (ball.stuck) { ball.x = paddle.x; ball.y = paddle.y - 18 }
     }
-    resize()
-    window.addEventListener('resize', resize)
+    const buildLevel = () => {
+      const columns = Math.min(11, Math.max(6, Math.floor(width / 68)))
+      const rows = Math.min(7, 3 + currentLevel)
+      const gap = 7
+      const brickWidth = Math.min(58, (width - 40 - gap * (columns - 1)) / columns)
+      const total = columns * brickWidth + (columns - 1) * gap
+      const startX = (width - total) / 2
+      bricks = []
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < columns; col++) {
+          const tough = currentLevel > 1 && (row + col + currentLevel) % 5 === 0
+          bricks.push({
+            x: startX + col * (brickWidth + gap),
+            y: 48 + row * 25,
+            w: brickWidth,
+            h: 17,
+            color: palette[row % palette.length],
+            hp: tough ? 2 : 1,
+            maxHp: tough ? 2 : 1,
+            alive: true
+          })
+        }
+      }
+    }
+    const resetBall = () => {
+      ball = { x: paddle.x, y: paddle.y - 18, vx: (Math.random() > .5 ? 1 : -1) * (3.3 + currentLevel * .25), vy: -(4.6 + currentLevel * .3), radius: 7, stuck: true }
+    }
+    const resizeAndBuild = () => { resize(); buildLevel(); resetBall() }
+    resizeAndBuild()
 
-    const move = event => {
-      const dx = event.clientX - pointerX
-      const dy = event.clientY - pointerY
-      if (Math.hypot(dx, dy) > 1.2) pointerAngle = Math.atan2(dy, dx)
-      pointerX = event.clientX
-      pointerY = event.clientY
-      targetX = event.clientX
-      targetY = event.clientY
+    const movePointer = event => {
+      const rect = canvas.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      paddle.targetX = Math.max(paddle.width / 2, Math.min(width - paddle.width / 2, x))
+      if (ball.stuck) { paddle.x = paddle.targetX; ball.x = paddle.x }
     }
     const touchMove = event => {
       if (event.touches?.[0]) {
-        const touch = event.touches[0]
-        const dx = touch.clientX - pointerX
-        const dy = touch.clientY - pointerY
-        if (Math.hypot(dx, dy) > 1.2) pointerAngle = Math.atan2(dy, dx)
-        pointerX = touch.clientX
-        pointerY = touch.clientY
-        targetX = touch.clientX
-        targetY = touch.clientY
+        const rect = canvas.getBoundingClientRect()
+        const x = event.touches[0].clientX - rect.left
+        paddle.targetX = Math.max(paddle.width / 2, Math.min(width - paddle.width / 2, x))
+        if (ball.stuck) { paddle.x = paddle.targetX; ball.x = paddle.x }
       }
     }
-    const fireMissile = () => {
-      const now = performance.now()
-      if (now - (fireMissile.lastShot || 0) < (now < rapidUntil ? 115 : 260)) return
-      fireMissile.lastShot = now
-      missiles.push({ x: shipX + Math.cos(angle) * 15, y: shipY + Math.sin(angle) * 15, vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12, life: 90, r: 3 })
+    const pointerDown = () => { if (ball.stuck) ball.stuck = false }
+    const keyDown = event => {
+      if (['ArrowLeft', 'ArrowRight', ' '].includes(event.key)) event.preventDefault()
+      keys[event.key.toLowerCase()] = true
+      if (event.code === 'Space' && ball.stuck) ball.stuck = false
     }
-    fireRef.current = fireMissile
-    const pointerDown = event => { if (event.button === 0) fireMissile() }
-    const keydown = event => {
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) event.preventDefault()
-      if (event.code === 'Space') fireMissile()
-      const step = 34
-      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') targetX -= step
-      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') targetX += step
-      if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') targetY -= step
-      if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') targetY += step
-      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','d','w','s'].includes(event.key)) pointerAngle = Math.atan2(targetY - shipY, targetX - shipX)
-      if (event.key === 'Escape') setRunning(false)
-    }
-    window.addEventListener('pointermove', move)
-    canvas.addEventListener('pointerdown', pointerDown)
-    window.addEventListener('touchmove', touchMove, { passive: true })
-    window.addEventListener('keydown', keydown)
-
-    const toastMessage = message => {
-      if (performance.now() - lastToast < 700) return
-      lastToast = performance.now()
-      setToast(message)
-    }
-    const burst = (x, y, color = '#fb923c', count = 18) => {
-      for (let i = 0; i < count; i++) {
-        const a = Math.random() * Math.PI * 2
-        const speed = Math.random() * 4 + .5
-        particles.push({ x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: 1, color, r: Math.random() * 3 + 1 })
+    const keyUp = event => { keys[event.key.toLowerCase()] = false }
+    const burst = (x, y, color) => {
+      for (let i = 0; i < 7; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const speed = 1 + Math.random() * 3
+        particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color })
       }
     }
-    const spawnAsteroid = (boss = false) => {
-      const w = window.innerWidth, h = window.innerHeight
-      const side = Math.floor(Math.random() * 4)
-      const margin = boss ? 70 : 28
-      const x = side === 1 ? w + margin : side === 3 ? -margin : Math.random() * w
-      const y = side === 0 ? -margin : side === 2 ? h + margin : Math.random() * h
-      // Original APML defence logic: comets head for the central station,
-      // not towards the player's rocket.
-      const targetX = w / 2
-      const targetY = h / 2
-      const targetAngle = Math.atan2(targetY - y, targetX - x)
-      const speed = boss ? 1.05 + statsRef.current.level * .035 : (1.05 + Math.random() * 1.25) * (1 + (statsRef.current.level - 1) * .12)
-      const radius = boss ? Math.min(54, Math.max(38, Math.min(w, h) * .065)) : 13 + Math.random() * 17
-      const sides = boss ? 11 : 7 + Math.floor(Math.random() * 4)
-      asteroids.push({ x, y, vx: Math.cos(targetAngle) * speed, vy: Math.sin(targetAngle) * speed, r: radius, sides, angle: Math.random() * 6, spin: (Math.random() - .5) * .045, boss, hp: boss ? 10 + Math.floor(statsRef.current.level / 2) : 1, maxHp: boss ? 10 + Math.floor(statsRef.current.level / 2) : 1 })
-      if (boss) { bossActive = true; bossSpawnedAt = statsRef.current.level; toastMessage('BOSS INBOUND · LEVEL ' + statsRef.current.level) }
-    }
-    const addPoints = (points, x, y, color) => {
-      const nextScore = statsRef.current.score + points
-      const nextLevel = Math.floor(nextScore / 250) + 1
-      statsRef.current.score = nextScore
-      setScore(nextScore)
-      if (nextScore > Number(localStorage.getItem(HIGH_SCORE_KEY) || 0)) {
-        setHighScore(nextScore)
-        localStorage.setItem(HIGH_SCORE_KEY, String(nextScore))
-      }
-      burst(x, y, color || '#fb923c', 22)
-      if (nextLevel > statsRef.current.level) {
-        statsRef.current.level = nextLevel
-        setLevel(nextLevel)
-        toastMessage('LEVEL ' + nextLevel + ' · THREAT LEVEL INCREASED')
-      }
-    }
-    const loseLife = () => {
-      if (performance.now() < shieldUntil) { toastMessage('SHIELD ABSORBED THE IMPACT'); return }
-      const next = statsRef.current.lives - 1
-      statsRef.current.lives = next
-      setLives(next)
-      if (next <= 0) {
-        setRunning(false)
+    const loseBall = () => {
+      currentLives -= 1
+      setLives(currentLives)
+      if (currentLives <= 0) {
+        ended = true
         setGameOver(true)
-        burst(shipX, shipY, '#ef4444', 45)
-      } else {
-        shieldUntil = performance.now() + 900
-        toastMessage('LIFELINE LOST · ' + next + ' REMAINING')
+        setRunning(false)
+        return
       }
+      resetBall()
+      setToast('BALL LOST · ' + currentLives + ' LIVES LEFT')
+      messageTimer = 100
     }
-
-    let timeNowForShip = 0
-    const drawShip = () => {
-      // The original APML red mini-rocket, not the CRT mascot.
-      ctx.save()
-      ctx.translate(shipX, shipY)
-      ctx.rotate(angle + Math.PI / 2)
-      ctx.shadowColor = '#f97316'
-      ctx.shadowBlur = 14
-      const flame = 8 + Math.random() * 7
-      ctx.fillStyle = '#f59e0b'
-      ctx.beginPath()
-      ctx.moveTo(-4, 13); ctx.lineTo(0, 13 + flame); ctx.lineTo(4, 13); ctx.closePath(); ctx.fill()
-      ctx.fillStyle = '#fde68a'
-      ctx.beginPath()
-      ctx.moveTo(-2, 13); ctx.lineTo(0, 13 + flame * .62); ctx.lineTo(2, 13); ctx.closePath(); ctx.fill()
-      ctx.shadowColor = '#ef4444'
-      ctx.shadowBlur = 18
-      ctx.fillStyle = '#b91c1c'
-      ctx.strokeStyle = '#0f172a'
-      ctx.lineWidth = 1.3
-      ctx.beginPath()
-      ctx.moveTo(0, -21); ctx.bezierCurveTo(8, -14, 9, -4, 7, 10)
-      ctx.lineTo(0, 14); ctx.lineTo(-7, 10)
-      ctx.bezierCurveTo(-9, -4, -8, -14, 0, -21)
-      ctx.closePath(); ctx.fill(); ctx.stroke()
-      ctx.fillStyle = '#334155'
-      ctx.beginPath(); ctx.moveTo(-7, 2); ctx.lineTo(-15, 10); ctx.lineTo(-14, 15); ctx.lineTo(-5, 12); ctx.closePath(); ctx.fill(); ctx.stroke()
-      ctx.beginPath(); ctx.moveTo(7, 2); ctx.lineTo(15, 10); ctx.lineTo(14, 15); ctx.lineTo(5, 12); ctx.closePath(); ctx.fill(); ctx.stroke()
-      ctx.fillStyle = '#e2e8f0'
-      ctx.beginPath(); ctx.arc(0, -9, 3.1, 0, Math.PI * 2); ctx.fill(); ctx.stroke()
-      ctx.restore()
-      if (timeNowForShip < shieldUntil) {
-        ctx.beginPath(); ctx.arc(shipX, shipY, 28, 0, Math.PI * 2)
-        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2
-        ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 18; ctx.stroke(); ctx.shadowBlur = 0
-      }
+    const finishLevel = () => {
+      currentLevel += 1
+      setLevel(currentLevel)
+      setToast('LEVEL ' + currentLevel + ' · NICE WORK!')
+      messageTimer = 110
+      buildLevel()
+      resetBall()
     }
+    const draw = time => {
+      const dt = Math.min(2, (time - (last || time)) / 16.67 || 1)
+      last = time
+      ctx.clearRect(0, 0, width, height)
+      const bg = ctx.createLinearGradient(0, 0, width, height)
+      bg.addColorStop(0, '#111b30')
+      bg.addColorStop(1, '#080d18')
+      ctx.fillStyle = bg
+      ctx.fillRect(0, 0, width, height)
 
-    const loop = time => {
-      const w = window.innerWidth, h = window.innerHeight
-      timeNowForShip = time
-      const dt = Math.min(2.2, (time - (lastTime || time)) / 16.67 || 1)
-      lastTime = time
-      ctx.clearRect(0, 0, w, h)
-      const bg = ctx.createRadialGradient(w * .5, h * .4, 10, w * .5, h * .5, Math.max(w, h))
-      bg.addColorStop(0, '#172337'); bg.addColorStop(1, '#080d17')
-      ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h)
-      stars.forEach(star => {
-        star.y += star.speed * dt
-        if (star.y > 1) star.y = 0
-        ctx.globalAlpha = .35 + star.r / 3
-        ctx.fillStyle = '#dbeafe'
-        ctx.beginPath(); ctx.arc(star.x * w, star.y * h, star.r, 0, Math.PI * 2); ctx.fill()
-      })
-      ctx.globalAlpha = 1
-      shipX += (Math.max(22, Math.min(w - 22, targetX)) - shipX) * .18 * dt
-      shipY += (Math.max(80, Math.min(h - 28, targetY)) - shipY) * .18 * dt
-      // Rocket heading follows the last actual pointer/steering movement.
-      // It holds that heading when the pointer stops; it never tracks targets.
-      let difference = ((pointerAngle - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
-      angle += difference * Math.min(1, .24 * dt)
-      // Recover the wave scheduler if a boss was removed by any collision path.
-      if (bossActive && !asteroids.some(asteroid => asteroid.boss)) bossActive = false
-      const levelNow = statsRef.current.level
-      const spawnDelay = Math.max(430, 1350 - (levelNow - 1) * 85)
-      if (!bossActive && levelNow >= 5 && levelNow % 5 === 0 && bossSpawnedAt !== levelNow) spawnAsteroid(true)
-      if (!bossActive && time - lastSpawn > spawnDelay) { spawnAsteroid(false); lastSpawn = time }
+      // Subtle arcade grid and ambient lights.
+      ctx.strokeStyle = 'rgba(148,163,184,.055)'
+      ctx.lineWidth = 1
+      for (let x = 0; x < width; x += 36) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke() }
+      for (let y = 0; y < height; y += 36) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke() }
 
-      for (let i = missiles.length - 1; i >= 0; i--) {
-        const m = missiles[i]
-        m.x += m.vx * dt; m.y += m.vy * dt; m.life -= dt
-        ctx.fillStyle = '#7dd3fc'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 14
-        ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
-        if (m.life <= 0 || m.x < -50 || m.x > w + 50 || m.y < -50 || m.y > h + 50) missiles.splice(i, 1)
-      }
-      for (let i = asteroids.length - 1; i >= 0; i--) {
-        const a = asteroids[i]
-        a.x += a.vx * dt; a.y += a.vy * dt; a.angle += a.spin * dt
-        ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(a.angle)
-        ctx.beginPath()
-        for (let n = 0; n < a.sides; n++) {
-          const ang = n / a.sides * Math.PI * 2
-          const radius = a.r * (.78 + .22 * Math.sin(n * 13.7 + i))
-          if (!n) ctx.moveTo(Math.cos(ang) * radius, Math.sin(ang) * radius)
-          else ctx.lineTo(Math.cos(ang) * radius, Math.sin(ang) * radius)
+      if (keys.arrowleft || keys.a) paddle.targetX -= 7 * dt
+      if (keys.arrowright || keys.d) paddle.targetX += 7 * dt
+      paddle.targetX = Math.max(paddle.width / 2, Math.min(width - paddle.width / 2, paddle.targetX))
+      paddle.x += (paddle.targetX - paddle.x) * Math.min(1, .32 * dt)
+      if (ball.stuck) { ball.x = paddle.x; ball.y = paddle.y - 18 }
+      else {
+        ball.x += ball.vx * dt
+        ball.y += ball.vy * dt
+        if (ball.x < ball.radius) { ball.x = ball.radius; ball.vx = Math.abs(ball.vx) }
+        if (ball.x > width - ball.radius) { ball.x = width - ball.radius; ball.vx = -Math.abs(ball.vx) }
+        if (ball.y < ball.radius) { ball.y = ball.radius; ball.vy = Math.abs(ball.vy) }
+        if (ball.y > height + ball.radius) loseBall()
+
+        // Paddle collision.
+        if (ball.vy > 0 && ball.y + ball.radius >= paddle.y && ball.y - ball.radius <= paddle.y + paddle.height &&
+          ball.x >= paddle.x - paddle.width / 2 && ball.x <= paddle.x + paddle.width / 2) {
+          const hit = (ball.x - paddle.x) / (paddle.width / 2)
+          const speed = Math.min(9.5, Math.hypot(ball.vx, ball.vy) + .12)
+          const angle = hit * 1.05
+          ball.vx = Math.sin(angle) * speed
+          ball.vy = -Math.cos(angle) * speed
+          ball.y = paddle.y - ball.radius - 1
         }
-        ctx.closePath()
-        const gradient = ctx.createRadialGradient(-a.r * .25, -a.r * .3, 2, 0, 0, a.r)
-        gradient.addColorStop(0, a.boss ? '#fef3c7' : '#fca58a')
-        gradient.addColorStop(.5, a.boss ? '#f97316' : '#c64d43')
-        gradient.addColorStop(1, '#2b2036')
-        ctx.fillStyle = gradient; ctx.shadowColor = a.boss ? '#f97316' : '#ef4444'; ctx.shadowBlur = a.boss ? 24 : 13; ctx.fill()
-        ctx.strokeStyle = a.boss ? '#fbbf24' : '#fb9276'; ctx.lineWidth = 1.4; ctx.stroke()
-        ctx.restore()
-        if (a.boss) {
-          ctx.fillStyle = '#fde68a'; ctx.font = '800 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ASTEROID OVERLORD', a.x, a.y - a.r - 17)
-          ctx.fillStyle = '#334155'; ctx.fillRect(a.x - 28, a.y - a.r - 11, 56, 4)
-          ctx.fillStyle = '#f97316'; ctx.fillRect(a.x - 28, a.y - a.r - 11, 56 * (a.hp / a.maxHp), 4)
-        }
-        // Original rules: touching a comet with the rocket destroys it;
-        // the station loses a life only when a comet reaches the core or escapes.
-        if (Math.hypot(a.x - shipX, a.y - shipY) < a.r + 13 && time > shieldUntil) {
-          if (a.boss) bossActive = false
-          asteroids.splice(i, 1)
-          addPoints(15, a.x, a.y, '#fbbf24')
-          burst(a.x, a.y, '#fbbf24', 28)
-          continue
-        }
-        if (Math.hypot(a.x - w / 2, a.y - h / 2) < a.r + 34) {
-          if (a.boss) bossActive = false
-          asteroids.splice(i, 1)
-          burst(a.x, a.y)
-          loseLife()
-          continue
-        }
-        let destroyed = false
-        for (let j = missiles.length - 1; j >= 0; j--) {
-          if (Math.hypot(a.x - missiles[j].x, a.y - missiles[j].y) < a.r + 5) {
-            missiles.splice(j, 1)
-            a.hp -= 1
-            if (a.hp <= 0) {
-              asteroids.splice(i, 1)
-              if (a.boss) { bossActive = false; addPoints(250, a.x, a.y, '#fbbf24'); powerUps.push({ x: a.x, y: a.y, type: 'repair', life: 900 }); toastMessage('BOSS DESTROYED · BONUS SECURED') }
-              else {
-                addPoints(10, a.x, a.y)
-                // Ordinary asteroids can drop the advertised temporary power-ups.
-                if (Math.random() < 0.12) {
-                  const type = ['shield', 'rapid', 'repair'][Math.floor(Math.random() * 3)]
-                  powerUps.push({ x: a.x, y: a.y, type, life: 900 })
-                }
-                if (a.r > 24) {
-                  for (let n = 0; n < 2; n++) asteroids.push({ x: a.x, y: a.y, vx: (Math.random() - .5) * 4, vy: (Math.random() - .5) * 4, r: a.r * .52, sides: 7, angle: 0, spin: .03, boss: false, hp: 1, maxHp: 1 })
-                }
+
+        // Brick collision.
+        for (const brick of bricks) {
+          if (!brick.alive) continue
+          if (ball.x + ball.radius > brick.x && ball.x - ball.radius < brick.x + brick.w &&
+              ball.y + ball.radius > brick.y && ball.y - ball.radius < brick.y + brick.h) {
+            brick.hp -= 1
+            if (brick.hp <= 0) {
+              brick.alive = false
+              currentScore += 10 * currentLevel
+              setScore(currentScore)
+              burst(brick.x + brick.w / 2, brick.y + brick.h / 2, brick.color)
+              if (currentScore > Number(localStorage.getItem(HIGH_SCORE_KEY) || 0)) {
+                localStorage.setItem(HIGH_SCORE_KEY, String(currentScore))
+                setHighScore(currentScore)
               }
-              destroyed = true
+            } else {
+              currentScore += 5 * currentLevel
+              setScore(currentScore)
             }
+            const overlapLeft = ball.x + ball.radius - brick.x
+            const overlapRight = brick.x + brick.w - (ball.x - ball.radius)
+            const overlapTop = ball.y + ball.radius - brick.y
+            const overlapBottom = brick.y + brick.h - (ball.y - ball.radius)
+            if (Math.min(overlapLeft, overlapRight) < Math.min(overlapTop, overlapBottom)) ball.vx *= -1
+            else ball.vy *= -1
             break
           }
         }
-        if (destroyed) continue
-        if (a.x < -100 || a.x > w + 100 || a.y < -100 || a.y > h + 100) {
-          asteroids.splice(i, 1)
-          if (a.boss) bossActive = false
-          else loseLife()
-        }
+        if (bricks.every(brick => !brick.alive)) finishLevel()
       }
-      for (let i = powerUps.length - 1; i >= 0; i--) {
-        const p = powerUps[i]; p.y += 1.15 * dt; p.life -= dt
-        const color = p.type === 'shield' ? '#38bdf8' : p.type === 'rapid' ? '#a78bfa' : '#4ade80'
-        ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 15
-        ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
-        ctx.fillStyle = '#101827'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(p.type === 'shield' ? 'S' : p.type === 'rapid' ? 'R' : '+', p.x, p.y + 4)
-        if (Math.hypot(p.x - shipX, p.y - shipY) < 27) {
-          if (p.type === 'shield') { shieldUntil = time + 5000; toastMessage('SHIELD ACTIVE') }
-          else if (p.type === 'rapid') { rapidUntil = time + 5000; toastMessage('RAPID FIRE ACTIVE') }
-          else { statsRef.current.lives = Math.min(5, statsRef.current.lives + 1); setLives(statsRef.current.lives); toastMessage('REPAIR KIT · +1 LIFE') }
-          burst(p.x, p.y, color, 12); powerUps.splice(i, 1)
-        } else if (p.life <= 0 || p.y > h + 30) powerUps.splice(i, 1)
+
+      // Bricks.
+      for (const brick of bricks) {
+        if (!brick.alive) continue
+        ctx.save()
+        ctx.shadowColor = brick.color
+        ctx.shadowBlur = 12
+        ctx.fillStyle = brick.hp > 1 ? '#e2e8f0' : brick.color
+        ctx.beginPath()
+        ctx.roundRect(brick.x, brick.y, brick.w, brick.h, 5)
+        ctx.fill()
+        ctx.shadowBlur = 0
+        ctx.fillStyle = 'rgba(255,255,255,.24)'
+        ctx.fillRect(brick.x + 5, brick.y + 3, Math.max(4, brick.w - 10), 2)
+        ctx.restore()
       }
+
+      // Paddle.
+      ctx.save()
+      ctx.shadowColor = '#38bdf8'
+      ctx.shadowBlur = 20
+      const paddleGradient = ctx.createLinearGradient(paddle.x - paddle.width / 2, 0, paddle.x + paddle.width / 2, 0)
+      paddleGradient.addColorStop(0, '#0ea5e9')
+      paddleGradient.addColorStop(.5, '#e0f2fe')
+      paddleGradient.addColorStop(1, '#0ea5e9')
+      ctx.fillStyle = paddleGradient
+      ctx.beginPath()
+      ctx.roundRect(paddle.x - paddle.width / 2, paddle.y, paddle.width, paddle.height, 8)
+      ctx.fill()
+      ctx.restore()
+
+      // Ball.
+      ctx.save()
+      ctx.shadowColor = '#fff'
+      ctx.shadowBlur = 18
+      const ballGradient = ctx.createRadialGradient(ball.x - 2, ball.y - 2, 1, ball.x, ball.y, ball.radius + 2)
+      ballGradient.addColorStop(0, '#fff')
+      ballGradient.addColorStop(1, '#7dd3fc')
+      ctx.fillStyle = ballGradient
+      ctx.beginPath()
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i]
         p.x += p.vx * dt; p.y += p.vy * dt; p.life -= .035 * dt
-        ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill()
+        ctx.globalAlpha = Math.max(0, p.life)
+        ctx.fillStyle = p.color
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2.3, 0, Math.PI * 2); ctx.fill()
         if (p.life <= 0) particles.splice(i, 1)
       }
       ctx.globalAlpha = 1
-      if (time < shieldUntil) { ctx.beginPath(); ctx.arc(shipX, shipY, 28, 0, Math.PI * 2); ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 18; ctx.stroke(); ctx.shadowBlur = 0 }
-      if (time < rapidUntil) { ctx.fillStyle = '#c4b5fd'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('RAPID', shipX, shipY + 35) }
-      drawShip()
-      raf = requestAnimationFrame(loop)
+      if (messageTimer > 0) {
+        messageTimer -= dt
+        ctx.fillStyle = '#e2e8f0'
+        ctx.font = '800 12px system-ui'
+        ctx.textAlign = 'center'
+        ctx.fillText(toast, width / 2, height * .66)
+      }
+      if (ball.stuck) {
+        ctx.fillStyle = 'rgba(226,232,240,.72)'
+        ctx.font = '700 11px system-ui'
+        ctx.textAlign = 'center'
+        ctx.fillText('CLICK · TAP · OR PRESS SPACE TO LAUNCH', width / 2, height - 15)
+      }
+      if (!ended) raf = requestAnimationFrame(draw)
     }
-    raf = requestAnimationFrame(loop)
+    const onResize = () => { resize(); buildLevel() }
+    window.addEventListener('resize', onResize)
+    canvas.addEventListener('pointermove', movePointer)
+    canvas.addEventListener('pointerdown', pointerDown)
+    window.addEventListener('touchmove', touchMove, { passive: true })
+    window.addEventListener('keydown', keyDown)
+    window.addEventListener('keyup', keyUp)
+    raf = requestAnimationFrame(draw)
     return () => {
       cancelAnimationFrame(raf)
-      window.removeEventListener('resize', resize)
+      window.removeEventListener('resize', onResize)
+      canvas.removeEventListener('pointermove', movePointer)
       canvas.removeEventListener('pointerdown', pointerDown)
-      fireRef.current = null
-      window.removeEventListener('pointermove', move)
       window.removeEventListener('touchmove', touchMove)
-      window.removeEventListener('keydown', keydown)
+      window.removeEventListener('keydown', keyDown)
+      window.removeEventListener('keyup', keyUp)
     }
   }, [running])
 
   const saveScore = async event => {
     event.preventDefault()
     if (saving || saved) return
-    const callsign = pilot.trim().slice(0, 18) || 'Pilot'
+    const callsign = pilot.trim().slice(0, 18) || 'Player'
     setSaving(true)
-    const entry = { pilot: callsign, score, level, date: new Date().toLocaleDateString('en-GB'), timestamp: Date.now(), isoDate: new Date().toISOString() }
-    const local = [...readLocalScores(), entry].sort((a, b) => b.score - a.score).slice(0, 30)
+    const entry = { pilot: callsign, score, level, date: new Date().toLocaleDateString('en-GB'), timestamp: Date.now(), isoDate: new Date().toISOString(), game: 'neon-breakout' }
+    const local = [...readLocalScores(), entry].sort((a, b) => Number(b.score) - Number(a.score)).slice(0, 30)
     localStorage.setItem(LOCAL_SCORES_KEY, JSON.stringify(local))
     localStorage.setItem(PILOT_KEY, callsign)
     setLeaderboard(local)
@@ -420,7 +358,7 @@ export default function NotFound() {
       const snapshot = await db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value')
       const globalEntries = []
       snapshot.forEach(child => globalEntries.push(child.val()))
-      globalEntries.sort((a, b) => (b.score || 0) - (a.score || 0))
+      globalEntries.sort((a, b) => Number(b.score) - Number(a.score))
       setLeaderboard(globalEntries)
     } catch {
       setLeaderboard(local)
@@ -432,69 +370,82 @@ export default function NotFound() {
   const closeScorecard = () => {
     setGameOver(false)
     setRunning(false)
-    setScore(0)
-    setLives(5)
-    setLevel(1)
-    statsRef.current = { score: 0, lives: 5, level: 1 }
   }
 
   return (
     <main className="not-found-page">
-      <section className="not-found-intro">
-        <div className="not-found-code"><span>4</span><span className="not-found-orbit">✦</span><span>4</span></div>
-        <div className="not-found-kicker"><ShieldAlert size={15}/> SIGNAL LOST · ERROR 404</div>
-        <div className="apml-crt-mascot" ref={mascotRef} role="img" aria-label="APML friendly CRT mascot" />
-        <h1>Looks like you drifted <span>off course.</span></h1>
-        <p>The page you're looking for isn't in this sector. You can help defend the APML station while you're here.</p>
-        <div className="not-found-actions">
-          <Link to="/" className="not-found-home"><Home size={17}/> Back to APML Home</Link>
-          <button type="button" className="not-found-retry" onClick={() => window.history.back()}><ArrowLeft size={16}/> Go back</button>
+      <div className="nf-background-glow" aria-hidden="true" />
+      <section className="nf-content">
+        <div className="nf-code" aria-label="Error 404"><span>4</span><span className="nf-code-spark">✦</span><span>4</span></div>
+        <div className="nf-kicker"><ShieldAlert size={14}/> SIGNAL LOST · ERROR 404</div>
+        <div className="nf-illustration" aria-hidden="true"><Gamepad2 size={54}/><Sparkles className="nf-sparkle" size={20}/></div>
+        <h1>Oops! Wrong turn.</h1>
+        <p>The page you're looking for has drifted out of reach. Head back to APML, or take a quick break with a little arcade classic.</p>
+        <div className="nf-actions">
+          <Link to="/" className="nf-primary"><Home size={16}/> Back to APML Home</Link>
+          <button type="button" className="nf-secondary" onClick={() => window.history.back()}><ArrowLeft size={16}/> Go back</button>
         </div>
       </section>
 
-      <section className="not-found-game">
-        <div className="not-found-game-head">
-          <div><span className="not-found-kicker"><Rocket size={14}/> APML SPACE DEFENSE</span><h2>Defend the station</h2><p>Steer your ship, destroy incoming asteroids and collect power-ups.</p></div>
-          <div className="not-found-stats"><span>BEST <b>{highScore.toLocaleString()}</b></span><span>TOP PILOT <b>{leaderboard[0]?.pilot || '—'}</b></span></div>
+      <section className="nf-game-section">
+        <div className="nf-game-heading">
+          <div>
+            <span className="nf-game-label"><Sparkles size={14}/> APML ARCADE</span>
+            <h2>Neon Breakout</h2>
+            <p>Break every brick. Keep the ball in play. Beat your best score.</p>
+          </div>
+          <div className="nf-best-score"><Trophy size={16}/><span>PERSONAL BEST<strong>{highScore.toLocaleString()}</strong></span></div>
         </div>
-        <div className="not-found-launch-card">
-          <div className="not-found-launch-art"><Rocket size={38}/><span>✦</span></div>
-          <div><strong>Ready for launch?</strong><p>Move to steer. Click or tap to fire, or press Space. Reach level 5 to face the Overlord.</p></div>
-          <button type="button" onClick={startGame}><Rocket size={16}/> Start mission</button>
+        <div className="nf-game-panel">
+          <div className="nf-game-preview" aria-hidden="true">
+            <div className="nf-preview-bricks">{Array.from({ length: 24 }, (_, i) => <i key={i} />)}</div>
+            <div className="nf-preview-ball" />
+            <div className="nf-preview-paddle" />
+          </div>
+          <div className="nf-game-info">
+            <strong>Ready to break out?</strong>
+            <p>Move the paddle with your mouse, touch or arrow keys. Click, tap or press Space to launch the ball.</p>
+            <button type="button" className="nf-start-button" onClick={startGame}><Gamepad2 size={17}/> Play Neon Breakout</button>
+          </div>
         </div>
-        <div className="not-found-leaderboard-preview">
-          <div><Trophy size={16}/><strong>APML Pilot Rankings</strong></div>
-          {leaderboard.length ? leaderboard.slice(0, 3).map((item, index) => <span key={(item.timestamp || item.date || 'score') + '-' + index}>#{index + 1} {item.pilot || 'Pilot'} · {(item.score || 0).toLocaleString()} pts</span>) : <small>No saved scores found yet.</small>}
-          <button type="button" className="apml-view-scores" onClick={() => setShowLeaderboard(true)}>View full scoreboard <ArrowLeft size={13}/></button>
+        <div className="nf-game-footer">
+          <div className="nf-controls"><span><b>← →</b> Move</span><span><b>SPACE</b> Launch</span><span><b>TOUCH</b> Drag paddle</span></div>
+          <button type="button" className="nf-leaderboard-button" onClick={() => setShowLeaderboard(true)}><Trophy size={14}/> View scoreboard</button>
         </div>
       </section>
-      <p className="not-found-signoff">APML PORTAL <span>·</span> LOST IN SPACE, NOT FOR LONG.</p>
+      <p className="nf-signoff">APML PORTAL <span>·</span> EVEN A WRONG TURN CAN BE FUN.</p>
 
-      {running && <div className="apml-arcade-live">
-        <canvas ref={canvasRef} aria-label="APML asteroid arcade. Move your ship with the mouse, touch or arrow keys."/>
-        <div className="apml-arcade-scoreboard">
-          <span>SCORE <b>{score.toLocaleString()}</b></span><i/><span>HIGH <b>{highScore.toLocaleString()}</b></span><i/><span>LVL <b>{level}</b></span><i/><span className="apml-arcade-lives"><Heart size={14}/><b>{lives}</b></span>
-          <button type="button" onClick={() => setRunning(false)} aria-label="Quit mission"><X size={15}/> Quit</button>
+      {running && <div className="nf-game-overlay">
+        <div className="nf-game-hud">
+          <span>SCORE <b>{score.toLocaleString()}</b></span><i/>
+          <span>BEST <b>{highScore.toLocaleString()}</b></span><i/>
+          <span>LEVEL <b>{level}</b></span><i/>
+          <span className="nf-lives"><Heart size={14}/><b>{lives}</b></span>
+          <button type="button" onClick={() => { setRunning(false); setGameOver(false) }}><X size={15}/> Exit</button>
         </div>
-        {toast && <div className="apml-arcade-toast">{toast}</div>}
-        <button type="button" className="apml-mobile-fire" onPointerDown={event => event.stopPropagation()} onClick={() => fireRef.current?.()}>FIRE <Zap size={17}/></button>
-        <div className="apml-arcade-hint">MOVE TO STEER · CLICK / TAP OR SPACE TO FIRE · ESC TO QUIT</div>
+        <canvas ref={canvasRef} aria-label="Neon Breakout game. Move the paddle with mouse, touch or arrow keys. Launch with click, tap or Space." />
+        <div className="nf-overlay-hint">MOVE PADDLE · CLICK / TAP / SPACE TO LAUNCH</div>
       </div>}
 
-      {(gameOver || showLeaderboard) && <div className="apml-scorecard-backdrop">
-        <section className="apml-scorecard" aria-label="Mission scorecard">
-          <div className="apml-scorecard-head"><span><Trophy size={15}/> {showLeaderboard ? 'GLOBAL RANKINGS' : 'MISSION DEBRIEF'}</span><button type="button" onClick={() => { setShowLeaderboard(false); if (gameOver) closeScorecard() }} aria-label="Close scorecard"><X size={18}/></button></div>
-          <h2>{showLeaderboard ? 'APML Scoreboard' : 'Defense Over'}</h2>
-          <p className="apml-scorecard-sub">{showLeaderboard ? 'The top saved pilot scores from APML arcade.' : 'Your run has ended. Record your score among APML pilots.'}</p>
-          {!showLeaderboard && <div className="apml-final-stats"><div><small>FINAL SCORE</small><strong>{score.toLocaleString()}</strong></div><div><small>LEVEL REACHED</small><strong>{level}</strong></div><div><small>BEST SCORE</small><strong>{highScore.toLocaleString()}</strong></div></div>}
-          {!showLeaderboard && <form className="apml-score-save" onSubmit={saveScore}>
-            <label htmlFor="apml-pilot-name">PILOT CALLSIGN</label>
-            <input id="apml-pilot-name" maxLength={18} value={pilot} onChange={event => setPilot(event.target.value)} placeholder="Enter your name" />
-            <button type="submit" disabled={saving || saved}>{saving ? 'Saving score…' : saved ? '✓ Score saved' : 'Save score'}</button>
+      {(gameOver || showLeaderboard) && <div className="nf-modal-backdrop">
+        <section className="nf-modal" aria-label="APML arcade scoreboard">
+          <div className="nf-modal-head"><span><Trophy size={15}/> {showLeaderboard ? 'APML ARCADE RANKINGS' : 'GAME OVER'}</span><button type="button" onClick={() => { setShowLeaderboard(false); if (gameOver) closeScorecard() }} aria-label="Close"><X size={18}/></button></div>
+          <h2>{showLeaderboard ? 'High Scores' : 'Nice try!'}</h2>
+          <p>{showLeaderboard ? 'Top saved scores from APML players.' : 'That was a good run. Save your score to the APML scoreboard.'}</p>
+          {!showLeaderboard && <div className="nf-result-score"><small>YOUR SCORE</small><strong>{score.toLocaleString()}</strong><span>LEVEL {level} · BEST {highScore.toLocaleString()}</span></div>}
+          {!showLeaderboard && <form className="nf-save-form" onSubmit={saveScore}>
+            <label htmlFor="apml-breakout-player">PLAYER NAME</label>
+            <div><input id="apml-breakout-player" maxLength={18} value={pilot} onChange={event => setPilot(event.target.value)} placeholder="Enter your name"/><button type="submit" disabled={saving || saved}>{saving ? 'Saving…' : saved ? '✓ Saved' : 'Save score'}</button></div>
           </form>}
-          <div className="apml-score-rank-head"><strong><Trophy size={15}/> APML SCOREBOARD</strong><span>TOP 30</span></div>
-          <div className="apml-score-rank-list">{leaderboard.slice(0, 30).map((item, index) => <div className={index < 3 ? 'apml-rank-row top' : 'apml-rank-row'} key={(item.timestamp || item.date || 'entry') + '-' + index}><b>#{index + 1}</b><span>{item.pilot || 'Pilot'} <small>LVL {item.level || 1}</small></span><strong>{Number(item.score || 0).toLocaleString()}</strong></div>)}</div>
-          <div className="apml-scorecard-actions">{gameOver && <button type="button" className="secondary" onClick={closeScorecard}>Exit</button>}{showLeaderboard && <button type="button" className="secondary" onClick={() => setShowLeaderboard(false)}>Close</button>}{gameOver && <button type="button" onClick={startGame}><RotateCcw size={15}/> Play again</button>}</div>
+          <div className="nf-rank-list">
+            {leaderboard.slice(0, 30).map((item, index) => <div className="nf-rank-row" key={(item.timestamp || item.date || 'score') + '-' + index}><b>#{index + 1}</b><span>{item.pilot || 'Player'}<small>LEVEL {item.level || 1}</small></span><strong>{Number(item.score || 0).toLocaleString()}</strong></div>)}
+            {!leaderboard.length && <div className="nf-empty">No scores yet. Be the first on the board!</div>}
+          </div>
+          <div className="nf-modal-actions">
+            {gameOver && <button type="button" className="nf-secondary" onClick={closeScorecard}>Exit</button>}
+            {showLeaderboard && <button type="button" className="nf-secondary" onClick={() => setShowLeaderboard(false)}>Close</button>}
+            {gameOver && <button type="button" className="nf-primary" onClick={startGame}><RotateCcw size={15}/> Play again</button>}
+          </div>
         </section>
       </div>}
     </main>
