@@ -35,21 +35,6 @@ export default function NotFound() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
 
   useEffect(() => {
-    const mascot = mascotRef.current
-    if (!mascot) return undefined
-    const look = event => {
-      const rect = mascot.getBoundingClientRect()
-      const dx = event.clientX - (rect.left + rect.width / 2)
-      const dy = event.clientY - (rect.top + rect.height / 2)
-      const col = dx < -rect.width * .32 ? 0 : dx > rect.width * .32 ? 2 : 1
-      const row = dy < -rect.height * .32 ? 0 : dy > rect.height * .32 ? 2 : 1
-      mascot.style.backgroundPosition = `${col * 50}% ${row * 50}%`
-    }
-    window.addEventListener('pointermove', look)
-    return () => window.removeEventListener('pointermove', look)
-  }, [])
-
-  useEffect(() => {
     let alive = true
     const loadLeaderboard = async () => {
       try {
@@ -177,7 +162,11 @@ export default function NotFound() {
       const margin = boss ? 70 : 28
       const x = side === 1 ? w + margin : side === 3 ? -margin : Math.random() * w
       const y = side === 0 ? -margin : side === 2 ? h + margin : Math.random() * h
-      const targetAngle = Math.atan2(shipY - y, shipX - x)
+      // Original APML defence logic: comets head for the central station,
+      // not towards the player's rocket.
+      const targetX = w / 2
+      const targetY = h / 2
+      const targetAngle = Math.atan2(targetY - y, targetX - x)
       const speed = boss ? 1.05 + statsRef.current.level * .035 : (1.05 + Math.random() * 1.25) * (1 + (statsRef.current.level - 1) * .12)
       const radius = boss ? Math.min(54, Math.max(38, Math.min(w, h) * .065)) : 13 + Math.random() * 17
       const sides = boss ? 11 : 7 + Math.floor(Math.random() * 4)
@@ -215,35 +204,42 @@ export default function NotFound() {
       }
     }
 
-    const crtDirections = new Image()
-    crtDirections.src = 'https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-directions.webp'
-    const crtReactions = new Image()
-    crtReactions.src = 'https://raw.githubusercontent.com/kundarwork-debug/Side-Quote-Generator/main/assets/empty-states/images/crt-reactions.webp'
     let timeNowForShip = 0
     const drawShip = () => {
+      // The original APML red mini-rocket, not the CRT mascot.
       ctx.save()
-      ctx.shadowColor = '#7dd3fc'
+      ctx.translate(shipX, shipY)
+      ctx.rotate(angle + Math.PI / 2)
+      ctx.shadowColor = '#f97316'
+      ctx.shadowBlur = 14
+      const flame = 8 + Math.random() * 7
+      ctx.fillStyle = '#f59e0b'
+      ctx.beginPath()
+      ctx.moveTo(-4, 13); ctx.lineTo(0, 13 + flame); ctx.lineTo(4, 13); ctx.closePath(); ctx.fill()
+      ctx.fillStyle = '#fde68a'
+      ctx.beginPath()
+      ctx.moveTo(-2, 13); ctx.lineTo(0, 13 + flame * .62); ctx.lineTo(2, 13); ctx.closePath(); ctx.fill()
+      ctx.shadowColor = '#ef4444'
       ctx.shadowBlur = 18
-      if (crtDirections.complete && crtDirections.naturalWidth) {
-        const col = Math.cos(angle) < -0.38 ? 0 : Math.cos(angle) > 0.38 ? 2 : 1
-        const row = Math.sin(angle) < -0.38 ? 0 : Math.sin(angle) > 0.38 ? 2 : 1
-        const frameSize = crtDirections.naturalWidth / 3
-        ctx.drawImage(crtDirections, col * frameSize, row * frameSize, frameSize, frameSize, shipX - 30, shipY - 30, 60, 60)
-      } else {
-        ctx.translate(shipX, shipY)
-        ctx.rotate(angle + Math.PI / 2)
-        ctx.fillStyle = '#f8fafc'
-        ctx.beginPath()
-        ctx.moveTo(0, -20); ctx.lineTo(14, 15); ctx.lineTo(0, 8); ctx.lineTo(-14, 15)
-        ctx.closePath(); ctx.fill()
-        ctx.fillStyle = '#ef4444'
-        ctx.beginPath(); ctx.moveTo(-6, 14); ctx.lineTo(0, 25 + Math.random() * 5); ctx.lineTo(6, 14); ctx.fill()
-      }
-      if (timeNowForShip < shieldUntil && crtReactions.complete && crtReactions.naturalWidth) {
-        const frameSize = crtReactions.naturalWidth / 3
-        ctx.drawImage(crtReactions, frameSize, frameSize, frameSize, frameSize, shipX - 30, shipY - 30, 60, 60)
-      }
+      ctx.fillStyle = '#b91c1c'
+      ctx.strokeStyle = '#0f172a'
+      ctx.lineWidth = 1.3
+      ctx.beginPath()
+      ctx.moveTo(0, -21); ctx.bezierCurveTo(8, -14, 9, -4, 7, 10)
+      ctx.lineTo(0, 14); ctx.lineTo(-7, 10)
+      ctx.bezierCurveTo(-9, -4, -8, -14, 0, -21)
+      ctx.closePath(); ctx.fill(); ctx.stroke()
+      ctx.fillStyle = '#334155'
+      ctx.beginPath(); ctx.moveTo(-7, 2); ctx.lineTo(-15, 10); ctx.lineTo(-14, 15); ctx.lineTo(-5, 12); ctx.closePath(); ctx.fill(); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(7, 2); ctx.lineTo(15, 10); ctx.lineTo(14, 15); ctx.lineTo(5, 12); ctx.closePath(); ctx.fill(); ctx.stroke()
+      ctx.fillStyle = '#e2e8f0'
+      ctx.beginPath(); ctx.arc(0, -9, 3.1, 0, Math.PI * 2); ctx.fill(); ctx.stroke()
       ctx.restore()
+      if (timeNowForShip < shieldUntil) {
+        ctx.beginPath(); ctx.arc(shipX, shipY, 28, 0, Math.PI * 2)
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2
+        ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 18; ctx.stroke(); ctx.shadowBlur = 0
+      }
     }
 
     const loop = time => {
@@ -265,11 +261,15 @@ export default function NotFound() {
       ctx.globalAlpha = 1
       shipX += (Math.max(22, Math.min(w - 22, targetX)) - shipX) * .18 * dt
       shipY += (Math.max(80, Math.min(h - 28, targetY)) - shipY) * .18 * dt
-      const nearest = asteroids.reduce((best, item) => {
-        const d = Math.hypot(item.x - shipX, item.y - shipY)
-        return !best || d < best.d ? { item, d } : best
-      }, null)
-      if (nearest) angle = Math.atan2(nearest.item.y - shipY, nearest.item.x - shipX)
+      // Rocket heading follows the player's pointer movement only.
+      // Never auto-aim at asteroids.
+      const moveX = targetX - shipX
+      const moveY = targetY - shipY
+      if (Math.hypot(moveX, moveY) > 1.5) {
+        const desiredAngle = Math.atan2(moveY, moveX)
+        let difference = ((desiredAngle - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
+        angle += difference * Math.min(1, .24 * dt)
+      }
       const levelNow = statsRef.current.level
       const spawnDelay = Math.max(430, 1350 - (levelNow - 1) * 85)
       if (!bossActive && levelNow >= 5 && levelNow % 5 === 0 && bossSpawnedAt !== levelNow) spawnAsteroid(true)
@@ -306,8 +306,19 @@ export default function NotFound() {
           ctx.fillStyle = '#334155'; ctx.fillRect(a.x - 28, a.y - a.r - 11, 56, 4)
           ctx.fillStyle = '#f97316'; ctx.fillRect(a.x - 28, a.y - a.r - 11, 56 * (a.hp / a.maxHp), 4)
         }
+        // Original rules: touching a comet with the rocket destroys it;
+        // the station loses a life only when a comet reaches the core or escapes.
         if (Math.hypot(a.x - shipX, a.y - shipY) < a.r + 13 && time > shieldUntil) {
-          asteroids.splice(i, 1); burst(a.x, a.y); loseLife(); continue
+          asteroids.splice(i, 1)
+          addPoints(15, a.x, a.y, '#fbbf24')
+          burst(a.x, a.y, '#fbbf24', 28)
+          continue
+        }
+        if (Math.hypot(a.x - w / 2, a.y - h / 2) < a.r + 34) {
+          asteroids.splice(i, 1)
+          burst(a.x, a.y)
+          loseLife()
+          continue
         }
         let destroyed = false
         for (let j = missiles.length - 1; j >= 0; j--) {
@@ -337,6 +348,7 @@ export default function NotFound() {
         if (a.x < -100 || a.x > w + 100 || a.y < -100 || a.y > h + 100) {
           asteroids.splice(i, 1)
           if (a.boss) bossActive = false
+          else loseLife()
         }
       }
       for (let i = powerUps.length - 1; i >= 0; i--) {
@@ -388,7 +400,7 @@ export default function NotFound() {
     localStorage.setItem(PILOT_KEY, callsign)
     setLeaderboard(local)
     try {
-      const db = await getApmlDatabase()
+      const db = getApmlDatabase()
       await db.ref('arcade_scores').push(entry)
       const snapshot = await db.ref('arcade_scores').orderByChild('score').limitToLast(30).once('value')
       const globalEntries = []
