@@ -5,7 +5,7 @@ import {
   ChevronLeft, ChevronRight, HardDrive, Grid2X2, X, FileImage
 } from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { getApmlDatabase } from '../lib/firebase'
 import './Gallery.css'
 
