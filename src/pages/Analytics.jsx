@@ -212,7 +212,7 @@ export default function Analytics() {
         const labels = daily.map(row => new Date(row.date + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }))
         if (trendRef.current) {
           const series = [
-            { name: 'Visitors', data: daily.map(row => visible.visitors ? row.visitors : null) },
+            { name: 'Unique visitors', data: visitorDaily.map(row => visible.visitors ? row.uniqueVisitors : null) },
             { name: 'PDF quotations', data: daily.map(row => visible.pdf ? row.pdf : null) },
             { name: 'Media downloads', data: daily.map(row => visible.media ? row.media : null) }
           ]
@@ -426,8 +426,8 @@ export default function Analytics() {
     </section>
 
     <section className="analytics-panel">
-      <div className="analytics-panel-head"><div><h2><BarChart3 size={18}/> Activity trend</h2><p>Compare visitors, PDF quotations and media downloads day by day.</p></div>
-        <div className="analytics-chart-controls"><div className="analytics-series">{[['visitors','Visitors'],['pdf','PDFs'],['media','Media']].map(([key,label]) => <button key={key} className={visible[key] ? 'selected' : ''} onClick={() => setVisible(old => ({ ...old, [key]: !old[key] }))}><i className={'series-' + key}/>{label}</button>)}</div><div className="analytics-chart-type"><button className={chartType === 'area' ? 'active' : ''} onClick={() => setChartType('area')}>Line</button><button className={chartType === 'bar' ? 'active' : ''} onClick={() => setChartType('bar')}>Bars</button></div></div>
+      <div className="analytics-panel-head"><div><h2><BarChart3 size={18}/> Activity trend</h2><p>Compare unique visitors, PDF quotations and media downloads day by day.</p></div>
+        <div className="analytics-chart-controls"><div className="analytics-series">{[['visitors','Unique visitors'],['pdf','PDFs'],['media','Media']].map(([key,label]) => <button key={key} className={visible[key] ? 'selected' : ''} onClick={() => setVisible(old => ({ ...old, [key]: !old[key] }))}><i className={'series-' + key}/>{label}</button>)}</div><div className="analytics-chart-type"><button className={chartType === 'area' ? 'active' : ''} onClick={() => setChartType('area')}>Line</button><button className={chartType === 'bar' ? 'active' : ''} onClick={() => setChartType('bar')}>Bars</button></div></div>
       </div>
       <div className="analytics-chart" ref={trendRef}/>
     </section>
