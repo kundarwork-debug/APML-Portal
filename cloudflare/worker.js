@@ -223,7 +223,7 @@ async function getFirebaseAdminEmail(request) {
   }
 }
 
-async function trimQuotations(env) {
+async function trimQuotations(env, firebaseToken) {
 
   const base = CONFIG.FIREBASE_DB_URL;
 
@@ -271,22 +271,17 @@ async function trimQuotations(env) {
 
   const oldest = inFolder.slice(0, excess);
 
+  const deletions = await Promise.all(oldest.map((file) =>
+    fetch(`${base}/catbox_gdrive_files/${file.key}.json?auth=${encodeURIComponent(firebaseToken)}`, { method: 'DELETE' })
+  ));
+  const failedWrite = deletions.find((response) => !response.ok);
+  if (failedWrite) return { trimmed: 0, error: 'Firebase rejected a quotation record deletion; Cloudinary files were preserved.' };
+
   const parsed = oldest.map((f) => parseCloudinaryUrl(f.fileId)).filter(Boolean);
-
   if (parsed.length) {
-
     const results = await cloudinaryDelete(env, parsed);
-
     const failed = results.find((r) => !r.ok);
-
-    if (failed) return { trimmed: 0, error: failed.error || `HTTP ${failed.status}` };
-
-  }
-
-  for (const f of oldest) {
-
-    await fetch(`${base}/catbox_gdrive_files/${f.key}.json`, { method: 'DELETE' });
-
+    if (failed) return { trimmed: oldest.length, orphanedAssets: parsed.length, error: failed.error || `HTTP ${failed.status}` };
   }
 
   return { trimmed: oldest.length, count: CONFIG.QUOTATION_CAP };
@@ -1961,6 +1956,14 @@ async function handleNovaAnalytics(request, env) {
     const stamp = Number(s && (s.startedAt || s.lastSeen) || 0);
     return stamp >= cutoff && stamp <= rangeEnd;
   });
+  const sessionVisitorsByDay = {};
+  for (const session of sessions) {
+    const startedAt = Number(session && session.startedAt) || 0;
+    if (!startedAt) continue;
+    const day = new Date(startedAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    sessionVisitorsByDay[day] = (sessionVisitorsByDay[day] || 0) + 1;
+  }
+  for (const row of daily) row.visitors = Math.max(row.visitors, sessionVisitorsByDay[row.date] || 0);
   const devices = {}, browsers = {}, cities = {}, pages = {}, pageSeconds = {}, hours = Array(24).fill(0);
   const dailySessions = {}, dropoffs = {}, deviceStats = {};
   const visitorSessions = new Map();
@@ -2233,7 +2236,10 @@ export default {
 
       if (path === '/trim-quotations') {
 
-        return json(await trimQuotations(env));
+        const firebaseToken = (request.headers.get('Authorization') || '').replace(/^Bearer\\s+/i, '').trim();
+        const admin = await getFirebaseAdminEmail(request);
+        if (!admin) return json({ ok: false, error: 'Firebase admin sign-in required' }, 401);
+        return json(await trimQuotations(env, firebaseToken));
 
       }
 

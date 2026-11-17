@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import PrivacyConsent from './PrivacyConsent'
-import { getApmlDatabase } from '../lib/firebase'
+import { getApmlAuth, getApmlDatabase } from '../lib/firebase'
 import { Footer } from './ui/footer'
 import { Component as HamburgerButton } from './ui/demo'
 import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
@@ -247,6 +247,52 @@ export default function Shell(){
    document.removeEventListener('visibilitychange',retryVisitor)
   }
  },[])
+ useEffect(()=>{
+  let active=true, started=false, heartbeat=null
+  const hasConsent=()=>{try{const choice=JSON.parse(localStorage.getItem('apml-privacy-consent')||'null');return !!(choice&&choice.analytics===true)||localStorage.getItem('apml-analytics-consent')==='yes'}catch(_){return false}}
+  const track=async()=>{
+   if(!active||started||!hasConsent())return
+   started=true
+   try{
+    const auth=getApmlAuth()
+    let user=auth.currentUser
+    if(user&&!user.isAnonymous)return
+    if(!user)user=(await auth.signInAnonymously()).user
+    const db=getApmlDatabase()
+    const now=Date.now()
+    let startedAt=now
+    try{startedAt=Number(sessionStorage.getItem('apml_vi_started_at'))||now;sessionStorage.setItem('apml_vi_started_at',String(startedAt))}catch(_){}
+    let visitorId=''
+    try{visitorId=localStorage.getItem('apml_vi_visitor_id')||'';if(!visitorId){visitorId='v_'+Math.random().toString(36).slice(2,12);localStorage.setItem('apml_vi_visitor_id',visitorId)}}catch(_){visitorId='v_'+Math.random().toString(36).slice(2,12)}
+    const key=startedAt+'_'+user.uid
+    const ref=db.ref('analytics/visitor_sessions/'+key)
+    const path=location.pathname||'/'
+    const pageKey=path.replace(/[^a-z0-9]/gi,'_').slice(0,80)||'root'
+    let elapsed=0,previousPath=''
+    try{previousPath=sessionStorage.getItem('apml_vi_last_page')||'';const previousAt=Number(sessionStorage.getItem('apml_vi_last_page_at'))||0;if(previousAt&&previousPath!==path)elapsed=Math.min(1800,Math.max(0,Math.floor((now-previousAt)/1000)));sessionStorage.setItem('apml_vi_last_page',path);sessionStorage.setItem('apml_vi_last_page_at',String(now))}catch(_){}
+    const ua=navigator.userAgent||''
+    const device=/ipad|tablet/i.test(ua)?'Tablet':/mobi|android|iphone/i.test(ua)?'Mobile':'Desktop'
+    const os=/windows/i.test(ua)?'Windows':/android/i.test(ua)?'Android':/iphone|ipad|ios/i.test(ua)?'iOS':/mac os/i.test(ua)?'macOS':/linux/i.test(ua)?'Linux':'Other'
+    const browser=/edg\//i.test(ua)?'Edge':/firefox\//i.test(ua)?'Firefox':/chrome\//i.test(ua)?'Chrome':/safari\//i.test(ua)?'Safari':'Other'
+    await ref.transaction(current=>{
+     const item=current&&typeof current==='object'?current:{uid:user.uid,visitorId,startedAt,device,os,browser,pageViews:0,totalSeconds:0,pages:{},journey:[],firstPage:path}
+     item.uid=user.uid;item.visitorId=visitorId;item.startedAt=Number(item.startedAt)||startedAt;item.lastSeen=now;item.device=device;item.os=os;item.browser=browser;item.lastPage=path
+     item.pages=item.pages&&typeof item.pages==='object'?item.pages:{}
+     if(previousPath&&previousPath!==path&&elapsed){const oldKey=previousPath.replace(/[^a-z0-9]/gi,'_').slice(0,80)||'root';const old=item.pages[oldKey];if(old)old.seconds=(Number(old.seconds)||0)+elapsed;item.totalSeconds=(Number(item.totalSeconds)||0)+elapsed}
+     const page=item.pages[pageKey]||{path,views:0,seconds:0}
+     page.path=path;page.views=(Number(page.views)||0)+1;page.lastSeen=now;item.pages[pageKey]=page;item.pageViews=(Number(item.pageViews)||0)+1
+     item.journey=Array.isArray(item.journey)?item.journey:[]
+     if(item.journey[item.journey.length-1]?.path!==path)item.journey=[...item.journey.slice(-49),{path,at:now}]
+     return item
+    })
+    heartbeat=window.setInterval(()=>{if(active&&hasConsent())ref.child('lastSeen').set(Date.now()).catch(()=>{})},30000)
+   }catch(error){started=false;console.warn('APML visitor intelligence unavailable:',error)}
+  }
+  const onConsent=()=>{track()}
+  window.addEventListener('apml-analytics-consent-granted',onConsent)
+  track()
+  return()=>{active=false;started=false;window.clearInterval(heartbeat);window.removeEventListener('apml-analytics-consent-granted',onConsent)}
+ },[location.pathname])
  useEffect(()=>{const src=import.meta.env.BASE_URL+'notify.js?v=21.46';if(document.querySelector('script[data-apml-notify]'))return;const script=document.createElement('script');script.src=src;script.async=true;script.dataset.apmlNotify='true';document.body.appendChild(script);return()=>script.remove()},[])
  const active=links.find(x=>x.to===location.pathname)?.label||(location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
  return <div className="app-shell topnav-shell"><PrivacyConsent/>

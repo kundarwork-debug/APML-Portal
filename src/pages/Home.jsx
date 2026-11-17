@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDown, ArrowUpRight, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
 import { modules } from '../data/modules'
-import { getApmlDatabase } from '../lib/firebase'
+import { getApmlAuth, getApmlDatabase } from '../lib/firebase'
 
 const homeTools = [
   { id:'editor', title:'Quotation Drafting Studio', description:'Create official quotations with freight formulas, GST calculations and A4 PDF preview.', label:'Documentation', tags:['A4 PDF Export','Freight Matrix','GST Calculation'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/pencil-dynamic-color.png', wide:true },
@@ -125,16 +125,23 @@ function OperationalTelemetry(){
     foldersRef.on('value',snap=>{const folders=snap.val()||{};quotationFolderIds=new Set(Object.keys(folders).filter(id=>folders[id]?.parentId==='root'&&String(folders[id]?.name||'').trim().toLowerCase()==='quotation'));updateArchiveCount()},error=>console.warn('APML quotation folder telemetry unavailable',error))
     filesRef.on('value',snap=>{quotationFiles=snap.val()||{};updateArchiveCount()},error=>console.warn('APML quotation archive telemetry unavailable',error))
     listen('analytics/totalMediaDownloads','media')
-    const startPresence=()=>{
+    let presenceAttached=false
+    const startPresence=async()=>{
      try{
+      if(presenceAttached)return
       if(!window.apmlHasAnalyticsConsent?.())return
-      let id
-      try{id=sessionStorage.getItem('apml_presence_session')}catch(_){}
-      if(!id){id='user_'+Math.random().toString(36).slice(2,9);try{sessionStorage.setItem('apml_presence_session',id)}catch(_){}}
-      const own=db.ref('presence/'+id)
-      db.ref('.info/connected').on('value',snap=>{
-       if(snap.val()===true){own.onDisconnect().remove();own.set({online:true,timestamp:Date.now()})}
-      })
+      const auth=getApmlAuth()
+      let user=auth.currentUser
+      if(user&&!user.isAnonymous)return
+      if(!user)user=(await auth.signInAnonymously()).user
+      const own=db.ref('presence/'+user.uid)
+      const connected=db.ref('.info/connected')
+      const handleConnection=snap=>{
+       if(snap.val()===true){own.onDisconnect().remove();own.set({online:true,timestamp:Date.now(),uid:user.uid})}
+      }
+      connected.on('value',handleConnection,error=>console.warn('APML presence connection unavailable',error))
+      presenceAttached=true
+      refs.push({off:()=>connected.off('value',handleConnection)})
      }catch(error){console.warn('APML presence unavailable',error)}
     }
     startPresence()

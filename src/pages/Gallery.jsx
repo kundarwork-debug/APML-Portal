@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import '../lib/firebase'
 import './Gallery.css'
 
 const firebaseConfig = {
