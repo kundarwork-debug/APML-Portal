@@ -1961,6 +1961,14 @@ async function handleNovaAnalytics(request, env) {
     const stamp = Number(s && (s.startedAt || s.lastSeen) || 0);
     return stamp >= cutoff && stamp <= rangeEnd;
   });
+  const sessionVisitorsByDay = {};
+  for (const session of sessions) {
+    const startedAt = Number(session && session.startedAt) || 0;
+    if (!startedAt) continue;
+    const day = new Date(startedAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    sessionVisitorsByDay[day] = (sessionVisitorsByDay[day] || 0) + 1;
+  }
+  for (const row of daily) row.visitors = Math.max(row.visitors, sessionVisitorsByDay[row.date] || 0);
   const devices = {}, browsers = {}, cities = {}, pages = {}, pageSeconds = {}, hours = Array(24).fill(0);
   const dailySessions = {}, dropoffs = {}, deviceStats = {};
   const visitorSessions = new Map();
