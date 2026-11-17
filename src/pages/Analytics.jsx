@@ -138,23 +138,25 @@ export default function Analytics() {
       ref.on('value', callback, () => setFirebaseLive(false))
       subscriptions.push(() => ref.off('value', callback))
     }
-    getApmlDatabase().then(database => {
-      if (disposed) return
-      db = database
-      setFirebaseLive(true)
-      attach(db, 'analytics/daily_logs', queueRefresh)
-      attach(db, 'analytics/visitor_sessions', queueRefresh)
-      attach(db, 'analytics/totalMediaDownloads', snap => {
-        const value = Number(snap.val()) || 0
-        setData(current => current ? { ...current, totals: { ...current.totals, totalMediaLifetime: value } } : current)
-      })
-      attach(db, 'presence', snap => setOnlineNow(snap.numChildren()))
-    }).catch(() => {
+    try {
+      // getApmlDatabase() is synchronous; do not treat it as a Promise.
+      db = getApmlDatabase()
+      if (!disposed) {
+        setFirebaseLive(true)
+        attach(db, 'analytics/daily_logs', queueRefresh)
+        attach(db, 'analytics/visitor_sessions', queueRefresh)
+        attach(db, 'analytics/totalMediaDownloads', snap => {
+          const value = Number(snap.val()) || 0
+          setData(current => current ? { ...current, totals: { ...current.totals, totalMediaLifetime: value } } : current)
+        })
+        attach(db, 'presence', snap => setOnlineNow(snap.numChildren()))
+      }
+    } catch {
       if (!disposed) {
         setFirebaseLive(false)
         setOnlineNow(null)
       }
-    })
+    }
     return () => {
       disposed = true
       clearTimeout(refreshTimer)
