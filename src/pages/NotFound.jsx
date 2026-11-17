@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Home, Rocket, RotateCcw, ShieldAlert, Trophy, Zap, Heart, X } from 'lucide-react'
 import { getApmlDatabase } from '../lib/firebase'
+import './NotFound.css'
 
 const LOCAL_SCORES_KEY = 'apml_local_leaderboard'
 const PILOT_KEY = 'apml_pilot_name'
@@ -88,6 +89,9 @@ export default function NotFound() {
     let targetX = shipX
     let targetY = shipY
     let angle = -Math.PI / 2
+    let pointerAngle = angle
+    let pointerX = shipX
+    let pointerY = shipY
     let shieldUntil = 0
     let rapidUntil = 0
     let bossSpawnedAt = 0
@@ -112,13 +116,24 @@ export default function NotFound() {
     window.addEventListener('resize', resize)
 
     const move = event => {
+      const dx = event.clientX - pointerX
+      const dy = event.clientY - pointerY
+      if (Math.hypot(dx, dy) > 1.2) pointerAngle = Math.atan2(dy, dx)
+      pointerX = event.clientX
+      pointerY = event.clientY
       targetX = event.clientX
       targetY = event.clientY
     }
     const touchMove = event => {
       if (event.touches?.[0]) {
-        targetX = event.touches[0].clientX
-        targetY = event.touches[0].clientY
+        const touch = event.touches[0]
+        const dx = touch.clientX - pointerX
+        const dy = touch.clientY - pointerY
+        if (Math.hypot(dx, dy) > 1.2) pointerAngle = Math.atan2(dy, dx)
+        pointerX = touch.clientX
+        pointerY = touch.clientY
+        targetX = touch.clientX
+        targetY = touch.clientY
       }
     }
     const fireMissile = () => {
@@ -137,6 +152,7 @@ export default function NotFound() {
       if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') targetX += step
       if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'w') targetY -= step
       if (event.key === 'ArrowDown' || event.key.toLowerCase() === 's') targetY += step
+      if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','d','w','s'].includes(event.key)) pointerAngle = Math.atan2(targetY - shipY, targetX - shipX)
       if (event.key === 'Escape') setRunning(false)
     }
     window.addEventListener('pointermove', move)
@@ -261,15 +277,12 @@ export default function NotFound() {
       ctx.globalAlpha = 1
       shipX += (Math.max(22, Math.min(w - 22, targetX)) - shipX) * .18 * dt
       shipY += (Math.max(80, Math.min(h - 28, targetY)) - shipY) * .18 * dt
-      // Rocket heading follows the player's pointer movement only.
-      // Never auto-aim at asteroids.
-      const moveX = targetX - shipX
-      const moveY = targetY - shipY
-      if (Math.hypot(moveX, moveY) > 1.5) {
-        const desiredAngle = Math.atan2(moveY, moveX)
-        let difference = ((desiredAngle - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
-        angle += difference * Math.min(1, .24 * dt)
-      }
+      // Rocket heading follows the last actual pointer/steering movement.
+      // It holds that heading when the pointer stops; it never tracks targets.
+      let difference = ((pointerAngle - angle + Math.PI * 3) % (Math.PI * 2)) - Math.PI
+      angle += difference * Math.min(1, .24 * dt)
+      // Recover the wave scheduler if a boss was removed by any collision path.
+      if (bossActive && !asteroids.some(asteroid => asteroid.boss)) bossActive = false
       const levelNow = statsRef.current.level
       const spawnDelay = Math.max(430, 1350 - (levelNow - 1) * 85)
       if (!bossActive && levelNow >= 5 && levelNow % 5 === 0 && bossSpawnedAt !== levelNow) spawnAsteroid(true)
@@ -309,12 +322,14 @@ export default function NotFound() {
         // Original rules: touching a comet with the rocket destroys it;
         // the station loses a life only when a comet reaches the core or escapes.
         if (Math.hypot(a.x - shipX, a.y - shipY) < a.r + 13 && time > shieldUntil) {
+          if (a.boss) bossActive = false
           asteroids.splice(i, 1)
           addPoints(15, a.x, a.y, '#fbbf24')
           burst(a.x, a.y, '#fbbf24', 28)
           continue
         }
         if (Math.hypot(a.x - w / 2, a.y - h / 2) < a.r + 34) {
+          if (a.boss) bossActive = false
           asteroids.splice(i, 1)
           burst(a.x, a.y)
           loseLife()
