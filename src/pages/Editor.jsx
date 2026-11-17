@@ -61,7 +61,8 @@ const download=async()=>{
   const clean=x=>String(x||'').replace(/[^a-zA-Z0-9 ]/g,'').trim()||'Customer';
   const name=clean(shared.custName)+'_'+clean(d.companyName)+'.pdf',file=pdf.output('blob'),url=URL.createObjectURL(file),a=document.createElement('a');
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  recordPdfDownload().catch(error=>console.warn('APML quotation analytics failed:',error));
+  // Wait for Firebase to confirm the lifetime increment before reporting success.
+  await recordPdfDownload();
   if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
   setBusy(false);
   await editorAlert({icon:'success',title:'PDF generated successfully!',text:name});
