@@ -39,15 +39,54 @@ const csvDownload = (filename, rows) => {
   setTimeout(() => URL.revokeObjectURL(url), 3000)
 }
 async function ensureApex() {
-  if (window.ApexCharts) return
-  if (!window.__apmlApexPromise) window.__apmlApexPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/apexcharts@3.54.1/dist/apexcharts.min.js'
-    script.onload = resolve
-    script.onerror = reject
-    document.head.appendChild(script)
-  })
-  await window.__apmlApexPromise
+  if (window.ApexCharts) return window.ApexCharts
+  if (!window.__apmlApexPromise) {
+    window.__apmlApexPromise = (async () => {
+      const sources = [
+        'https://cdn.jsdelivr.net/npm/apexcharts@3.54.1/dist/apexcharts.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.54.1/apexcharts.min.js',
+        'https://unpkg.com/apexcharts@3.54.1/dist/apexcharts.min.js'
+      ]
+      let lastError
+      for (const src of sources) {
+        try {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script')
+            const timeout = window.setTimeout(() => {
+              script.remove()
+              reject(new Error('Chart library request timed out'))
+            }, 12000)
+            script.src = src
+            script.async = true
+            script.onload = () => {
+              window.clearTimeout(timeout)
+              if (window.ApexCharts) resolve()
+              else {
+                script.remove()
+                reject(new Error('Chart library loaded without exposing ApexCharts'))
+              }
+            }
+            script.onerror = () => {
+              window.clearTimeout(timeout)
+              script.remove()
+              reject(new Error('Unable to load chart library from ' + new URL(src).hostname))
+            }
+            document.head.appendChild(script)
+          })
+          return window.ApexCharts
+        } catch (error) {
+          lastError = error
+          console.warn('[APML Analytics] Chart CDN failed:', src, error)
+        }
+      }
+      throw lastError || new Error('All chart library sources failed')
+    })().catch(error => {
+      // Do not cache a rejected promise: a later refresh can retry the CDN.
+      window.__apmlApexPromise = null
+      throw error
+    })
+  }
+  return window.__apmlApexPromise
 }
 
 function Sparkline({ values = [] }) {
@@ -252,7 +291,10 @@ export default function Analytics() {
           await chart.render()
         }
       } catch (err) {
-        if (active) setError(current => current || 'Charts could not be loaded. Please refresh the report.')
+        if (active) {
+          console.error('[APML Analytics] Chart rendering failed:', err)
+          setError(current => current || ('Charts could not be loaded. ' + (err?.message || 'Please refresh the report.')))
+        }
       }
     }
     renderCharts()
