@@ -12,14 +12,29 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  const hereFiles=useMemo(()=>files.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)),[files,parent])
  const trash=parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(trash)setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
+ async function recordMediaDownload(){
+  if(!window.apmlHasAnalyticsConsent?.())return;
+  try{
+   const db=getApmlDatabase();
+   const result=await db.ref('analytics/totalMediaDownloads').transaction(value=>(Number(value)||0)+1);
+   if(!result.committed)console.warn('Drive media download count was not committed.');
+   await window.logDailyActivity?.('media');
+  }catch(error){console.warn('Drive download analytics unavailable',error)}
+ }
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
   const name=item.name||'apml-file';
-  try{if(window.apmlHasAnalyticsConsent?.())await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(v=>(Number(v)||0)+1)}catch(e){console.warn('Drive download analytics unavailable',e)}
   try{
-   if(window.ApmNativeDownload?.start){window.ApmNativeDownload.start(item.fileId,name);await driveToast('Download started');return}
+   if(window.ApmNativeDownload?.start){
+    await window.ApmNativeDownload.start(item.fileId,name);
+    await recordMediaDownload();
+    await driveToast('Download started');
+    return;
+   }
    const response=await fetch(item.fileId);if(!response.ok)throw Error('Download request failed');
-   const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);await driveToast('Download started');
+   const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+   await recordMediaDownload();
+   await driveToast('Download started');
   }catch(e){console.warn('Drive direct download fallback',e);const a=document.createElement('a');a.href=item.fileId;a.download=name;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();await driveToast('Download opened in a new tab','info')}
  }
  async function createFolder(){if(!admin)return;try{const name=await driveInput('Create new folder',{placeholder:'Folder name',confirmText:'Create folder'});if(!name)return;await getApmlDatabase().ref('catbox_gdrive_folders').push({name,parentId:parent,timestamp:Date.now()});await driveToast('Folder created')}catch(e){await driveAlert('Could not create folder',e.message,'error')}}
