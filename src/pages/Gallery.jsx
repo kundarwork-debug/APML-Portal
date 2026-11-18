@@ -299,15 +299,15 @@ export default function Gallery() {
     metric(item, 'viewsCount')
     setLightbox(item)
   }
-  async function downloadMedia(item) {
-    if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
-    const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
+  async function recordGalleryDownload(item, name) {
     await metric(item, 'downloadsCount')
-    try {
-      if (admin && window.apmlHasAnalyticsConsent?.()) {
-        await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
-      }
-    } catch {}
+    if (window.apmlHasAnalyticsConsent?.()) {
+      try {
+        const result = await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+        if (!result.committed) console.warn('Gallery media download count was not committed.')
+        await window.logDailyActivity?.('media')
+      } catch (error) { console.warn('Gallery download analytics unavailable:', error) }
+    }
     try {
       window.APMNotify?.send?.({
         type: 'gallery',
@@ -320,9 +320,13 @@ export default function Gallery() {
         }
       })
     } catch {}
+  }
+  async function downloadMedia(item) {
+    if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
+    const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     try {
       if (window.ApmNativeDownload?.start) {
-        window.ApmNativeDownload.start(item.url, name)
+        await window.ApmNativeDownload.start(item.url, name)
       } else {
         let blob
         try {
@@ -344,7 +348,7 @@ export default function Gallery() {
         anchor.remove()
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000)
       }
-      window.logDailyActivity?.('media')
+      await recordGalleryDownload(item, name)
       window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
       await driveToast('Download started')
     } catch (error) {
@@ -356,7 +360,6 @@ export default function Gallery() {
       document.body.append(anchor)
       anchor.click()
       anchor.remove()
-      window.logDailyActivity?.('media')
       console.warn('Gallery download fallback:', error)
       await driveToast('Download opened in a new tab', 'info')
     }
