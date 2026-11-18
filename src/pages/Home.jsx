@@ -42,7 +42,7 @@ function HeroMascot(){
  return <div className="apml-mascot-stage"><div className="apml-mascot-halo"/><button ref={button} className="apml-hero-mascot" onClick={boop} aria-label="Interact with Wobnimo"><span className="apml-mascot-squash"><span className="apml-mascot-sprite directions" style={{backgroundPosition:spritePos(directions.indexOf(direction)),opacity:reaction?0:1}}/><span className="apml-mascot-sprite reactions" style={{backgroundPosition:spritePos(reactions.indexOf(reaction)),opacity:reaction?1:0}}/></span></button>{bubble&&<span className="apml-hero-mascot-bubble">Hey there! 👋</span>}</div>
 }
 function OperationalTelemetry(){
- const [counts,setCounts]=useState({users:0,pdf:0,media:0})
+ const [counts,setCounts]=useState({users:0,pdf:0,archive:0,media:0})
  const [hasBeenViewed,setHasBeenViewed]=useState(false)
  const [countUpReady,setCountUpReady]=useState(false)
  const sectionRef=useRef(null)
@@ -81,7 +81,7 @@ function OperationalTelemetry(){
 
  useEffect(()=>{
   if(!hasBeenViewed)return
-  const values=[['users',counts.users],['pdf',counts.pdf],['media',counts.media]]
+  const values=[['users',counts.users],['pdf',counts.pdf],['archive',counts.archive],['media',counts.media]]
   values.forEach(([key,value])=>{
    const element=countRefs.current[key]
    if(!element)return
@@ -114,7 +114,7 @@ function OperationalTelemetry(){
     }
     listen('presence','users',snap=>{const presence=snap.val()||{};return Object.values(presence).reduce((total,sessions)=>{if(!sessions||typeof sessions!=='object')return total;const active=Object.values(sessions).some(session=>session&&session.online!==false);return total+(active?1:0)},0)})
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
-    const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
+    const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,lifetimePdfTotal),archive:archivePdfTotal}))}
     const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
     dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,day)=>total+(Number(day?.pdf)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
     const lifetimeRef=db.ref('analytics/totalPdfDownloads');refs.push(lifetimeRef)
@@ -162,8 +162,9 @@ function OperationalTelemetry(){
    <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across Western Central Regional Office &amp; nationwide hubs.</p></div><span><i/> All operational systems monitored</span></div>
    <div className="legacy-telemetry-stats">
     <div><small>Live Active Personnel</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Personnel online right now</em></div>
-    <div><small>PDF Quotations Drafted</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Exact Container &amp; Maxcare</em></div>
-    <div><small>Cloud Files &amp; Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Drive &amp; gallery archives</em></div>
+    <div><small>PDF Generated</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Created in Quotation Editor</em></div>
+    <div><small>Quotation Archive</small><strong ref={element=>{countRefs.current.archive=element}}>0</strong><em>Saved quotation PDFs in Drive</em></div>
+    <div><small>Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Downloads from Drive &amp; Gallery</em></div>
    </div>
   </Link>
  </section>
