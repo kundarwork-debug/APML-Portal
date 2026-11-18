@@ -1719,3 +1719,47 @@ html[data-theme="dark"] .privacy-consent-card button:not(.privacy-consent-accept
   background:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important;
 }
 html[data-theme="dark"] .portal-page-content .not-found-page :is(.nf-illustration,.nf-background-glow){background:transparent!important}
+
+
+/* Dark surfaces and data tables missed by broad page-level matching. */
+html[data-theme="dark"] .portal-page-content :is(
+  .car-total,.local-total,.local-extra,.lite-table-wrap,.car-table-wrap,
+  .local-table-scroll,.public-analytics-error,.public-analytics-refresh,
+  .public-analytics-ranges button,.qm-status,.qm-run-icon,.health-service-top>span
+):not(.quote-document):not(.quote-document *){
+  background:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important;
+}
+html[data-theme="dark"] .portal-page-content :is(
+  .car-total>b,.local-total>b,.local-total strong,.local-total small,
+  .public-analytics-card strong,.public-analytics-card>span:nth-child(2),
+  .public-analytics-summary b,.public-analytics-panel-head h2,
+  .public-analytics-panel-head>span,.public-analytics-legend,
+  .public-analytics-legend span,.public-analytics-footnote,
+  .public-analytics-status,.public-analytics-bars small,
+  .qm-summary article strong,.qm-meta b,.qm-job,.qm-run-copy b,
+  .health-overall-copy strong,.health-overall>b,.health-service-top strong,
+  .health-service-meta b,.health-info b,.health-info span
+){color:#e2e8f0!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .car-total,.local-total
+){border-color:#8b3942!important;background:#30232b!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .lite-table-wrap th,.lite-table-wrap td,
+  .car-table-wrap th,.car-table-wrap td,
+  .local-table-scroll th,.local-table-scroll td
+){border-color:#334155!important;color:#cbd5e1!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .lite-table-wrap th,.car-table-wrap th,.local-table-scroll th
+){background:#202c3c!important;color:#fca5a5!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .lite-table-wrap tr.active,.car-table-wrap tr.selected,.local-table-scroll tr.chosen
+){background:#38242b!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .lite-alert,.bug-success,.bug-error,.public-analytics-error,.qm-error
+){background:#30232b!important;color:#fecaca!important;border-color:#71343d!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .car-search-help,.car-note,.local-note,.local-breakdown span,
+  .local-extra-control small,.local-total small,.public-analytics-card small,
+  .public-analytics-summary span,.public-analytics-panel-head p,
+  .qm-disclaimer,.qm-muted,.health-disclaimer
+){color:#a8b5c7!important}
