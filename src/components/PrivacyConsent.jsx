@@ -68,7 +68,7 @@ export default function PrivacyConsent(){
       <div className="privacy-consent-icon"><Cookie size={27}/></div>
       <div className="privacy-consent-eyebrow"><ShieldCheck size={14}/> YOUR PRIVACY, YOUR CHOICE</div>
       <h2 id="privacy-consent-title">Your privacy choices</h2>
-      <p id="privacy-consent-copy">APML Portal uses essential browser storage to keep the workspace working. Optional visitor analytics help us understand portal usage and improve the experience. Analytics stay off unless you allow them.</p>
+      <p id="privacy-consent-copy">APML Portal stores a temporary anonymous online status while you are connected so the Operational panel can show the live visitor count. It is removed when your Firebase connection ends. Optional visitor analytics help us understand portal usage and improve the experience; analytics stay off unless you allow them.</p>
       <p className="privacy-consent-policy">You can change your choice later from the <Link to="/cookies" onClick={()=>setOpen(false)}>Cookies &amp; Storage Policy</Link>.</p>
       <div className="privacy-consent-actions">
         <button className="privacy-consent-allow" onClick={()=>saveChoice(true)}>Allow analytics</button>

@@ -27,3 +27,21 @@ export function getApmlDatabase() {
 export function getApmlAuth() {
   return firebase.auth(firebaseApp)
 }
+
+
+let presenceFirebaseApp
+
+function getPresenceFirebaseApp() {
+  if (presenceFirebaseApp) return presenceFirebaseApp
+  presenceFirebaseApp = firebase.apps.find(app => app.name === 'apml-presence')
+    || firebase.initializeApp(config, 'apml-presence')
+  return presenceFirebaseApp
+}
+
+export function getApmlPresenceDatabase() {
+  return firebase.database(getPresenceFirebaseApp())
+}
+
+export function getApmlPresenceAuth() {
+  return firebase.auth(getPresenceFirebaseApp())
+}

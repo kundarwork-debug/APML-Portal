@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import PrivacyConsent from './PrivacyConsent'
-import { getApmlAuth, getApmlDatabase } from '../lib/firebase'
+import { getApmlAuth, getApmlDatabase, getApmlPresenceAuth, getApmlPresenceDatabase } from '../lib/firebase'
 import { Footer } from './ui/footer'
 import { Component as HamburgerButton } from './ui/demo'
 import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
@@ -220,6 +220,37 @@ export default function Shell(){
    document.removeEventListener('keydown',closeOnEscape)
   }
  },[menuOpen])
+ useEffect(()=>{
+  let active=true,connectionRef=null,ownRef=null,connectionHandler=null
+  const registerPresence=async()=>{
+   try{
+    const auth=getApmlPresenceAuth()
+    let user=auth.currentUser
+    if(!user)user=(await auth.signInAnonymously()).user
+    const db=getApmlPresenceDatabase()
+    if(!active)return
+    ownRef=db.ref('presence/'+user.uid).push()
+    connectionRef=db.ref('.info/connected')
+    connectionHandler=async snapshot=>{
+     if(!active||snapshot.val()!==true)return
+     try{
+      await ownRef.onDisconnect().remove()
+      if(active)await ownRef.set({online:true})
+     }catch(error){console.warn('APML live presence registration failed',error)}
+    }
+    connectionRef.on('value',connectionHandler,error=>console.warn('APML live presence connection unavailable',error))
+   }catch(error){console.warn('APML live presence unavailable',error)}
+  }
+  registerPresence()
+  return()=>{
+   active=false
+   if(connectionRef&&connectionHandler)connectionRef.off('value',connectionHandler)
+   if(ownRef){
+    ownRef.onDisconnect().cancel().catch(()=>{})
+    ownRef.remove().catch(()=>{})
+   }
+  }
+ },[])
  useEffect(()=>{
   const hasConsent=()=>{try{const choice=JSON.parse(localStorage.getItem('apml-privacy-consent')||'null');return !!(choice&&choice.analytics===true)||localStorage.getItem('apml-analytics-consent')==='yes'}catch(_){return false}}
   const indiaDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDown, ArrowUpRight, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
 import { modules } from '../data/modules'
-import { getApmlAuth, getApmlDatabase } from '../lib/firebase'
+import { getApmlDatabase } from '../lib/firebase'
 import { driveApi } from '../lib/driveApi'
 
 const homeTools = [
@@ -122,32 +122,6 @@ function OperationalTelemetry(){
     lifetimeRef.on('value',snap=>{lifetimePdfTotal=Number(snap.val())||0;publishPdfTotal()},error=>console.warn('APML lifetime PDF telemetry unavailable',error))
     driveApi('/drive').then(data=>{if(!active)return;const quotationFolderIds=new Set((data.folders||[]).filter(folder=>folder.parentId==='root'&&String(folder.name||'').trim().toLowerCase()==='quotation').map(folder=>String(folder.key)));archivePdfTotal=(data.files||[]).filter(file=>file&&quotationFolderIds.has(String(file.parentId||''))).length;publishPdfTotal()}).catch(error=>console.warn('APML quotation archive telemetry unavailable',error))
     listen('analytics/totalMediaDownloads','media')
-    let presenceAttached=false
-    const startPresence=async()=>{
-     try{
-      if(presenceAttached)return
-      if(!window.apmlHasAnalyticsConsent?.())return
-      const auth=getApmlAuth()
-      let user=auth.currentUser
-      if(!user)user=(await auth.signInAnonymously()).user
-      const own=db.ref('presence/'+user.uid+'/'+db.ref('presence/'+user.uid).push().key)
-      const connected=db.ref('.info/connected')
-      const handleConnection=async snap=>{
-       if(snap.val()===true){
-        try{
-         await own.onDisconnect().remove()
-         await own.set({online:true,uid:user.uid,startedAt:Date.now()})
-        }catch(error){console.warn('APML presence registration failed',error)}
-       }
-      }
-      connected.on('value',handleConnection,error=>console.warn('APML presence connection unavailable',error))
-      presenceAttached=true
-      refs.push({off:()=>{own.onDisconnect().cancel().catch(()=>{});own.remove().catch(()=>{});connected.off('value',handleConnection)}})
-     }catch(error){console.warn('APML presence unavailable',error)}
-    }
-    startPresence()
-    window.addEventListener('apml-analytics-consent-granted',startPresence)
-    refs.push({off:()=>window.removeEventListener('apml-analytics-consent-granted',startPresence)})
    }catch(error){console.warn('APML homepage telemetry could not connect',error)}
   }
   start()
