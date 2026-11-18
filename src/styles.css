@@ -1615,3 +1615,23 @@ html[data-theme="dark"] .swal2-textarea,
 html[data-theme="dark"] .swal2-select{
   background:#1e293b!important;color:#f8fafc!important;border-color:#475569!important;
 }
+
+
+/* Dark-mode visual polish: remove harsh rectangular artwork canvases. */
+html[data-theme="dark"] .apml-mascot-stage,
+html[data-theme="dark"] .apml-hero-mascot,
+html[data-theme="dark"] .apml-mascot-squash,
+html[data-theme="dark"] .apml-mascot-sprite{background-color:transparent!important}
+html[data-theme="dark"] .apml-mascot-sprite{mix-blend-mode:screen}
+html[data-theme="dark"] .apml-mascot-halo{background:radial-gradient(circle,rgba(248,113,113,.18),transparent 70%)!important}
+html[data-theme="dark"] .apml-hero-mascot-bubble{background:#1e293b!important;color:#f8fafc!important;border-color:#475569!important;box-shadow:0 8px 24px rgba(0,0,0,.32)!important}
+html[data-theme="dark"] .legacy-card-head img{background:transparent!important;mix-blend-mode:screen;filter:drop-shadow(0 5px 10px rgba(0,0,0,.22))}
+html[data-theme="dark"] .drive-folder-icon,
+html[data-theme="dark"] .drive-trash-folder .drive-folder-icon,
+html[data-theme="dark"] .gallery-upload-icon,
+html[data-theme="dark"] .gallery-mini-action,
+html[data-theme="dark"] .gallery-folder-icon,
+html[data-theme="dark"] .gallery-folder-tab .gallery-mini-action{background:#38242b!important;color:#fca5a5!important;border-color:#59343d!important}
+html[data-theme="dark"] .drive-folder-icon svg,
+html[data-theme="dark"] .gallery-upload-icon svg,
+html[data-theme="dark"] .gallery-mini-action svg{color:#fca5a5!important}
