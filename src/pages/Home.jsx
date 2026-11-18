@@ -119,11 +119,7 @@ function OperationalTelemetry(){
     dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,day)=>total+(Number(day?.pdf)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
     const lifetimeRef=db.ref('analytics/totalPdfDownloads');refs.push(lifetimeRef)
     lifetimeRef.on('value',snap=>{lifetimePdfTotal=Number(snap.val())||0;publishPdfTotal()},error=>console.warn('APML lifetime PDF telemetry unavailable',error))
-    const foldersRef=db.ref('catbox_gdrive_folders');const filesRef=db.ref('catbox_gdrive_files');refs.push(foldersRef,filesRef)
-    let quotationFolderIds=new Set(),quotationFiles={}
-    const updateArchiveCount=()=>{archivePdfTotal=Object.values(quotationFiles).filter(file=>file&&quotationFolderIds.has(String(file.parentId||''))).length;publishPdfTotal()}
-    foldersRef.on('value',snap=>{const folders=snap.val()||{};quotationFolderIds=new Set(Object.keys(folders).filter(id=>folders[id]?.parentId==='root'&&String(folders[id]?.name||'').trim().toLowerCase()==='quotation'));updateArchiveCount()},error=>console.warn('APML quotation folder telemetry unavailable',error))
-    filesRef.on('value',snap=>{quotationFiles=snap.val()||{};updateArchiveCount()},error=>console.warn('APML quotation archive telemetry unavailable',error))
+    driveApi('/drive').then(data=>{if(!active)return;const quotationFolderIds=new Set((data.folders||[]).filter(folder=>folder.parentId==='root'&&String(folder.name||'').trim().toLowerCase()==='quotation').map(folder=>String(folder.key)));archivePdfTotal=(data.files||[]).filter(file=>file&&quotationFolderIds.has(String(file.parentId||''))).length;publishPdfTotal()}).catch(error=>console.warn('APML quotation archive telemetry unavailable',error))
     listen('analytics/totalMediaDownloads','media')
     let presenceAttached=false
     const startPresence=async()=>{
