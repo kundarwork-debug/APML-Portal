@@ -105,7 +105,9 @@ function OperationalTelemetry(){
 
  useEffect(()=>{
   let active=true,db=null,refs=[]
-  const start=async()=>{
+  const PDF_QUOTATIONS_BASELINE=1264
+ const CLOUD_MEDIA_BASELINE=961
+ const start=async()=>{
    try{
     db=await getApmlDatabase()
     if(!active)return
@@ -115,13 +117,13 @@ function OperationalTelemetry(){
     }
     listen('presence','users',snap=>{const presence=snap.val()||{};return Object.values(presence).reduce((total,sessions)=>{if(!sessions||typeof sessions!=='object')return total;const active=Object.values(sessions).some(session=>session&&session.online!==false);return total+(active?1:0)},0)})
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
-    const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
+    const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(PDF_QUOTATIONS_BASELINE+Math.max(dailyPdfTotal,lifetimePdfTotal),archivePdfTotal)}))}
     const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
     dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,day)=>total+(Number(day?.pdf)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
     const lifetimeRef=db.ref('analytics/totalPdfDownloads');refs.push(lifetimeRef)
     lifetimeRef.on('value',snap=>{lifetimePdfTotal=Number(snap.val())||0;publishPdfTotal()},error=>console.warn('APML lifetime PDF telemetry unavailable',error))
     driveApi('/drive').then(data=>{if(!active)return;const quotationFolderIds=new Set((data.folders||[]).filter(folder=>folder.parentId==='root'&&String(folder.name||'').trim().toLowerCase()==='quotation').map(folder=>String(folder.key)));archivePdfTotal=(data.files||[]).filter(file=>file&&quotationFolderIds.has(String(file.parentId||''))).length;publishPdfTotal()}).catch(error=>console.warn('APML quotation archive telemetry unavailable',error))
-    listen('analytics/totalMediaDownloads','media')
+    listen('analytics/totalMediaDownloads','media',snap=>CLOUD_MEDIA_BASELINE+(Number(snap.val())||0))
    }catch(error){console.warn('APML homepage telemetry could not connect',error)}
   }
   start()
