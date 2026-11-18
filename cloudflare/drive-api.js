@@ -57,11 +57,27 @@ async function enforceWriteLimit(request, env) {
   // Basic per-IP abuse protection. This is deliberately separate from authentication:
   // the shared Drive is public-editable by design.
   if (!env.ANNOUNCE_KV) return;
+
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const key = 'drive:write-limit:' + ip.slice(0, 80);
-  const current = Number(await env.ANNOUNCE_KV.get(key)) || 0;
-  if (current >= 30) throw Object.assign(new Error('Too many Drive changes. Please wait a minute and try again.'), { status: 429 });
-  await env.ANNOUNCE_KV.put(key, String(current + 1), { expirationTtl: 60 });
+  const prefix = 'drive:write-limit:' + encodeURIComponent(ip.slice(0, 80)) + ':';
+  const currentTime = now();
+  const windowStart = currentTime - 60_000;
+
+  // KV allows only one write per second to a given key. A single counter key therefore
+  // causes legitimate rapid Drive operations to fail with KV 429 responses. Use a
+  // unique key per write and list the IP's recent keys instead.
+  const recent = await env.ANNOUNCE_KV.list({ prefix, limit: 31 });
+  const recentCount = (recent.keys || []).reduce((count, item) => {
+    const createdAt = Number(item.name.slice(prefix.length).split(':', 1)[0]);
+    return count + (Number.isFinite(createdAt) && createdAt >= windowStart && createdAt <= currentTime ? 1 : 0);
+  }, 0);
+
+  if (recentCount >= 30) {
+    throw Object.assign(new Error('Too many Drive changes. Please wait a minute and try again.'), { status: 429 });
+  }
+
+  const key = prefix + currentTime + ':' + crypto.randomUUID();
+  await env.ANNOUNCE_KV.put(key, '1', { expirationTtl: 120 });
 }
 
 async function requireParent(db, parentId) {
