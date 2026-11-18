@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
-import { getApmlDatabase } from '../lib/firebase'
+import { getApmlDatabase, getApmlPresenceAuth, getApmlPresenceDatabase } from '../lib/firebase'
 import './Gallery.css'
 
 const CLOUDINARY_UPLOAD = 'https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload'
@@ -295,6 +295,17 @@ export default function Gallery() {
       await getApmlDatabase().ref(`apml_ranked_gallery/${item.key}/${field}`).transaction(value => (Number(value) || 0) + 1)
     } catch {}
   }
+  async function recordMediaDownload() {
+    if (!window.apmlHasAnalyticsConsent?.()) return
+    try {
+      const auth = getApmlPresenceAuth()
+      if (!auth.currentUser?.isAnonymous) await auth.signInAnonymously()
+      const result = await getApmlPresenceDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+      if (!result.committed) throw new Error('The Firebase counter update was not committed.')
+    } catch (error) {
+      console.warn('Gallery download analytics unavailable:', error)
+    }
+  }
   function openMedia(item) {
     metric(item, 'viewsCount')
     setLightbox(item)
@@ -302,12 +313,6 @@ export default function Gallery() {
   async function downloadMedia(item) {
     if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
-    await metric(item, 'downloadsCount')
-    try {
-      if (admin && window.apmlHasAnalyticsConsent?.()) {
-        await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
-      }
-    } catch {}
     try {
       window.APMNotify?.send?.({
         type: 'gallery',
@@ -320,9 +325,10 @@ export default function Gallery() {
         }
       })
     } catch {}
+    let openedFallback = false
     try {
       if (window.ApmNativeDownload?.start) {
-        window.ApmNativeDownload.start(item.url, name)
+        await window.ApmNativeDownload.start(item.url, name)
       } else {
         let blob
         try {
@@ -344,9 +350,6 @@ export default function Gallery() {
         anchor.remove()
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000)
       }
-      window.logDailyActivity?.('media')
-      window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
-      await driveToast('Download started')
     } catch (error) {
       const anchor = document.createElement('a')
       anchor.href = item.url
@@ -356,10 +359,13 @@ export default function Gallery() {
       document.body.append(anchor)
       anchor.click()
       anchor.remove()
-      window.logDailyActivity?.('media')
+      openedFallback = true
       console.warn('Gallery download fallback:', error)
-      await driveToast('Download opened in a new tab', 'info')
     }
+    await Promise.all([metric(item, 'downloadsCount'), recordMediaDownload()])
+    window.logDailyActivity?.('media')
+    window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
+    await driveToast(openedFallback ? 'Download opened in a new tab' : 'Download started', openedFallback ? 'info' : undefined)
   }
   async function move(item, folder) {
     if (!admin) return
