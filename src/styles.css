@@ -1635,3 +1635,87 @@ html[data-theme="dark"] .gallery-folder-tab .gallery-mini-action{background:#382
 html[data-theme="dark"] .drive-folder-icon svg,
 html[data-theme="dark"] .gallery-upload-icon svg,
 html[data-theme="dark"] .gallery-mini-action svg{color:#fca5a5!important}
+
+
+/* Full-repository dark theme coverage for page modules that own their CSS.
+   Deliberately excludes .quote-document so the printable A4 quotation stays white. */
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-page,.admin-gate,.admin-gate-card,
+  .lite-page,.lite-card,.lite-static,.lite-row,.lite-total,.lite-alert,
+  .bug-page,.bug-card,.bug-success,.bug-error,.bug-note,
+  .car-page,.car-hero,.car-card,.car-suggestions,.car-suggestion-note,
+  .local-page,.local-hero,.local-card,.local-tier,.local-volume,.local-extras,
+  .public-analytics,.public-analytics-card,.public-analytics-panel,.public-analytics-summary>div,
+  .qm-page,.qm-summary article,.qm-panel,.qm-error,.qm-note,
+  .health-page,.health-overall,.health-service,.health-panel,
+  .policy-page,.policy-card,.not-found-page
+):not(.quote-document):not(.quote-document *){
+  background-color:#151e2e!important;
+  border-color:#334155!important;
+  color:#e2e8f0!important;
+  box-shadow:0 8px 26px rgba(0,0,0,.18);
+}
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-page,.lite-page,.bug-page,.car-page,.local-page,
+  .public-analytics,.qm-page,.health-page,.policy-page,.not-found-page
+){background:transparent!important;box-shadow:none!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-gate-card,.lite-card,.lite-static,.lite-row,.lite-total,.lite-alert,
+  .bug-card,.bug-success,.bug-error,.bug-note,.car-hero,.car-card,.car-suggestions,
+  .local-hero,.local-card,.local-tier,.local-volume,.local-extras,
+  .public-analytics-card,.public-analytics-panel,.public-analytics-summary>div,
+  .qm-summary article,.qm-panel,.qm-error,.qm-note,
+  .health-overall,.health-service,.health-panel,.policy-card
+){background:#151e2e!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-page h1,.admin-page h2,.admin-page h3,
+  .lite-page h1,.lite-page h2,.lite-page h3,.lite-card strong,.lite-total strong,
+  .bug-page h1,.bug-page h2,.bug-card h2,
+  .car-page h1,.car-page h2,.car-card h2,.car-card-title,
+  .local-page h1,.local-page h2,.local-card h2,.local-card-title,
+  .public-analytics h1,.public-analytics h2,.public-analytics h3,
+  .qm-page h1,.qm-page h2,.qm-page h3,.qm-panel h2,
+  .health-page h1,.health-page h2,.health-page h3,.health-service h3,
+  .policy-card h1,.policy-card h2,.not-found-page h1
+){color:#f8fafc!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-page p,.lite-page p,.lite-page label,.lite-page small,
+  .bug-page p,.bug-page label,.bug-page small,
+  .car-page p,.car-page label,.car-page small,
+  .local-page p,.local-page label,.local-page small,
+  .public-analytics p,.public-analytics small,
+  .qm-page p,.qm-page small,.health-page p,.health-page small,
+  .policy-card p,.not-found-page p
+){color:#a8b5c7!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-page input,.admin-page textarea,.admin-page select,
+  .lite-page input,.lite-page textarea,.lite-page select,
+  .bug-page input,.bug-page textarea,.bug-page select,
+  .car-page input,.car-page textarea,.car-page select,
+  .local-page input,.local-page textarea,.local-page select,
+  .public-analytics input,.public-analytics select,
+  .qm-page input,.qm-page select,.health-page input,.health-page select
+){background:#0f172a!important;color:#f8fafc!important;border-color:#475569!important;color-scheme:dark}
+html[data-theme="dark"] .portal-page-content :is(
+  .admin-page button:not(.admin-primary),.lite-page button:not(.lite-primary),
+  .bug-page button:not(.bug-primary),.car-page button:not(.car-primary),
+  .local-page button:not(.local-primary),.public-analytics button:not(.public-analytics-primary),
+  .qm-page button:not(.qm-primary),.health-page button:not(.health-primary)
+){background:#1e293b;color:#e2e8f0;border-color:#475569}
+html[data-theme="dark"] .portal-page-content :is(
+  .lite-total,.public-analytics-summary>div,.qm-summary article
+){background:#1e293b!important}
+html[data-theme="dark"] .portal-page-content :is(
+  .lite-page button,.bug-page button,.car-page button,.local-page button,
+  .public-analytics button,.qm-page button,.health-page button
+):is(.active,.selected,[aria-pressed="true"]){background:#7f2933!important;color:#fff!important;border-color:#9f3b46!important}
+html[data-theme="dark"] .privacy-consent-card,
+html[data-theme="dark"] .privacy-consent-modal{
+  background:#151e2e!important;color:#e2e8f0!important;border-color:#334155!important;
+}
+html[data-theme="dark"] .privacy-consent-card :is(h1,h2,h3,strong,b){color:#f8fafc!important}
+html[data-theme="dark"] .privacy-consent-card :is(p,small,span){color:#cbd5e1!important}
+html[data-theme="dark"] .privacy-consent-card button:not(.privacy-consent-accept){
+  background:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important;
+}
+html[data-theme="dark"] .portal-page-content .not-found-page :is(.nf-illustration,.nf-background-glow){background:transparent!important}
