@@ -89,7 +89,7 @@ async function handleGet(url, env) {
   if (!db) return json({ ok: false, error: 'D1 binding DB is not configured.' }, 503);
   const path = url.pathname.replace(/\/+$/, '');
   if (path === '/drive/folders') {
-    const result = await db.prepare('SELECT * FROM drive_folders ORDER BY name COLLATE NOCASE').all();
+    const result = await db.prepare('SELECT * FROM drive_folders WHERE id NOT IN ('root', 'deleted') ORDER BY name COLLATE NOCASE').all();
     return json({ ok: true, folders: (result.results || []).map(mapFolder) });
   }
   if (path === '/drive/files') {
@@ -98,7 +98,7 @@ async function handleGet(url, env) {
   }
   if (path === '/drive' || path === '/drive/') {
     const [folders, files] = await Promise.all([
-      db.prepare('SELECT * FROM drive_folders ORDER BY name COLLATE NOCASE').all(),
+      db.prepare('SELECT * FROM drive_folders WHERE id NOT IN ('root', 'deleted') ORDER BY name COLLATE NOCASE').all(),
       db.prepare('SELECT * FROM drive_files ORDER BY created_at DESC').all(),
     ]);
     return json({
