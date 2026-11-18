@@ -125,3 +125,50 @@
 .directory-loading b{font:800 12px 'Plus Jakarta Sans',sans-serif;color:#303236}
 .directory-loading small{font:500 11px 'Plus Jakarta Sans',sans-serif;color:#777}
 @media(prefers-reduced-motion:reduce){.hub-loader-mark span,.directory-loader-ring svg{animation:none}}
+
+
+/* Dark theme corrections: Directory result rows and their nested content */
+html[data-theme="dark"] .directory-page{color:#e2e8f0!important}
+html[data-theme="dark"] .directory-heading h1,
+html[data-theme="dark"] .directory-panel-title,
+html[data-theme="dark"] .directory-person b,
+html[data-theme="dark"] .directory-location b,
+html[data-theme="dark"] .directory-empty b{color:#f8fafc!important}
+html[data-theme="dark"] .directory-heading p,
+html[data-theme="dark"] .directory-kicker,
+html[data-theme="dark"] .directory-person small,
+html[data-theme="dark"] .directory-location small,
+html[data-theme="dark"] .directory-address>span,
+html[data-theme="dark"] .directory-footer-count{color:#a8b5c7!important}
+html[data-theme="dark"] .directory-panel,
+html[data-theme="dark"] .directory-results,
+html[data-theme="dark"] .directory-record,
+html[data-theme="dark"] .directory-empty,
+html[data-theme="dark"] .directory-modal{
+ background:#151e2e!important;color:#e2e8f0!important;border-color:#334155!important;
+}
+html[data-theme="dark"] .directory-table-head{background:#1e293b!important;color:#a8b5c7!important;border-color:#334155!important}
+html[data-theme="dark"] .directory-record{border-bottom-color:#334155!important}
+html[data-theme="dark"] .directory-record:hover{background:#1e293b!important}
+html[data-theme="dark"] .directory-record.is-deleted{background:#29212a!important;color:#f8fafc!important;border-color:#513541!important}
+html[data-theme="dark"] .directory-record.is-deleted .directory-person b,
+html[data-theme="dark"] .directory-record.is-deleted .directory-location b{color:#f8fafc!important}
+html[data-theme="dark"] .directory-record.is-deleted .directory-person small,
+html[data-theme="dark"] .directory-record.is-deleted .directory-location small,
+html[data-theme="dark"] .directory-record.is-deleted .directory-address>span{color:#cbd5e1!important}
+html[data-theme="dark"] .directory-phone,
+html[data-theme="dark"] .directory-copy-phone{color:#cbd5e1!important}
+html[data-theme="dark"] .directory-row-actions button,
+html[data-theme="dark"] .directory-modal-head>button,
+html[data-theme="dark"] .directory-modal-actions button:not(.create){
+ background:#1e293b!important;color:#e2e8f0!important;border-color:#475569!important;
+}
+html[data-theme="dark"] .directory-search,
+html[data-theme="dark"] .directory-search input,
+html[data-theme="dark"] .directory-form-grid input,
+html[data-theme="dark"] .directory-form-grid textarea{
+ background:#1e293b!important;color:#f8fafc!important;border-color:#475569!important;color-scheme:dark;
+}
+html[data-theme="dark"] .directory-form-grid label,
+html[data-theme="dark"] .directory-modal-head b{color:#e2e8f0!important}
+html[data-theme="dark"] .directory-modal-head small{color:#a8b5c7!important}
