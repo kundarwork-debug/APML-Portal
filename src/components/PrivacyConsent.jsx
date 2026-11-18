@@ -6,6 +6,8 @@ import './PrivacyConsent.css'
 const PRIVACY_KEY='apml-privacy-consent'
 const ANALYTICS_KEY='apml-analytics-consent'
 const DISMISSED_KEY='apml-privacy-dismissed'
+const PRESENCE_NOTICE_KEY='apml-presence-notice-version'
+const PRESENCE_NOTICE_VERSION='2026-11-18'
 
 function readChoice(){
   try{
@@ -31,9 +33,12 @@ export default function PrivacyConsent(){
     }
     window.addEventListener('apml:review-privacy',review)
     const choice=readChoice()
-    let dismissed=false
-    try{dismissed=sessionStorage.getItem(DISMISSED_KEY)==='yes'}catch(_){}
-    setOpen(Boolean(!choice&&!dismissed&&!['/cookies','/privacy','/terms'].includes(location.pathname)))
+    let dismissed=false, presenceNoticeSeen=false
+    try{
+      dismissed=sessionStorage.getItem(DISMISSED_KEY)==='yes'
+      presenceNoticeSeen=localStorage.getItem(PRESENCE_NOTICE_KEY)===PRESENCE_NOTICE_VERSION
+    }catch(_){}
+    setOpen(Boolean((!choice||!presenceNoticeSeen)&&!dismissed&&!['/cookies','/privacy','/terms'].includes(location.pathname)))
     return()=>window.removeEventListener('apml:review-privacy',review)
   },[location.pathname])
 
@@ -42,6 +47,7 @@ export default function PrivacyConsent(){
     try{
       localStorage.setItem(PRIVACY_KEY,JSON.stringify(choice))
       localStorage.setItem(ANALYTICS_KEY,analytics?'yes':'no')
+      localStorage.setItem(PRESENCE_NOTICE_KEY,PRESENCE_NOTICE_VERSION)
       if(analytics)sessionStorage.removeItem(DISMISSED_KEY)
       else sessionStorage.setItem(DISMISSED_KEY,'yes')
     }catch(_){}
