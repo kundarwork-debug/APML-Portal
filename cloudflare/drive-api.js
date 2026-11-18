@@ -11,7 +11,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
   headers: { ...CORS, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
 });
 
-const cleanName = (value) => String(value ?? '').trim().replace(/[\\u0000-\\u001f\\u007f]/g, '');
+const cleanName = (value) => String(value ?? '').trim().replace(/[\x00-\x1f\x7f]/g, '');
 const now = () => Date.now();
 
 function mapFolder(row) {
@@ -87,7 +87,7 @@ async function checkFolderMove(db, id, parentId) {
 async function handleGet(url, env) {
   const db = env.DB;
   if (!db) return json({ ok: false, error: 'D1 binding DB is not configured.' }, 503);
-  const path = url.pathname.replace(/\\/+$/, '');
+  const path = url.pathname.replace(/\/+$/, '');
   if (path === '/drive/folders') {
     const result = await db.prepare('SELECT * FROM drive_folders ORDER BY name COLLATE NOCASE').all();
     return json({ ok: true, folders: (result.results || []).map(mapFolder) });
@@ -231,9 +231,9 @@ async function handleDelete(request, env, kind, id) {
 export async function handleDriveApi(request, env) {
   if (!env.DB) return json({ ok: false, error: 'D1 binding DB is not configured.' }, 503);
   const url = new URL(request.url);
-  const path = url.pathname.replace(/\\/+$/, '') || '/';
+  const path = url.pathname.replace(/\/+$/, '') || '/'
   if (request.method === 'GET') return handleGet(url, env);
-  const match = path.match(/^\\/drive\\/(folders|files)(?:\\/([^/]+))?$/);
+  const match = path.match(/^\/drive\/(folders|files)(?:\/([^/]+))?$/);
   if (!match) return json({ ok: false, error: 'Drive endpoint not found.' }, 404);
   const kind = match[1];
   const id = match[2] ? decodeURIComponent(match[2]) : null;
