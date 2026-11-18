@@ -1,3 +1,5 @@
+import { handleDriveApi } from './drive-api.js';
+
 // APML Portal production Worker — maintained in kundarwork-debug/APML-Portal.
 // Cloudflare Git deployment trigger — no runtime behavior change.
 // apml-drive-api — Cloudflare Worker
@@ -62,9 +64,9 @@ const CONFIG = {
 
 const CORS = {
 
-  'Access-Control-Allow-Origin': '\*',
+  'Access-Control-Allow-Origin': '*',
 
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 
@@ -2151,6 +2153,9 @@ export default {
 
     // Normalize trailing slashes so /announcement and /announcement/ behave identically.
     const path = new URL(request.url).pathname.replace(/\/+$/, '') || '/';
+
+    // Public shared Drive metadata is served from D1; other Worker routes remain unchanged.
+    if (path === '/drive' || path.startsWith('/drive/')) return await handleDriveApi(request, env);
 
     if (request.method === 'GET' && path === '/dl') {
 
