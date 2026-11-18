@@ -55,3 +55,30 @@
 .quote-generating-overlay .word{display:block;height:40px;line-height:40px;padding-left:6px;color:#b91c1c;animation:quote-cycle-words 5s infinite}
 @keyframes quote-cycle-words{10%{transform:translateY(-105%)}25%{transform:translateY(-100%)}35%{transform:translateY(-205%)}50%{transform:translateY(-200%)}60%{transform:translateY(-305%)}75%{transform:translateY(-300%)}85%{transform:translateY(-405%)}100%{transform:translateY(-400%)}}
 .quote-generating-caption{font:600 10px 'DM Sans',Arial,sans-serif;color:#625b56;text-align:center;margin-top:3px}
+
+
+/* APML dark theme: quotation editor workspace (keep the printable quotation preview white). */
+html[data-theme="dark"] .editor-page{color:#e2e8f0}
+html[data-theme="dark"] .editor-page :is(.editor-back,.editor-heading p,.editor-date,.editor-group h2 span,.editor-field>span,.editor-totals>div,.editor-reset,.preview-caption,.preview-caption span,.editor-download p){color:#cbd5e1!important}
+html[data-theme="dark"] .editor-page :is(.editor-panel,.editor-date,.editor-totals,.editor-reset,.remove-row,.editor-add){background:#172334!important;border-color:#334155!important}
+html[data-theme="dark"] .editor-page .editor-panel{box-shadow:0 8px 26px rgba(0,0,0,.2)}
+html[data-theme="dark"] .editor-page .company-tabs{background:#111c2b!important;border-color:#334155!important}
+html[data-theme="dark"] .editor-page .company-tabs button{color:#cbd5e1!important}
+html[data-theme="dark"] .editor-page .company-tabs button.active.exact{background:#38242b!important;color:#fca5a5!important;box-shadow:none}
+html[data-theme="dark"] .editor-page .company-tabs button.active.maxcare{background:#1e3151!important;color:#93c5fd!important;box-shadow:none}
+html[data-theme="dark"] .editor-page .editor-group h2{color:#cbd5e1!important}
+html[data-theme="dark"] .editor-page .editor-group h2:after{background:#334155!important}
+html[data-theme="dark"] .editor-page .shared-group{background:linear-gradient(135deg,#30212a,#1b2637)!important;border-color:#69404a!important}
+html[data-theme="dark"] .editor-page .shared-group h2{color:#fca5a5!important}
+html[data-theme="dark"] .editor-page .quick-pricing{background:linear-gradient(135deg,#30212a,#1b2637)!important;border-color:#69404a!important}
+html[data-theme="dark"] .editor-page .quick-label{color:#fca5a5!important}
+html[data-theme="dark"] .editor-page :is(.editor-field input,.editor-field textarea,.editor-dynamic-row input,.editor-dynamic-row textarea,.apply-total input){background:#0f172a!important;color:#f1f5f9!important;border-color:#475569!important;color-scheme:dark}
+html[data-theme="dark"] .editor-page :is(.editor-field input,.editor-field textarea,.editor-dynamic-row input,.editor-dynamic-row textarea,.apply-total input)::placeholder{color:#94a3b8!important}
+html[data-theme="dark"] .editor-page :is(.editor-totals strong,.editor-totals .grand,.editor-totals .grand strong){color:#fca5a5!important}
+html[data-theme="dark"] .editor-page .editor-reset{color:#e2e8f0!important}
+html[data-theme="dark"] .editor-page .editor-add{color:#fca5a5!important;border-color:#69404a!important}
+html[data-theme="dark"] .editor-page .remove-row{color:#fca5a5!important}
+html[data-theme="dark"] .editor-page .editor-download{background:linear-gradient(0deg,#172334 78%,rgba(23,35,52,.85))!important}
+html[data-theme="dark"] .editor-page .editor-download>button{background:#b91c1c!important;color:#fff!important}
+html[data-theme="dark"] .editor-page .preview-caption{color:#cbd5e1!important}
+html[data-theme="dark"] .editor-page .preview-paper{background:#fff!important;border-color:#475569!important}
