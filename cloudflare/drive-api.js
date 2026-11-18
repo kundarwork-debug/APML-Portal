@@ -89,7 +89,7 @@ async function handleGet(url, env) {
   if (!db) return json({ ok: false, error: 'D1 binding DB is not configured.' }, 503);
   const path = url.pathname.replace(/\/+$/, '');
   if (path === '/drive/folders') {
-    const result = await db.prepare('SELECT * FROM drive_folders WHERE id NOT IN ('root', 'deleted') ORDER BY name COLLATE NOCASE').all();
+    const result = await db.prepare(`SELECT * FROM drive_folders WHERE id NOT IN ('root', 'deleted') ORDER BY name COLLATE NOCASE`).all();
     return json({ ok: true, folders: (result.results || []).map(mapFolder) });
   }
   if (path === '/drive/files') {
@@ -98,7 +98,7 @@ async function handleGet(url, env) {
   }
   if (path === '/drive' || path === '/drive/') {
     const [folders, files] = await Promise.all([
-      db.prepare('SELECT * FROM drive_folders WHERE id NOT IN ('root', 'deleted') ORDER BY name COLLATE NOCASE').all(),
+      db.prepare(`SELECT * FROM drive_folders WHERE id NOT IN ('root', 'deleted') ORDER BY name COLLATE NOCASE`).all(),
       db.prepare('SELECT * FROM drive_files ORDER BY created_at DESC').all(),
     ]);
     return json({
@@ -137,7 +137,8 @@ async function handleCreate(request, env, kind) {
   if (!['http:', 'https:'].includes(parsed.protocol) || fileUrl.length > 2048) {
     return json({ ok: false, error: 'Only valid HTTP or HTTPS file URLs are accepted.' }, 400);
   }
-  const size = Number(body.size) || 0;
+  const sizeInput = body.size;
+  const size = sizeInput == null || sizeInput === '' ? 0 : Number(sizeInput);
   if (!Number.isFinite(size) || size < 0 || size > 100 * 1024 * 1024) {
     return json({ ok: false, error: 'File size must be between 0 and 100 MB.' }, 400);
   }
@@ -240,12 +241,12 @@ export async function handleDriveApi(request, env) {
   if (!env.DB) return json({ ok: false, error: 'D1 binding DB is not configured.' }, 503);
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/+$/, '') || '/'
-  if (request.method === 'GET') return handleGet(url, env);
-  const match = path.match(/^\/drive\/(folders|files)(?:\/([^/]+))?$/);
-  if (!match) return json({ ok: false, error: 'Drive endpoint not found.' }, 404);
-  const kind = match[1];
-  const id = match[2] ? decodeURIComponent(match[2]) : null;
   try {
+    if (request.method === 'GET') return await handleGet(url, env);
+    const match = path.match(/^\/drive\/(folders|files)(?:\/([^/]+))?$/);
+    if (!match) return json({ ok: false, error: 'Drive endpoint not found.' }, 404);
+    const kind = match[1];
+    const id = match[2] ? decodeURIComponent(match[2]) : null;
     if (request.method === 'POST' && !id) return await handleCreate(request, env, kind);
     if (request.method === 'PATCH' && id) return await handleUpdate(request, env, kind, id);
     if (request.method === 'DELETE' && id) return await handleDelete(request, env, kind, id);
