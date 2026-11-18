@@ -212,15 +212,23 @@ async function handleDelete(request, env, kind, id) {
       DELETE FROM drive_files
       WHERE parent_id IN (
         WITH RECURSIVE tree(id) AS (
-          SELECT ? UNION ALL SELECT f.id FROM drive_folders f JOIN tree t ON f.parent_id = t.id
+          SELECT ? UNION SELECT f.id FROM drive_folders f JOIN tree t
+          ON f.parent_id = t.id OR f.previous_parent_id = t.id
         ) SELECT id FROM tree
       )
-    `).bind(id),
+      OR previous_parent_id IN (
+        WITH RECURSIVE tree(id) AS (
+          SELECT ? UNION SELECT f.id FROM drive_folders f JOIN tree t
+          ON f.parent_id = t.id OR f.previous_parent_id = t.id
+        ) SELECT id FROM tree
+      )
+    `).bind(id, id),
     db.prepare(`
       DELETE FROM drive_folders
       WHERE id IN (
         WITH RECURSIVE tree(id) AS (
-          SELECT ? UNION ALL SELECT f.id FROM drive_folders f JOIN tree t ON f.parent_id = t.id
+          SELECT ? UNION SELECT f.id FROM drive_folders f JOIN tree t
+          ON f.parent_id = t.id OR f.previous_parent_id = t.id
         ) SELECT id FROM tree
       )
     `).bind(id),
