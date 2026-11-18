@@ -8,5 +8,10 @@ keep_vars = true
 binding = "ANNOUNCE_KV"
 id = "67a645649ab941668956f159f890147e"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "apml-drive-db"
+database_id = "44ba1e84-54d5-4fb3-bfda-bd7518c47851"
+
 [triggers]
 crons = ["0 * * * *"]
