@@ -224,7 +224,7 @@ export default function Shell(){
   const hasConsent=()=>{try{const choice=JSON.parse(localStorage.getItem('apml-privacy-consent')||'null');return !!(choice&&choice.analytics===true)||localStorage.getItem('apml-analytics-consent')==='yes'}catch(_){return false}}
   const indiaDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
   window.apmlHasAnalyticsConsent=hasConsent
-  window.logDailyActivity=async(type)=>{if(!hasConsent())return false;try{const db=await getApmlDatabase();const result=await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1);return !!result.committed}catch(error){console.warn('APML daily analytics unavailable',error);return false}}
+  window.logDailyActivity=async(type)=>{if(!hasConsent())return false;try{const auth=getApmlAuth();if(!auth.currentUser)await auth.signInAnonymously();const db=await getApmlDatabase();const counter=String(type).replace(/[^a-zA-Z0-9_-]/g,'');if(!['visitors','pdf','media'].includes(counter))return false;const result=await db.ref('analytics/daily_logs/'+indiaDate()+'/'+counter).transaction(value=>(Number(value)||0)+1);return !!result.committed}catch(error){console.warn('APML daily analytics unavailable',error);return false}}
   let visitorWritePending=false
   const recordVisitor=async()=>{
    if(!hasConsent()||visitorWritePending||typeof window.logDailyActivity!=='function')return
