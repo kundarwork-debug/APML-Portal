@@ -53,3 +53,30 @@ export async function getApmlAuth() {
   )
   return window.firebase.auth()
 }
+
+export async function getApmlPresenceServices() {
+  await getApmlDatabase()
+  await loadFirebaseScript(
+    'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
+    () => !!window.firebase?.auth
+  )
+
+  const firebase = window.firebase
+  const appName = 'apml-presence'
+  const app = firebase.apps.find(existing => existing.name === appName)
+    || firebase.initializeApp(config, appName)
+  const auth = firebase.auth(app)
+
+  if (auth.currentUser && !auth.currentUser.isAnonymous) {
+    throw new Error('The APML presence auth instance has a non-anonymous user.')
+  }
+
+  if (!auth.currentUser) await auth.signInAnonymously()
+  const user = auth.currentUser
+  if (!user?.isAnonymous || !user.uid) {
+    throw new Error('Firebase did not create an anonymous user for presence.')
+  }
+
+  return { database: firebase.database(app), user }
+}
+

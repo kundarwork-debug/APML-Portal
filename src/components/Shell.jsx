@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
 import { Footer } from './ui/footer'
-import { getApmlDatabase } from '../lib/firebase'
+import { getApmlPresenceServices } from '../lib/firebase'
 import { Component as HamburgerButton } from './ui/demo'
 import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
 
@@ -187,16 +187,16 @@ export default function Shell(){
  const [darkTheme,setDarkTheme]=useState(()=>{try{return localStorage.getItem('apml-theme')==='dark'}catch(_){return false}})
  const location=useLocation()
  useEffect(()=>{
-  let active=true,db=null,connectionRef=null,presenceRef=null,ownRef=null,heartbeat=null
+  let active=true,db=null,connectionRef=null,ownRef=null,heartbeat=null,connected=false,connectionHandler=null
   const start=async()=>{
    try{
-    db=await getApmlDatabase()
+    const presence=await getApmlPresenceServices()
     if(!active)return
+    db=presence.database
     let sessionId
     try{sessionId=sessionStorage.getItem('apml_presence_session')}catch(_){}
-    if(!sessionId){sessionId='user_'+Math.random().toString(36).slice(2,10);try{sessionStorage.setItem('apml_presence_session',sessionId)}catch(_){}}
-    ownRef=db.ref('presence/'+sessionId)
-    presenceRef=db.ref('presence')
+    if(!sessionId){sessionId=window.crypto?.randomUUID?.()||Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);try{sessionStorage.setItem('apml_presence_session',sessionId)}catch(_){}}
+    ownRef=db.ref('presence/'+presence.user.uid+'/'+sessionId)
     connectionRef=db.ref('.info/connected')
     const publish=async()=>{
      try{
@@ -204,12 +204,14 @@ export default function Shell(){
       await ownRef.set({online:true,timestamp:Date.now()})
      }catch(error){console.warn('APML live presence could not be published',error)}
     }
-    connectionRef.on('value',snap=>{
+    connectionHandler=snap=>{
      if(!active)return
-     if(snap.val()===true)publish()
-    },error=>console.warn('APML live connection status unavailable',error))
+     connected=snap.val()===true
+     if(connected)publish()
+    }
+    connectionRef.on('value',connectionHandler,error=>console.warn('APML live connection status unavailable',error))
     heartbeat=window.setInterval(()=>{
-     if(active&&db?.ref)ownRef?.update({online:true,timestamp:Date.now()}).catch(error=>console.warn('APML presence heartbeat failed',error))
+     if(active&&connected)ownRef?.update({online:true,timestamp:Date.now()}).catch(error=>console.warn('APML presence heartbeat failed',error))
     },30000)
    }catch(error){console.warn('APML live presence unavailable',error)}
   }
@@ -217,7 +219,8 @@ export default function Shell(){
   return()=>{
    active=false
    if(heartbeat)window.clearInterval(heartbeat)
-   connectionRef?.off?.('value')
+   connected=false
+   if(connectionHandler)connectionRef?.off?.('value',connectionHandler)
    if(ownRef){ownRef.onDisconnect().cancel().catch(()=>{});ownRef.remove().catch(()=>{})}
   }
  },[])
@@ -322,3 +325,4 @@ export default function Shell(){
   />
  </div>
 }
+

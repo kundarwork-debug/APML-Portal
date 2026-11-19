@@ -115,7 +115,14 @@ function OperationalTelemetry(){
     const presenceRef=db.ref('presence');refs.push(presenceRef)
     presenceRef.on('value',snap=>{
      const cutoff=Date.now()-90000
-     const online=Object.values(snap.val()||{}).filter(record=>record?.online===true&&Number(record.timestamp)>=cutoff).length
+     let online=0
+     Object.values(snap.val()||{}).forEach(sessions=>{
+      if(!sessions||typeof sessions!=='object')return
+      Object.values(sessions).forEach(session=>{
+       const timestamp=session?.timestamp
+       if(session?.online===true&&typeof timestamp==='number'&&Number.isFinite(timestamp)&&timestamp>=cutoff)online++
+      })
+     })
      if(active)setCounts(prev=>({...prev,users:online}))
     },error=>console.warn('APML live presence count unavailable',error))
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
@@ -177,3 +184,4 @@ export default function Home(){
   <OperationalTelemetry/>
  </div>
 }
+
