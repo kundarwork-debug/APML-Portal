@@ -19,7 +19,7 @@ export function useApmlAdminAuth() {
     const unsubscribe = auth.onAuthStateChanged(user => {
       setFirebaseUser(user || null)
       setLoading(false)
-      if (user && !isApprovedAdmin(user)) {
+      if (user && !user.isAnonymous && !isApprovedAdmin(user)) {
         auth.signOut().catch(error => console.error('Unable to clear unapproved APML session:', error))
       }
     })
@@ -45,4 +45,15 @@ export function useApmlAdminAuth() {
   const admin = isApprovedAdmin(firebaseUser)
   const email = admin ? String(firebaseUser.email).toLowerCase().trim() : ''
   return { admin, userEmail: email, loading, signIn, signOut }
+}
+
+// Public media contributions use a Firebase anonymous session. This keeps uploads
+// separate from the restricted Google-admin session and lets database rules validate writes.
+export async function ensureApmlAnonymousAuth() {
+  const auth = getApmlAuth()
+  const current = auth.currentUser
+  if (current?.isAnonymous) return current
+  if (current) throw new Error('Please sign out of the current account before uploading media.')
+  const credential = await auth.signInAnonymously()
+  return credential.user
 }
