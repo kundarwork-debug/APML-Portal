@@ -8,3 +8,8 @@
 
 .about-support-link{font:inherit;}
 .about-support-link:hover,.about-support-link:focus-visible{color:var(--primary);border-color:var(--primary);}
+
+
+/* Programming artwork sizing for the About hero */
+.about-art img{width:min(100%,430px);height:auto;max-height:310px;object-fit:contain;filter:drop-shadow(0 12px 22px rgba(180,35,44,.08));}
+@media(max-width:760px){.about-art img{width:min(100%,390px);max-height:270px;}}
