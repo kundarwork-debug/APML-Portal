@@ -112,6 +112,12 @@ function OperationalTelemetry(){
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
+    const presenceRef=db.ref('presence');refs.push(presenceRef)
+    presenceRef.on('value',snap=>{
+     const cutoff=Date.now()-90000
+     const online=Object.values(snap.val()||{}).filter(record=>record?.online===true&&Number(record.timestamp)>=cutoff).length
+     if(active)setCounts(prev=>({...prev,users:online}))
+    },error=>console.warn('APML live presence count unavailable',error))
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
     const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
     const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
@@ -134,7 +140,7 @@ function OperationalTelemetry(){
   <Link to="/analytics">
    <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across Western Central Regional Office &amp; nationwide hubs.</p></div><span><i/> All operational systems monitored</span></div>
    <div className="legacy-telemetry-stats">
-    <div><small>Live Active Personnel</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
+    <div><small>Live Active Sessions</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
     <div><small>PDF Quotations Drafted</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Exact Container &amp; Maxcare</em></div>
     <div><small>Cloud Files &amp; Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Drive &amp; gallery archives</em></div>
    </div>
