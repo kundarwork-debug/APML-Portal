@@ -5877,13 +5877,12 @@ AAAAAAAAAAAAAAAAAAAAAAA=
 (function initSharedPageLoader() {
   const currentPage = window.location.pathname.split('/').pop().toLowerCase();
   const isHomePage = !currentPage || currentPage === 'index.html' || currentPage === 'index';
-  const isAnalyticsPage = currentPage === 'analytics.html' || currentPage === 'analytics';
   const isEditorPage = currentPage === 'editor.html' || currentPage === 'editor';
   const isGalleryPage = currentPage === 'gallery.html' || currentPage === 'gallery';
   const isDrivePage = currentPage === 'drive.html' || currentPage === 'drive';
   const isDirectoryPage = currentPage === 'directory.html' || currentPage === 'directory';
   const isFieldOfficerPage = currentPage === 'field-officer.html' || currentPage === 'field-officer';
-  if (isHomePage || isAnalyticsPage || isEditorPage) return;
+  if (isHomePage || isEditorPage) return;
   const keepPageLoader = isDirectoryPage || isFieldOfficerPage || isDrivePage || isGalleryPage;
   if (!keepPageLoader || document.getElementById('pageLoadingOverlay')) return;
 
@@ -5946,7 +5945,7 @@ AAAAAAAAAAAAAAAAAAAAAAA=
 // =========================================================
 (function loadSortableJS() {
   const currentPage = window.location.pathname.split('/').pop().toLowerCase();
-  if (currentPage === 'analytics.html' || currentPage === 'analytics' || currentPage === 'editor.html' || currentPage === 'editor' || currentPage === 'gallery.html' || currentPage === 'gallery' || currentPage === 'drive.html' || currentPage === 'drive') return;
+  if (currentPage === 'editor.html' || currentPage === 'editor' || currentPage === 'gallery.html' || currentPage === 'gallery' || currentPage === 'drive.html' || currentPage === 'drive') return;
   if (window.Sortable) {
     window.APMLSortableReady = Promise.resolve(window.Sortable);
     return;

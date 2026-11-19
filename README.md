@@ -38,7 +38,6 @@ The portal is being migrated and refined as a native React application. The aim 
 | **Quotation Editor** | Prepare quotations and generate formatted A4 PDF documents. |
 | **APML Drive** | Organise and access uploaded files and folders. |
 | **Gallery** | Browse and manage shared media. |
-| **Analytics** | View available portal activity and operational summaries. |
 | **Branch Directory** | Find branch information and contact details. |
 | **Field Officers** | Search field officer records and contact information. |
 | **Local Rate Calculator** | Calculate local shifting estimates from entered values. |
