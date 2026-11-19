@@ -157,15 +157,22 @@ function OperationalTelemetry(){
 export default function Home(){
  const [query,setQuery]=useState('')
  const [hubReady,setHubReady]=useState(false)
+ const revealRoot=useRef(null)
+ useEffect(()=>{const timer=window.setTimeout(()=>setHubReady(true),420);return()=>window.clearTimeout(timer)},[])
  useEffect(()=>{
-  const timer=window.setTimeout(()=>setHubReady(true),520)
-  return()=>window.clearTimeout(timer)
- },[])
+  const root=revealRoot.current
+  if(!root)return
+  const nodes=root.querySelectorAll('.apml-reveal')
+  if(!('IntersectionObserver' in window)){nodes.forEach(node=>node.classList.add('is-visible'));return}
+  const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:0.12,rootMargin:'0px 0px -36px 0px'})
+  nodes.forEach(node=>observer.observe(node))
+  return()=>observer.disconnect()
+ },[hubReady])
  const filtered=useMemo(()=>homeTools.filter(t=>(t.title+' '+t.description+' '+t.tags.join(' ')).toLowerCase().includes(query.toLowerCase())),[query])
  const activeCount=homeTools.filter(t=>modules.some(m=>m.id===t.id)).length
  return <div className={"home-page legacy-home "+(hubReady?"hub-ready":"hub-loading")}>
   {!hubReady&&<div className="hub-loading-screen" role="status" aria-live="polite"><div className="hub-loader-mark"><span/><span/><span/></div><b>APML PORTAL</b><small>Preparing your workspace…</small></div>}
-  <section className="legacy-hero" aria-labelledby="homeHeroTitle">
+  <section className="legacy-hero apml-reveal is-visible" aria-labelledby="homeHeroTitle">
    <HeroMascot/>
    <p className="legacy-eyebrow"><i/> APML PORTAL</p>
    <h1 id="homeHeroTitle">The workday,<br/><span>made simpler.</span></h1>
@@ -173,15 +180,15 @@ export default function Home(){
    <a className="legacy-hero-action" href="#workspace">Explore workspace <ArrowDown size={18}/></a>
    <p className="legacy-hero-note">One portal for all solutions.</p>
   </section>
-  <section className="legacy-workspace" id="workspace">
+  <section className="legacy-workspace apml-reveal" id="workspace">
    <div className="legacy-section-bar"><div><h2><Grid2X2 size={21}/> Operational workspace</h2><p>Everything you need to keep daily operations moving.</p></div><span>{activeCount} Active Tools</span></div>
-   <div className="legacy-tool-grid">{filtered.map((tool,i)=><Link key={tool.id} to={modules.find(m=>m.id===tool.id)?.path||'/'} className={`legacy-tool-card ${tool.wide?'wide':''}`} style={{'--tool-delay':`${i*45}ms`}}>
+   {!hubReady?<div className="apml-skeleton-grid" role="status" aria-label="Loading workspace tools">{[0,1,2,3,4,5].map(item=><div className="apml-skeleton-card" key={item}><span className="apml-skeleton-icon"/><span className="apml-skeleton-line long"/><span className="apml-skeleton-line"/><span className="apml-skeleton-line short"/></div>)}</div>:<div className="legacy-tool-grid">{filtered.map((tool,i)=><Link key={tool.id} to={modules.find(m=>m.id===tool.id)?.path||'/'} className={"legacy-tool-card apml-reveal bento-"+tool.id+(tool.wide?" wide":"")} style={{'--tool-delay':`${i*45}ms`}}>
     <div><div className="legacy-card-head"><img src={tool.image} alt="" loading="lazy"/><span>{tool.label}</span></div><h3>{tool.title}</h3><p>{tool.description}</p><div className="legacy-tags">{tool.tags.map(tag=><small key={tag}>{tag}</small>)}</div></div>
     <div className="legacy-card-footer"><span>✦ Interactive Tool</span><b>Launch <ArrowUpRight size={18}/></b></div>
    </Link>)}</div>
    {filtered.length===0&&<p className="legacy-empty">No tools match your search.</p>}
   </section>
-  <OperationalTelemetry/>
+  <div className="apml-reveal"><OperationalTelemetry/></div>
  </div>
 }
 
