@@ -1,9 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Images, Image as ImageIcon, Video, Folder, FolderPlus, Search, Upload,
-  Link2, Download, ExternalLink, Pencil, Trash2, RotateCcw, ShieldCheck,
-  ChevronLeft, ChevronRight, HardDrive, Grid2X2, X, FileImage
-} from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
@@ -23,19 +18,21 @@ const DRIVE_API_URL = 'https://apml-drive-api.kundar-work.workers.dev'
 const FOLDER_STORAGE_KEY = 'apml_unlimited_gallery_folders_v7'
 const MEDIA_CACHE_KEY = 'apml_gallery_cache_v1'
 const DEFAULT_FOLDERS = [
-  { id: 'truck', label: 'Truck & Fleet', icon: '🚚' },
-  { id: 'crockery', label: 'Crockery', icon: '🍽️' },
-  { id: 'packing-images', label: 'Packing Images', icon: '📦' },
-  { id: 'bike-packing', label: 'Bike Packing', icon: '🏍️' },
-  { id: 'car-transportation', label: 'Car Transportation', icon: '🚗' },
-  { id: 'solid-box', label: 'Solid Box', icon: '🗃️' },
-  { id: 'tv-box', label: 'TV Box', icon: '📺' },
-  { id: 'electronic', label: 'Electronic', icon: '💻' },
-  { id: 'furniture', label: 'Furniture', icon: '🪑' },
-  { id: 'miscellaneous', label: 'Miscellaneous', icon: '🧰' },
-  { id: 'others', label: 'Others', icon: '📁' }
+  { id: 'truck', label: 'Truck & Fleet', icon: 'local_shipping' },
+  { id: 'crockery', label: 'Crockery', icon: 'restaurant' },
+  { id: 'packing-images', label: 'Packing Images', icon: 'inventory_2' },
+  { id: 'bike-packing', label: 'Bike Packing', icon: 'two_wheeler' },
+  { id: 'car-transportation', label: 'Car Transportation', icon: 'directions_car' },
+  { id: 'solid-box', label: 'Solid Box', icon: 'archive' },
+  { id: 'tv-box', label: 'TV Box', icon: 'tv' },
+  { id: 'electronic', label: 'Electronic', icon: 'computer' },
+  { id: 'furniture', label: 'Furniture', icon: 'chair' },
+  { id: 'miscellaneous', label: 'Miscellaneous', icon: 'build' },
+  { id: 'others', label: 'Others', icon: 'folder' }
 ]
 const PROTECTED_FOLDERS = DEFAULT_FOLDERS.map(folder => folder.id)
+
+function MaterialIcon({ name, className = '', style = {}, title }) { return <span className={`material-symbols-rounded ${className}`} style={style} aria-hidden="true" title={title}>{name}</span> }
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -197,7 +194,7 @@ export default function Gallery() {
     const id = label.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
     if (!id) return driveAlert('Invalid folder name', 'Use letters or numbers in the folder name.', 'error')
     if (folders.some(folder => folder.id === id)) return driveAlert('Folder already exists', 'Choose a different folder name.', 'warning')
-    saveFolders([...folders, { id, label, icon: '📁' }])
+    saveFolders([...folders, { id, label, icon: 'folder' }])
     selectFolder(id)
     await driveToast('Folder created')
   }
@@ -450,7 +447,7 @@ export default function Gallery() {
       <div className="gallery-folder-tabs">
         <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><Grid2X2 size={15}/> All Media</button>
         {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
-          <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><span>{folder.icon || '📁'}</span>{folder.label}</button>
+          <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
           {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><Pencil size={12}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><X size={13}/></button></>}
         </span>)}
         {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><Trash2 size={14}/> Trash Archive</button>}
