@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowDown, ArrowUpRight, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Pencil, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
 import { modules } from '../data/modules'
 import { getApmlDatabase } from '../lib/firebase'
 
@@ -19,7 +19,7 @@ const gaze=['right','down-right','down','down-left','left','up-left','up','up-ri
 const reactions=['heart','sparkle','delighted','dizzy']
 const spritePos=(index)=>`${(index%3)*50}% ${Math.floor(index/3)*50}%`
 
-function HeroMascot(){
+function HeroMascot({name,editingName,nameDraft,setNameDraft,onEditName,onSaveName,onCancelEdit}){
  const [direction,setDirection]=useState('center')
  const [reaction,setReaction]=useState('')
  const [bubble,setBubble]=useState(false)
@@ -37,9 +37,35 @@ function HeroMascot(){
   window.addEventListener('pointermove',move,{passive:true})
   return()=>window.removeEventListener('pointermove',move)
  },[])
- const boop=()=>{const next=reactions[Math.floor(Math.random()*3)];setReaction(next);setBubble(true);clearTimeout(timer.current);timer.current=setTimeout(()=>{setReaction('');setBubble(false)},850)}
+ const boop=()=>{
+  const next=reactions[Math.floor(Math.random()*3)]
+  setReaction(next);setBubble(true)
+  clearTimeout(timer.current)
+  timer.current=setTimeout(()=>{setReaction('');if(!editingName)setBubble(false)},850)
+ }
  useEffect(()=>()=>clearTimeout(timer.current),[])
- return <div className="apml-mascot-stage"><div className="apml-mascot-halo"/><button ref={button} className="apml-hero-mascot" onClick={boop} aria-label="Interact with Wobnimo"><span className="apml-mascot-squash"><span className="apml-mascot-sprite directions" style={{backgroundPosition:spritePos(directions.indexOf(direction)),opacity:reaction?0:1}}/><span className="apml-mascot-sprite reactions" style={{backgroundPosition:spritePos(reactions.indexOf(reaction)),opacity:reaction?1:0}}/></span></button>{bubble&&<span className="apml-hero-mascot-bubble">Hey there! 👋</span>}</div>
+ return <div className="apml-mascot-stage">
+  <div className="apml-mascot-halo"/>
+  <button ref={button} className="apml-hero-mascot" onClick={boop} aria-label="Interact with Wobnimo">
+   <span className="apml-mascot-squash">
+    <span className="apml-mascot-sprite directions" style={{backgroundPosition:spritePos(directions.indexOf(direction)),opacity:reaction?0:1}}/>
+    <span className="apml-mascot-sprite reactions" style={{backgroundPosition:spritePos(reactions.indexOf(reaction)),opacity:reaction?1:0}}/>
+   </span>
+  </button>
+  {bubble&&<div className="apml-hero-mascot-bubble apml-welcome-bubble">
+   <span className="apml-welcome-hey">Hey there! 👋</span>
+   {editingName?<form className="apml-mascot-name-form" onSubmit={onSaveName}>
+    <label className="sr-only" htmlFor="apml-mascot-name">Your name</label>
+    <input id="apml-mascot-name" autoFocus maxLength={32} value={nameDraft} onChange={event=>setNameDraft(event.target.value)} placeholder="Enter your name"/>
+    <button type="submit">Save</button>
+    <button type="button" className="apml-mascot-name-cancel" onClick={onCancelEdit}>Cancel</button>
+   </form>:<div className="apml-welcome-bubble-line">
+    <span>Welcome back, </span>
+    {name?<button type="button" className="apml-welcome-name" onClick={onEditName}>{name}</button>:<strong>there</strong>}
+    {!name&&<button type="button" className="apml-welcome-pencil" onClick={onEditName} aria-label="Add your name" title="Add your name"><Pencil size={12}/></button>}
+   </div>}
+  </div>}
+ </div>
 }
 function OperationalTelemetry(){
  const [counts,setCounts]=useState({users:0,pdf:0,media:0})
@@ -160,9 +186,6 @@ export default function Home(){
  const [welcomeName,setWelcomeName]=useState(()=>{try{return localStorage.getItem('apml-welcome-name')||''}catch(_){return ''}})
  const [nameDraft,setNameDraft]=useState(()=>{try{return localStorage.getItem('apml-welcome-name')||''}catch(_){return ''}})
  const [editingName,setEditingName]=useState(false)
- const hour=new Date().getHours()
- const greeting=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening'
- const todayLabel=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})
  const saveWelcomeName=event=>{
   event?.preventDefault()
   const clean=nameDraft.trim().replace(/\s+/g,' ').slice(0,32)
@@ -186,20 +209,10 @@ export default function Home(){
  const activeCount=homeTools.filter(t=>modules.some(m=>m.id===t.id)).length
  return <div ref={revealRoot} className={"home-page legacy-home "+(hubReady?"hub-ready":"hub-loading")}>
   <section className="legacy-hero apml-reveal is-visible" aria-labelledby="homeHeroTitle">
-   <HeroMascot/>
-   <div className="apml-personal-welcome">
-    <div className="apml-personal-welcome-copy">
-     <p>{greeting}</p>
-     <h2>Welcome back, <span>{welcomeName||'there'}</span>.</h2>
-     <small>{todayLabel} · Your workspace is ready.</small>
-    </div>
-    {!editingName?<button type="button" className="apml-welcome-edit" onClick={()=>{setNameDraft(welcomeName);setEditingName(true)}}>{welcomeName?'Edit name':'Personalise'} <ArrowUpRight size={14}/></button>:<form className="apml-welcome-name-form" onSubmit={saveWelcomeName}>
-     <label className="sr-only" htmlFor="apml-welcome-name">Your preferred name</label>
-     <input id="apml-welcome-name" autoFocus maxLength={32} value={nameDraft} onChange={event=>setNameDraft(event.target.value)} placeholder="Your name"/>
-     <button type="submit">Save</button>
-     <button type="button" className="apml-welcome-cancel" onClick={()=>{setNameDraft(welcomeName);setEditingName(false)}}>Cancel</button>
-    </form>}
-   </div>
+   <HeroMascot name={welcomeName} editingName={editingName} nameDraft={nameDraft} setNameDraft={setNameDraft}
+    onEditName={()=>{setNameDraft(welcomeName);setEditingName(true)}}
+    onSaveName={saveWelcomeName}
+    onCancelEdit={()=>{setNameDraft(welcomeName);setEditingName(false)}}/>
    <p className="legacy-eyebrow"><i/> APML PORTAL</p>
    <h1 id="homeHeroTitle">The workday,<br/><span>made simpler.</span></h1>
    <p className="legacy-hero-description">A connected workspace for the tools, information and everyday operations your team relies on.</p>
