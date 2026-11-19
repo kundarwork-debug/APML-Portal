@@ -314,10 +314,8 @@ export default function Gallery() {
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     await metric(item, 'downloadsCount')
     try {
-      if (window.apmlHasAnalyticsConsent?.()) {
-        await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
-      }
-    } catch {}
+      await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+    } catch (error) { console.warn('Gallery download counter unavailable', error) }
     try {
       window.APMNotify?.send?.({
         type: 'gallery',
@@ -354,7 +352,6 @@ export default function Gallery() {
         anchor.remove()
         window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000)
       }
-      window.logDailyActivity?.('media')
       window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
     } catch (error) {
       const anchor = document.createElement('a')
