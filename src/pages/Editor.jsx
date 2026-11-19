@@ -17,7 +17,8 @@ async function editorAlert(options){try{const Swal=await loadSweetAlert();return
 async function editorDatabase(){const {database}=await getApmlPresenceServices();return database}
 async function saveQuotationToDrive(blob,fileName){
  if(!blob||blob.size>10*1024*1024)throw Error('Quotation PDF exceeds the 10 MB Drive limit.')
- const db=await editorDatabase(),form=new FormData()
+ const {database:db,user}=await getApmlPresenceServices(),form=new FormData()
+ if(!user?.uid)throw Error('Sign in anonymously before saving the quotation.')
  form.append('file',blob,fileName)
  form.append('upload_preset','apml_drive')
  form.append('folder','apml-drive')
@@ -34,7 +35,7 @@ async function saveQuotationToDrive(blob,fileName){
   folderId=newFolderRef.key
   await newFolderRef.set({name:'Quotation',parentId:'root',timestamp:Date.now()})
  }
- await db.ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:folderId,name:fileName,size:blob.size||0,timestamp:Date.now()})
+ await db.ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:folderId,name:fileName,size:blob.size||0,timestamp:Date.now(),createdBy:user.uid})
  return true
 }
 
