@@ -2,13 +2,25 @@
   "rules": {
     ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
     "catbox_gdrive_folders": {
-      ".read": true
+      ".read": true,
+      "$item": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['name','parentId','timestamp']) && newData.child('name').isString() && newData.child('name').val().length <= 120 && newData.child('parentId').isString() && newData.child('timestamp').isNumber()"
+      }
     },
     "catbox_gdrive_files": {
-      ".read": true
+      ".read": true,
+      "$item": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['fileId','name','parentId','size','timestamp']) && newData.child('fileId').isString() && newData.child('fileId').val().length <= 2048 && newData.child('name').isString() && newData.child('name').val().length <= 200 && newData.child('parentId').isString() && newData.child('size').isNumber() && newData.child('size').val() >= 0 && newData.child('size').val() <= 104857600 && newData.child('timestamp').isNumber()"
+      }
     },
     "apml_ranked_gallery": {
-      ".read": true
+      ".read": true,
+      "$item": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && !data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['url','folder','name','size','isVideo','viewsCount','downloadsCount','timestamp']) && newData.child('url').isString() && newData.child('url').val().length <= 2048 && newData.child('folder').isString() && newData.child('name').isString() && newData.child('name').val().length <= 200 && newData.child('size').isNumber() && newData.child('size').val() >= 0 && newData.child('size').val() <= 104857600 && newData.child('isVideo').isBoolean() && newData.child('viewsCount').isNumber() && newData.child('downloadsCount').isNumber() && newData.child('timestamp').isNumber()"
+      }
     },
     "directory": {
       ".read": true,
