@@ -440,8 +440,7 @@ export default function Gallery() {
         </select></label>
         <><button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={busy}><Upload size={15}/> Upload Media</button>
         <button className="gallery-action" onClick={addCatboxLink} disabled={busy}><Link2 size={15}/> Catbox Link</button>
-        <button className="gallery-action" onClick={addFolder} disabled={busy}><FolderPlus size={15}/> Add Folder</button>
-        <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/></>}
+        <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/></>
       </div>
     </section>
 
