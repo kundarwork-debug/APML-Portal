@@ -184,7 +184,7 @@ export default function Home(){
    {!hubReady?<div className="apml-skeleton-grid" role="status" aria-label="Loading workspace tools">{[0,1,2,3,4,5].map(item=><div className="apml-skeleton-card" key={item}><span className="apml-skeleton-icon"/><span className="apml-skeleton-line long"/><span className="apml-skeleton-line"/><span className="apml-skeleton-line short"/></div>)}</div>:<div className="legacy-tool-grid">{filtered.map((tool,i)=><Link key={tool.id} to={modules.find(m=>m.id===tool.id)?.path||'/'} className={"legacy-tool-card apml-reveal bento-"+tool.id+(tool.wide?" wide":"")} style={{'--tool-delay':`${i*45}ms`}}>
     <div><div className="legacy-card-head"><img src={tool.image} alt="" loading="lazy"/><span>{tool.label}</span></div><h3>{tool.title}</h3><p>{tool.description}</p><div className="legacy-tags">{tool.tags.map(tag=><small key={tag}>{tag}</small>)}</div></div>
     <div className="legacy-card-footer"><span>✦ Interactive Tool</span><b>Launch <ArrowUpRight size={18}/></b></div>
-   </Link>)}</div>
+   </Link>)}</div>}
    {hubReady&&filtered.length===0&&<p className="legacy-empty">No tools match your search.</p>}
   </section>
   <div className="apml-reveal"><OperationalTelemetry/></div>
