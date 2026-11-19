@@ -402,9 +402,9 @@ export default function Gallery() {
     const pages = []
     for (let value = start; value <= end; value++) pages.push(value)
     return <nav className="gallery-pagination" aria-label="Gallery pages">
-      <button disabled={currentPage <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}><ChevronLeft size={16}/> Previous</button>
+      <button disabled={currentPage <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}><MaterialIcon name="chevron_left" style={{ fontSize: 16 }}/> Previous</button>
       <span>Page <b>{currentPage}</b> of {pageCount} · {visible.length} items</span>
-      <button disabled={currentPage >= pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))}>Next <ChevronRight size={16}/></button>
+      <button disabled={currentPage >= pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))}>Next <MaterialIcon name="chevron_right" style={{ fontSize: 16 }}/></button>
       {pageCount > 3 && <label className="gallery-page-jump">Go to <input type="number" min="1" max={pageCount} aria-label="Page number" onKeyDown={event => { if (event.key === 'Enter') { const value = Number(event.currentTarget.value); if (value >= 1 && value <= pageCount) setPage(value); else driveAlert('Invalid page', `Enter a page from 1 to ${pageCount}.`, 'warning') } }}/> <button onClick={event => { const input = event.currentTarget.parentElement.querySelector('input'); const value = Number(input.value); if (value >= 1 && value <= pageCount) setPage(value); else driveAlert('Invalid page', `Enter a page from 1 to ${pageCount}.`, 'warning') }}>Go</button></label>}
     </nav>
   }
@@ -412,60 +412,60 @@ export default function Gallery() {
   return <main className="gallery-page">
     <header className="gallery-head">
       <div className="gallery-heading-copy">
-        <div className="gallery-eyebrow"><Images size={14}/> MEDIA LIBRARY</div>
+        <div className="gallery-eyebrow"><MaterialIcon name="photo_library" style={{ fontSize: 14 }}/> MEDIA LIBRARY</div>
         <h1 className="gallery-title">Standards &amp; <span>Gallery</span></h1>
         <p className="gallery-subtitle">Cloud-synced visual packaging assets and operational video documentation.</p>
         <div className="gallery-stats">
-          <span><Images size={14}/><strong>{activeItems.length}</strong> Media</span>
-          <span><ImageIcon size={14}/><strong>{photos}</strong> Photos</span>
-          <span><Video size={14}/><strong>{videos}</strong> Videos</span>
+          <span><MaterialIcon name="photo_library" style={{ fontSize: 14 }}/><strong>{activeItems.length}</strong> Media</span>
+          <span><MaterialIcon name="image" style={{ fontSize: 14 }}/><strong>{photos}</strong> Photos</span>
+          <span><MaterialIcon name="videocam" style={{ fontSize: 14 }}/><strong>{videos}</strong> Videos</span>
         </div>
       </div>
       <button className={admin?'gallery-admin gallery-admin-active':'gallery-admin gallery-google-admin'} onClick={toggleAdmin} disabled={busy} title={admin?'Exit admin':'Sign in with Google'} aria-label={admin?'Exit admin':'Sign in with Google'}>
-        {busy?<span className="admin-button-spinner"/>:admin?<><ShieldCheck size={16}/> Exit admin</>:<svg className="apml-google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>}
+        {busy?<span className="admin-button-spinner"/>:admin?<><MaterialIcon name="verified_user" style={{ fontSize: 16 }}/> Exit admin</>:<svg className="apml-google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>}
       </button>
     </header>
 
     <section className="gallery-action-bar">
       <div className="gallery-action-heading">
-        <span className="gallery-upload-icon"><Upload size={20}/></span>
+        <span className="gallery-upload-icon"><MaterialIcon name="upload" style={{ fontSize: 20 }}/></span>
         <div><strong>Upload Media Assets</strong><small>{uploadStatus}</small></div>
       </div>
       <div className="gallery-action-buttons">
-        <label className="gallery-folder-select"><Folder size={15}/><select aria-label="Select destination folder" value={uploadFolder} onChange={event => setUploadFolder(event.target.value)}>
+        <label className="gallery-folder-select"><MaterialIcon name="folder" style={{ fontSize: 15 }}/><select aria-label="Select destination folder" value={uploadFolder} onChange={event => setUploadFolder(event.target.value)}>
           <option value="">Select destination folder…</option>
           {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}
         </select></label>
-        <button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={busy}><Upload size={15}/> Upload Media</button>
-        <button className="gallery-action" onClick={addCatboxLink} disabled={busy}><Link2 size={15}/> Catbox Link</button>
-        <button className="gallery-action" onClick={addFolder} disabled={busy}><FolderPlus size={15}/> Add Folder</button>
+        <button className="gallery-action gallery-action-primary" onClick={() => { if (requireDestination()) input.current?.click() }} disabled={busy}><MaterialIcon name="upload" style={{ fontSize: 15 }}/> Upload Media</button>
+        <button className="gallery-action" onClick={addCatboxLink} disabled={busy}><MaterialIcon name="link" style={{ fontSize: 15 }}/> Catbox Link</button>
+        <button className="gallery-action" onClick={addFolder} disabled={busy}><MaterialIcon name="create_new_folder" style={{ fontSize: 15 }}/> Add Folder</button>
         <input ref={input} hidden type="file" multiple accept="image/*,video/*" onChange={event => upload(event.target.files)}/>
       </div>
     </section>
 
     <section className="gallery-toolbar">
       <div className="gallery-folder-tabs">
-        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><Grid2X2 size={15}/> All Media</button>
+        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
         {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
           <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
-          {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><Pencil size={12}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><X size={13}/></button></>}
+          {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
         </span>)}
-        {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><Trash2 size={14}/> Trash Archive</button>}
+        {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
       </div>
-      <label className="gallery-search"><Search size={16}/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search media…"/></label>
+      <label className="gallery-search"><MaterialIcon name="search" style={{ fontSize: 16 }}/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search media…"/></label>
     </section>
 
     <div className="gallery-live-status"><span className="gallery-live-dot"/>{status}<span>{visible.length} items</span></div>
 
     <section className="gallery-media-section">
-      <div className="gallery-section-heading"><h2><FileImage size={17}/>{activeFolder === 'deleted' ? 'Archived Media' : activeFolder ? folders.find(folder => folder.id === activeFolder)?.label || 'Media' : 'All Media'}</h2><span>{visible.length} {visible.length === 1 ? 'item' : 'items'}</span></div>
+      <div className="gallery-section-heading"><h2><MaterialIcon name="collections" style={{ fontSize: 17 }}/>{activeFolder === 'deleted' ? 'Archived Media' : activeFolder ? folders.find(folder => folder.id === activeFolder)?.label || 'Media' : 'All Media'}</h2><span>{visible.length} {visible.length === 1 ? 'item' : 'items'}</span></div>
       <div className="gallery-grid">
         {pageItems.map(item => {
           const source = fileSource(item.url)
           return <article className="gallery-card" key={item.key} draggable={admin} onDragStart={event => event.dataTransfer.setData('text/plain', item.key)}>
             <button className="gallery-media-preview" type="button" onClick={() => openMedia(item)} aria-label={`Preview ${item.name || 'media'}`}>
               {item.isVideo ? <video src={item.url} muted playsInline preload="metadata"/> : <img src={optimizedUrl(item.url)} loading="lazy" decoding="async" alt={item.name || 'Gallery media'}/>}
-              {item.isVideo && <span className="gallery-video-mark"><Video size={13}/> VIDEO</span>}
+              {item.isVideo && <span className="gallery-video-mark"><MaterialIcon name="videocam" style={{ fontSize: 13 }}/> VIDEO</span>}
               {!item.isVideo && <span className="gallery-image-mark">PHOTO</span>}
             </button>
             <div className="gallery-card-body">
@@ -473,30 +473,30 @@ export default function Gallery() {
               <div className="gallery-card-meta"><span><i style={{ background: source.color }}/> {source.label}</span><span>{formatBytes(item.size)}</span></div>
               <div className="gallery-card-stats"><span>{Number(item.viewsCount) || 0} views</span><span>{Number(item.downloadsCount) || 0} downloads</span></div>
               <div className="gallery-card-footer">
-                <button className="gallery-download apml-download-btn" onClick={() => downloadMedia(item)}><Download size={14}/><span className="apml-download-label">Download</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button>
-                <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><ExternalLink size={15}/></a>
+                <button className="gallery-download apml-download-btn" onClick={() => downloadMedia(item)}><MaterialIcon name="download" style={{ fontSize: 14 }}/><span className="apml-download-label">Download</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button>
+                <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><MaterialIcon name="open_in_new" style={{ fontSize: 15 }}/></a>
                 {activeFolder === 'deleted' && admin && <div className="gallery-admin-actions">
-                  <button title="Restore media" onClick={() => move(item, 'others')}><RotateCcw size={14}/></button>
-                  <button title="Delete permanently" onClick={() => permanentDelete(item)}><Trash2 size={14}/></button>
+                  <button title="Restore media" onClick={() => move(item, 'others')}><MaterialIcon name="restore" style={{ fontSize: 14 }}/></button>
+                  <button title="Delete permanently" onClick={() => permanentDelete(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
                 {activeFolder !== 'deleted' && <div className="gallery-admin-actions">
                   {admin && <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
-                  <button title="Move to trash" onClick={() => trashMedia(item)}><Trash2 size={14}/></button>
+                  <button title="Move to trash" onClick={() => trashMedia(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
               </div>
             </div>
           </article>
         })}
-        {!pageItems.length && <div className="gallery-empty"><Images size={34}/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
+        {!pageItems.length && <div className="gallery-empty"><MaterialIcon name="photo_library" style={{ fontSize: 34 }}/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
       </div>
       {renderPagination()}
     </section>
 
     {lightbox && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.name || 'Media preview'} onMouseDown={event => { if (event.target === event.currentTarget) setLightbox(null) }}>
-      <button className="gallery-lightbox-close" onClick={() => setLightbox(null)} aria-label="Close preview"><X size={23}/></button>
+      <button className="gallery-lightbox-close" onClick={() => setLightbox(null)} aria-label="Close preview"><MaterialIcon name="close" style={{ fontSize: 23 }}/></button>
       <div className="gallery-lightbox-content">
         {lightbox.isVideo ? <video src={lightbox.url} controls autoPlay playsInline/> : <img src={lightbox.url} alt={lightbox.name || 'Gallery media'}/>}
-        <div><strong>{lightbox.name || 'Untitled media'}</strong><button className="apml-download-btn" onClick={() => downloadMedia(lightbox)}><Download size={14}/><span className="apml-download-label">Download original</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
+        <div><strong>{lightbox.name || 'Untitled media'}</strong><button className="apml-download-btn" onClick={() => downloadMedia(lightbox)}><MaterialIcon name="download" style={{ fontSize: 14 }}/><span className="apml-download-label">Download original</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
       </div>
     </div>}
   </main>
