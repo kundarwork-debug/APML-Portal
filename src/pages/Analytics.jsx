@@ -183,7 +183,7 @@ export default function Analytics() {
       if (!disposed) {
         setFirebaseLive(true)
         attach(db, 'analytics/daily_logs', queueRefresh)
-        attach(db, 'analytics/visitor_sessions', queueRefresh)
+        // Raw visitor session records are restricted to verified admins; the Worker supplies dashboard insights.
         attach(db, 'analytics/totalMediaDownloads', snap => {
           const value = Number(snap.val()) || 0
           setData(current => current ? { ...current, totals: { ...current.totals, totalMediaLifetime: value } } : current)
