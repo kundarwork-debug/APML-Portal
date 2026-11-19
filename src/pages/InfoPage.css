@@ -13,3 +13,10 @@
 /* Programming artwork sizing for the About hero */
 .about-art img{width:min(100%,430px);height:auto;max-height:310px;object-fit:contain;filter:drop-shadow(0 12px 22px rgba(180,35,44,.08));}
 @media(max-width:760px){.about-art img{width:min(100%,390px);max-height:270px;}}
+
+/* About name treatment: Prasad in black, Kundar in APML red. */
+.about-hero h1{color:#171717}
+.about-hero h1 .about-name-first{display:inline;color:#171717}
+.about-hero h1 .about-name-last{display:inline;color:#b4232c}
+html[data-theme="dark"] .about-hero h1 .about-name-first{color:#f8fafc}
+html[data-theme="dark"] .about-hero h1 .about-name-last{color:#f87171}
