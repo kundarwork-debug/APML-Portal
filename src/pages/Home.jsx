@@ -24,6 +24,7 @@ function HeroMascot({name,editingName,nameDraft,setNameDraft,onEditName,onSaveNa
  const [reaction,setReaction]=useState('')
  const [bubble,setBubble]=useState(false)
  const timer=useRef()
+ const reactionTimer=useRef()
  const button=useRef()
  useEffect(()=>{
   if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return
@@ -40,10 +41,12 @@ function HeroMascot({name,editingName,nameDraft,setNameDraft,onEditName,onSaveNa
  const boop=()=>{
   const next=reactions[Math.floor(Math.random()*3)]
   setReaction(next);setBubble(true)
-  clearTimeout(timer.current)
-  timer.current=setTimeout(()=>{setReaction('');if(!editingName)setBubble(false)},850)
+  clearTimeout(timer.current);clearTimeout(reactionTimer.current)
+  reactionTimer.current=setTimeout(()=>setReaction(''),850)
+  timer.current=setTimeout(()=>{if(!editingName)setBubble(false)},6000)
  }
- useEffect(()=>()=>clearTimeout(timer.current),[])
+ useEffect(()=>{if(editingName){clearTimeout(timer.current);setBubble(true)}},[editingName])
+ useEffect(()=>()=>{clearTimeout(timer.current);clearTimeout(reactionTimer.current)},[])
  return <div className="apml-mascot-stage">
   <div className="apml-mascot-halo"/>
   <button ref={button} className="apml-hero-mascot" onClick={boop} aria-label="Interact with Wobnimo">
