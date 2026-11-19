@@ -301,12 +301,15 @@ export default function Gallery() {
   }
   async function recordGalleryDownload(item, name) {
     await metric(item, 'downloadsCount')
+    // Lifetime media downloads are counted independently of analytics consent.
+    try {
+      const result = await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+      if (!result.committed) console.warn('Gallery media download count was not committed.')
+    } catch (error) { console.warn('Gallery lifetime download count unavailable:', error) }
+    // Detailed daily analytics remains consent-based.
     if (window.apmlHasAnalyticsConsent?.()) {
-      try {
-        const result = await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
-        if (!result.committed) console.warn('Gallery media download count was not committed.')
-        await window.logDailyActivity?.('media')
-      } catch (error) { console.warn('Gallery download analytics unavailable:', error) }
+      try { await window.logDailyActivity?.('media') }
+      catch (error) { console.warn('Gallery daily analytics unavailable:', error) }
     }
     try {
       window.APMNotify?.send?.({
