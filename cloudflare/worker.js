@@ -283,6 +283,30 @@ async function firebaseServiceAccessToken(env) {
   return body.access_token;
 }
 
+async function incrementLifetimeCounter(env, counter) {
+  const paths = { pdf: CONFIG.PDF_TOTAL_PATH, media: CONFIG.MEDIA_TOTAL_PATH };
+  const path = paths[counter];
+  if (!path) throw new Error('Unsupported counter');
+  const token = await firebaseServiceAccessToken(env);
+  const url = CONFIG.FIREBASE_DB_URL + '/' + path + '.json?access_token=' + encodeURIComponent(token);
+  // ETag conditional writes make concurrent increments safe.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const read = await fetch(url, { headers: { 'X-Firebase-ETag': 'true', 'Cache-Control': 'no-cache' } });
+    if (!read.ok) throw new Error('Firebase counter read failed (' + read.status + ')');
+    const current = await read.json();
+    const etag = read.headers.get('ETag');
+    const next = (Number(current) || 0) + 1;
+    const write = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'If-Match': etag || 'null' },
+      body: JSON.stringify(next)
+    });
+    if (write.ok) return next;
+    if (write.status !== 412) throw new Error('Firebase counter write failed (' + write.status + ')');
+  }
+  throw new Error('Counter was busy; please retry the download');
+}
+
 async function cleanupExpiredTrash(env) {
   const token = await firebaseServiceAccessToken(env);
   const base = CONFIG.FIREBASE_DB_URL;
@@ -2244,6 +2268,16 @@ export default {
     if (request.method !== 'POST') return json({ error: 'POST only' }, 405);
 
     try {
+
+      if (path === '/counter/increment') {
+        const origin = request.headers.get('Origin') || '';
+        if (!CONFIG.ALLOWED_ORIGINS.includes(origin)) return json({ ok: false, error: 'Origin not allowed' }, 403);
+        const body = await request.json().catch(() => ({}));
+        const counter = String(body.counter || '');
+        if (!['pdf', 'media'].includes(counter)) return json({ ok: false, error: 'Unsupported counter' }, 400);
+        const value = await incrementLifetimeCounter(env, counter);
+        return json({ ok: true, counter, value });
+      }
 
       if (path === '/telegram') {
 
