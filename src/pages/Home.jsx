@@ -170,8 +170,7 @@ export default function Home(){
  },[hubReady])
  const filtered=useMemo(()=>homeTools.filter(t=>(t.title+' '+t.description+' '+t.tags.join(' ')).toLowerCase().includes(query.toLowerCase())),[query])
  const activeCount=homeTools.filter(t=>modules.some(m=>m.id===t.id)).length
- return <div className={"home-page legacy-home "+(hubReady?"hub-ready":"hub-loading")}>
-  {!hubReady&&<div className="hub-loading-screen" role="status" aria-live="polite"><div className="hub-loader-mark"><span/><span/><span/></div><b>APML PORTAL</b><small>Preparing your workspace…</small></div>}
+ return <div ref={revealRoot} className={"home-page legacy-home "+(hubReady?"hub-ready":"hub-loading")}>
   <section className="legacy-hero apml-reveal is-visible" aria-labelledby="homeHeroTitle">
    <HeroMascot/>
    <p className="legacy-eyebrow"><i/> APML PORTAL</p>
@@ -186,7 +185,7 @@ export default function Home(){
     <div><div className="legacy-card-head"><img src={tool.image} alt="" loading="lazy"/><span>{tool.label}</span></div><h3>{tool.title}</h3><p>{tool.description}</p><div className="legacy-tags">{tool.tags.map(tag=><small key={tag}>{tag}</small>)}</div></div>
     <div className="legacy-card-footer"><span>✦ Interactive Tool</span><b>Launch <ArrowUpRight size={18}/></b></div>
    </Link>)}</div>
-   {filtered.length===0&&<p className="legacy-empty">No tools match your search.</p>}
+   {hubReady&&filtered.length===0&&<p className="legacy-empty">No tools match your search.</p>}
   </section>
   <div className="apml-reveal"><OperationalTelemetry/></div>
  </div>
