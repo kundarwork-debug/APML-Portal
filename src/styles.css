@@ -1407,7 +1407,7 @@ html[data-theme="dark"] .apml-skeleton-card{background:#151e2e;border-color:#334
 .apml-welcome-edit{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;padding:8px 11px;border:1px solid #ead2ce;border-radius:10px;background:#fff7f6;color:#a91f28;font-size:11px;font-weight:750;transition:background .18s,border-color .18s}
 .apml-welcome-edit:hover{background:#ffefed;border-color:#d9aaa1}
 .apml-welcome-name-form{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.apml-welcome-name-form input{width:145px;min-width:0;padding:8px 10px;border:1px solid #ddd3ce;border-radius:9px;background:#fff;color:#202124;font:600 12px inherit;outline:none}
+.apml-welcome-name-form input{width:145px;min-width:0;padding:8px 10px;border:1px solid #ddd3ce;border-radius:9px;background:#fff;color:#202124;font:600 12px 'Plus Jakarta Sans','DM Sans',sans-serif;outline:none}
 .apml-welcome-name-form input:focus{border-color:#b4232c;box-shadow:0 0 0 3px rgba(180,35,44,.1)}
 .apml-welcome-name-form button{padding:8px 10px;border:1px solid #b4232c;border-radius:9px;background:#b4232c;color:#fff;font-size:11px;font-weight:750}
 .apml-welcome-name-form .apml-welcome-cancel{border-color:#e5e1d9;background:transparent;color:#777a80}
