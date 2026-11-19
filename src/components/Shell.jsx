@@ -1,7 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
-import PrivacyConsent from './PrivacyConsent'
-import { getApmlDatabase } from '../lib/firebase'
 import { Footer } from './ui/footer'
 import { Component as HamburgerButton } from './ui/demo'
 import { ChevronDown, Home, FileText, Users, Cloud, Images, ChartNoAxesCombined, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Gamepad2 } from 'lucide-react'
@@ -220,36 +218,8 @@ export default function Shell(){
    document.removeEventListener('keydown',closeOnEscape)
   }
  },[menuOpen])
- useEffect(()=>{
-  const hasConsent=()=>{try{const choice=JSON.parse(localStorage.getItem('apml-privacy-consent')||'null');return !!(choice&&choice.analytics===true)||localStorage.getItem('apml-analytics-consent')==='yes'}catch(_){return false}}
-  const indiaDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
-  window.apmlHasAnalyticsConsent=hasConsent
-  window.logDailyActivity=async(type)=>{if(!hasConsent())return false;try{const db=await getApmlDatabase();const result=await db.ref('analytics/daily_logs/'+indiaDate()+'/'+String(type).replace(/[^a-zA-Z0-9_-]/g,'')).transaction(value=>(Number(value)||0)+1);return !!result.committed}catch(error){console.warn('APML daily analytics unavailable',error);return false}}
-  let visitorWritePending=false
-  const recordVisitor=async()=>{
-   if(!hasConsent()||visitorWritePending||typeof window.logDailyActivity!=='function')return
-   const today=indiaDate()
-   try{if(localStorage.getItem('apml_last_visit_counted_v2')===today)return}catch(_){}
-   visitorWritePending=true
-   try{
-    const committed=await window.logDailyActivity('visitors')
-    if(committed){try{localStorage.setItem('apml_last_visit_counted_v2',today)}catch(_){}}
-   }finally{visitorWritePending=false}
-  }
-  const retryVisitor=()=>{if(document.visibilityState==='visible')recordVisitor()}
-  window.addEventListener('apml-analytics-consent-granted',recordVisitor)
-  window.addEventListener('online',retryVisitor)
-  document.addEventListener('visibilitychange',retryVisitor)
-  recordVisitor()
-  return()=>{
-   window.removeEventListener('apml-analytics-consent-granted',recordVisitor)
-   window.removeEventListener('online',retryVisitor)
-   document.removeEventListener('visibilitychange',retryVisitor)
-  }
- },[])
- useEffect(()=>{const src=import.meta.env.BASE_URL+'notify.js?v=21.46';if(document.querySelector('script[data-apml-notify]'))return;const script=document.createElement('script');script.src=src;script.async=true;script.dataset.apmlNotify='true';document.body.appendChild(script);return()=>script.remove()},[])
  const active=links.find(x=>x.to===location.pathname)?.label||(location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
- return <div className="app-shell topnav-shell"><PrivacyConsent/>
+ return <div className="app-shell topnav-shell">
   {showInstall&&installEvent&&<aside className="install-prompt"><div><strong>Install APML Portal</strong><span>Add the workspace to your phone for quick access.</span></div><button onClick={installPortal}>Install</button><button className="install-dismiss" onClick={()=>setShowInstall(false)} aria-label="Dismiss install prompt">×</button></aside>}
   <header className="portal-header"><div className="portal-header-inner">
    <Link to="/" className="portal-brand"><img className="apml-rotating-logo" src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal"/><span><b>APML <i>Portal</i></b></span></Link>
