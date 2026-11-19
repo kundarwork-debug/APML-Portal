@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Footer } from './ui/footer'
 import { getApmlPresenceServices } from '../lib/firebase'
-import { Component as HamburgerButton } from './ui/demo'
 import { ChevronDown, Home, FileText, Users, Cloud, Images, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Search, X, ArrowRight } from 'lucide-react'
 
 const links = [
@@ -29,18 +28,18 @@ function FloatingMascot({pagePath}){
  const boops=useRef({count:0,last:0})
  const pageKey=(pagePath||'/').split('/').filter(Boolean).pop()||'index'
  const pageTips={
-  index:['Welcome to APML Portal! Select any module below to get started. 🚀','Tip: Use the hamburger menu on top to quickly navigate anywhere.','All telemetry systems and personnel metrics are live and synced!','Need a quotation? Open the Quotation Editor, and your PDF is saved to the Drive automatically. 📄','Click my avatar anytime for another quick hint!'],
+  index:['Welcome to APML Portal! Select any module below to get started. 🚀','Tip: Press Ctrl + K to quickly search pages and tools.','All telemetry systems and personnel metrics are live and synced!','Need a quotation? Open the Quotation Editor, and your PDF is saved to the Drive automatically. 📄','Click my avatar anytime for another quick hint!'],
   editor:['💡 Pro Tip: Fill out quotation line items and click Preview A4 to generate an official PDF.','You can save your drafts locally right from this studio.','Freight calculations compute automatically based on your inputs.','Every PDF you download is also saved to Drive in the Quotation folder. 📁','Delete any charge line you do not need and totals update instantly.'],
   gallery:['💡 Tip: Select a folder category and click Upload Media to add photos or videos instantly.','Click any asset card to preview it in the full-screen lightbox.','Deleted items are safely archived into the Trash Archive.','You can select several photos or videos and upload them in one go. 📸','Views and downloads are counted for every media item.'],
   drive:['💡 Tip: Use Upload File to add documents, images and videos straight into the current folder.','Create folders with New Folder to keep your files organised.','Deleted files are routed to the Trash Archive for recovery.','Quotation PDFs from the editor land in the Quotation folder automatically. 📁'],
   directory:['💡 Tip: Use the search bar to look up branch HODs and direct phone contacts.','Click location pins to open exact addresses in Google Maps.','Search works on city, in-charge name, phone number or designation.','Use the hamburger menu to jump to any other module quickly.','Click my avatar anytime for another quick hint!'],
   'apml-lite':['💡 Tip: Enter volume dimensions to calculate CFT up to the 450 CFT ceiling limit.','Destination pricing and floor constraints compute automatically.','This calculator covers the Mumbai & Pune hub rates.','Enter a CFT volume between 1 and 450 to see the rate straight away.','Click my avatar anytime for another quick hint!'],
-  'local-rate':['💡 Tip: Enter the volume in CFT to calculate the local shifting rate.','Rates update instantly as you change the values.','Double-check the volume, since it drives the whole estimate.','Use the hamburger menu to switch to the other calculators.','Click my avatar anytime for another quick hint!'],
-  'car-rate':['💡 Tip: Type the vehicle model, for example Nexon, Creta or Brezza, to pick the car.','Enter the distance in KM to get the transport estimate.','Vehicle type and distance together decide the final rate.','Use the hamburger menu to switch to the other calculators.','Click my avatar anytime for another quick hint!'],
+  'local-rate':['💡 Tip: Enter the volume in CFT to calculate the local shifting rate.','Rates update instantly as you change the values.','Double-check the volume, since it drives the whole estimate.','Press Ctrl + K to switch to the other calculators.','Click my avatar anytime for another quick hint!'],
+  'car-rate':['💡 Tip: Type the vehicle model, for example Nexon, Creta or Brezza, to pick the car.','Enter the distance in KM to get the transport estimate.','Vehicle type and distance together decide the final rate.','Press Ctrl + K to switch to the other calculators.','Click my avatar anytime for another quick hint!'],
   'field-officer':['💡 Tip: Search by name, branch (MUM, PUN, AHMD), APM code, designation or phone.','Type a branch code like MUM or PUN to see its field officers.','Every field officer’s APM code is listed for quick reference.','Use the hamburger menu to jump to other modules.','Click my avatar anytime for another quick hint!'],
-  about:['Hi! This page tells the story behind the APML Portal. 👋','Scroll down to see how the portal is built and what powers it.','Everything is synced in real-time with Firebase and Supabase.','Use the hamburger menu to explore the other modules.','Click my avatar anytime for another quick hint!']
+  about:['Hi! This page tells the story behind the APML Portal. 👋','Scroll down to see how the portal is built and what powers it.','Everything is synced in real-time with Firebase and Supabase.','Press Ctrl + K to explore the other modules.','Click my avatar anytime for another quick hint!']
  }
- const tips=pageTips[pageKey]||['Welcome to the APML Enterprise workspace! 💼','Everything is synced in real-time with Firebase and Supabase.','Use the hamburger menu to jump between modules.','Quotation PDFs are saved to the Drive automatically. 📁','Click my avatar anytime for another quick hint!']
+ const tips=pageTips[pageKey]||['Welcome to the APML Enterprise workspace! 💼','Everything is synced in real-time with Firebase and Supabase.','Press Ctrl + K to jump between modules.','Quotation PDFs are saved to the Drive automatically. 📁','Click my avatar anytime for another quick hint!']
  const isIndexPage=pageKey==='index'
  const directionNames=['up-left','up','up-right','left','center','right','down-left','down','down-right']
  const reactionNames=['blink','heart','sparkle','surprised','starry','blush','sleepy','dizzy','delighted']
@@ -183,7 +182,7 @@ function FloatingMascot({pagePath}){
 }
 
 export default function Shell(){
- const [menuOpen,setMenuOpen]=useState(false),[installEvent,setInstallEvent]=useState(null),[showInstall,setShowInstall]=useState(false)
+ const [installEvent,setInstallEvent]=useState(null),[showInstall,setShowInstall]=useState(false)
  const [darkTheme,setDarkTheme]=useState(()=>{try{return localStorage.getItem('apml-theme')==='dark'}catch(_){return false}})
  const [paletteOpen,setPaletteOpen]=useState(false),[paletteQuery,setPaletteQuery]=useState(''),[paletteIndex,setPaletteIndex]=useState(0)
  const paletteInput=useRef(null)
@@ -249,7 +248,6 @@ export default function Shell(){
  },[darkTheme])
  useLayoutEffect(()=>{window.scrollTo(0,0)},[location.pathname,location.search,location.hash])
  useEffect(()=>{
-  setMenuOpen(false)
   const scrollPaginationToTop=(event)=>{
    if(event.target instanceof Element && event.target.closest('nav[class*="pagination"]')){
     window.requestAnimationFrame(()=>window.scrollTo(0,0))
@@ -260,35 +258,12 @@ export default function Shell(){
  },[location.pathname])
  useEffect(()=>{const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile||window.matchMedia('(display-mode: standalone)').matches)return;let timer;const ready=e=>{e.preventDefault();setInstallEvent(e);timer=window.setTimeout(()=>setShowInstall(true),5000)};const installed=()=>{setShowInstall(false);setInstallEvent(null)};window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);window.clearTimeout(timer)}},[])
  async function installPortal(){if(!installEvent)return;await installEvent.prompt();await installEvent.userChoice;setShowInstall(false);setInstallEvent(null)}
- useEffect(()=>{
-  if(!menuOpen)return
-  const closeOnOutsideClick=(event)=>{
-   const target=event.target
-   if(target instanceof Element&&!target.closest('.portal-nav')&&!target.closest('.portal-menu-toggle'))setMenuOpen(false)
-  }
-  const closeOnEscape=(event)=>{if(event.key==='Escape')setMenuOpen(false)}
-  document.addEventListener('click',closeOnOutsideClick)
-  document.addEventListener('keydown',closeOnEscape)
-  return()=>{
-   document.removeEventListener('click',closeOnOutsideClick)
-   document.removeEventListener('keydown',closeOnEscape)
-  }
- },[menuOpen])
  const active=links.find(x=>x.to===location.pathname)?.label||(location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
  return <div className="app-shell topnav-shell">
   {showInstall&&installEvent&&<aside className="install-prompt"><div><strong>Install APML Portal</strong><span>Add the workspace to your phone for quick access.</span></div><button onClick={installPortal}>Install</button><button className="install-dismiss" onClick={()=>setShowInstall(false)} aria-label="Dismiss install prompt">×</button></aside>}
   <header className="portal-header"><div className="portal-header-inner">
    <Link to="/" className="portal-brand"><img className="apml-rotating-logo" src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal"/><span><b>APML <i>Portal</i></b></span></Link>
-   <nav id="portal-main-navigation" className={menuOpen?'portal-nav open':'portal-nav'} aria-label="Main navigation">
-    {[links.slice(0,4),links.slice(4,8),links.slice(8)].map((group,index)=><div className="portal-nav-group" key={index}>
-     {group.map(({to,label,icon:Icon})=><NavLink key={to} to={to} end={to==='/'}><Icon size={17}/><span>{label}</span></NavLink>)}
-    </div>)}
-    <div className="portal-nav-separator" aria-hidden="true"/>
-    <div className="portal-nav-group portal-nav-utility">
-     <Link to="/bug-report" className="portal-nav-support"><LifeBuoy size={17}/> <span>Support</span></Link>
-    </div>
-   </nav>
-   <div className="portal-header-actions"><button type="button" className="apml-command-trigger" onClick={()=>setPaletteOpen(true)} aria-label="Search pages and tools"><Search size={16}/><span>Search anything...</span><kbd>Ctrl K</kbd></button><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label><HamburgerButton open={menuOpen} onToggle={()=>setMenuOpen(v=>!v)}/></div>
+   <div className="portal-header-actions"><button type="button" className="apml-command-trigger" onClick={()=>setPaletteOpen(true)} aria-label="Search pages and tools"><Search size={16}/><span>Search anything...</span><kbd>Ctrl K</kbd></button><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label></div>
   </div></header> 
   {paletteOpen&&<div className="apml-command-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget){setPaletteOpen(false);setPaletteQuery('')}}}>
    <section className="apml-command-dialog" role="dialog" aria-modal="true" aria-label="Search APML Portal">
