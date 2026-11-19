@@ -302,11 +302,13 @@ export default function Gallery() {
   async function recordGalleryDownload(item, name) {
     await metric(item, 'downloadsCount')
     // The Worker uses its private Firebase service account; browser users do not need database write access.
-    const counterResponse = await fetch(DRIVE_API_URL + '/counter/increment', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ counter: 'media' })
-    })
-    const counterResult = await counterResponse.json().catch(() => ({}))
-    if (!counterResponse.ok || counterResult.ok !== true) throw new Error(counterResult.error || 'Lifetime media counter could not be updated')
+    try {
+      const counterResponse = await fetch(DRIVE_API_URL + '/counter/increment', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ counter: 'media' })
+      })
+      const counterResult = await counterResponse.json().catch(() => ({}))
+      if (!counterResponse.ok || counterResult.ok !== true) throw new Error(counterResult.error || 'Lifetime media counter could not be updated')
+    } catch (error) { console.warn('Gallery lifetime media counter unavailable:', error) }
     // Detailed daily analytics remains consent-based.
     if (window.apmlHasAnalyticsConsent?.()) {
       try { await window.logDailyActivity?.('media') }
