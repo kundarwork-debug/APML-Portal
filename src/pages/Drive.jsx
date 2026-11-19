@@ -85,10 +85,10 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    </nav>
    <div className="drive-action-buttons">
     <button className="drive-action" onClick={()=>{setParent('root');setPage(1)}}><HardDrive size={15}/> My Drive</button>
-    {<><button className="drive-action" onClick={createFolder}><FolderPlus size={15}/> New Folder</button>
+    <><button className="drive-action" onClick={createFolder}><FolderPlus size={15}/> New Folder</button>
     <button className="drive-action" onClick={addLink}><Link2 size={15}/> Catbox Link</button>
     <button className="drive-action drive-action-primary" onClick={()=>input.current?.click()} disabled={busy}><Upload size={15}/> Upload File</button>
-    <input ref={input} hidden type="file" multiple onChange={e=>upload(e.target.files)}/></>}
+    <input ref={input} hidden type="file" multiple onChange={e=>upload(e.target.files)}/></>
    </div>
   </section>
   <div className="drive-live-status"><span className="drive-live-dot"/>{status}<span className="drive-status-count">{trash?trashFolders.length+trashFiles.length:total} items</span></div>
