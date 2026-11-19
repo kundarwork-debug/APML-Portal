@@ -274,7 +274,7 @@ export default function Shell(){
    <div className="portal-header-actions"><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label><HamburgerButton open={menuOpen} onToggle={()=>setMenuOpen(v=>!v)}/></div>
   </div></header>
   <main className="page-content portal-page-content"><Outlet/></main>
-  {location.pathname!=="\/about"&&<FloatingMascot pagePath={location.pathname}/>}
+  {location.pathname!=="/about"&&<FloatingMascot pagePath={location.pathname}/>}
   <Footer
    className="portal-site-footer"
    brand={{
