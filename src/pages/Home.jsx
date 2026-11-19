@@ -124,7 +124,6 @@ function OperationalTelemetry(){
     const startPresence=async()=>{
      try{
       if(presenceAttached)return
-      if(!window.apmlHasAnalyticsConsent?.())return
       const auth=getApmlAuth()
       let user=auth.currentUser
       if(!user)user=(await auth.signInAnonymously()).user
@@ -144,8 +143,7 @@ function OperationalTelemetry(){
      }catch(error){console.warn('APML presence unavailable',error)}
     }
     startPresence()
-    window.addEventListener('apml-analytics-consent-granted',startPresence)
-    refs.push({off:()=>window.removeEventListener('apml-analytics-consent-granted',startPresence)})
+
    }catch(error){console.warn('APML homepage telemetry could not connect',error)}
   }
   start()
@@ -153,14 +151,14 @@ function OperationalTelemetry(){
  },[])
 
  return <section className="legacy-telemetry" ref={sectionRef}>
-  <Link to="/analytics">
+  <div className="legacy-telemetry-card">
    <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across Western Central Regional Office &amp; nationwide hubs.</p></div><span><i/> All operational systems monitored</span></div>
    <div className="legacy-telemetry-stats">
     <div><small>Live Active Personnel</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Personnel online right now</em></div>
     <div><small>PDF Generated</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Created in Quotation Editor</em></div>
     <div><small>Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Downloads from Drive &amp; Gallery</em></div>
    </div>
-  </Link>
+  </div>
  </section>
 }
 export default function Home(){
