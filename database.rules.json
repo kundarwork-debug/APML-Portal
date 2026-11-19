@@ -24,6 +24,9 @@
       },
       "totalMediaDownloads": {
         ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1"
+      },
+      "totalPdfDownloads": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1"
       }
     },
     "presence": {
