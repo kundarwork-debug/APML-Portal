@@ -13,12 +13,9 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  const trash=parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(trash)setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function recordMediaDownload(){
-  try{
-   const db=getApmlDatabase();
-   const result=await db.ref('analytics/totalMediaDownloads').transaction(value=>(Number(value)||0)+1);
-   if(!result.committed)console.warn('Drive media download count was not committed.');
-  }catch(error){console.warn('Drive lifetime download count unavailable',error)}
-  // Detailed daily analytics remains consent-based; the lifetime counter records completed downloads.
+  const response=await fetch(base+'/counter/increment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({counter:'media'})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||result.ok!==true)throw Error(result.error||'Lifetime media counter could not be updated');
   if(window.apmlHasAnalyticsConsent?.()){
    try{await window.logDailyActivity?.('media')}catch(error){console.warn('Drive daily analytics unavailable',error)}
   }
@@ -37,7 +34,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
    await recordMediaDownload();
    await driveToast('Download started');
-  }catch(e){console.warn('Drive direct download fallback',e);const a=document.createElement('a');a.href=item.fileId;a.download=name;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();await driveToast('Download opened in a new tab','info')}
+  }catch(e){console.warn('Drive direct download fallback',e);const a=document.createElement('a');a.href=item.fileId;a.download=name;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();await driveToast('Download opened in a new tab; it was not counted as a completed download','info')}
  }
  async function createFolder(){if(!admin)return;try{const name=await driveInput('Create new folder',{placeholder:'Folder name',confirmText:'Create folder'});if(!name)return;await getApmlDatabase().ref('catbox_gdrive_folders').push({name,parentId:parent,timestamp:Date.now()});await driveToast('Folder created')}catch(e){await driveAlert('Could not create folder',e.message,'error')}}
  async function upload(selected){if(!admin||!selected?.length)return;setBusy(true);let ok=0,failed=[];for(const file of selected){try{const video=(file.type||'').startsWith('video/');if(file.size>(video?100:10)*1024*1024)throw Error('File exceeds the '+(video?'100':'10')+' MB limit');const form=new FormData();form.append('file',file);form.append('upload_preset',preset);form.append('folder','apml-drive');const res=await fetch('https://api.cloudinary.com/v1_1/'+cloud+'/auto/upload',{method:'POST',body:form});const data=await res.json();if(!res.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed');await getApmlDatabase().ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:parent,name:file.name,size:file.size||0,timestamp:Date.now()});ok++}catch(e){failed.push(file.name+': '+e.message)}}if(input.current)input.current.value='';setBusy(false);if(ok)await driveToast(ok+' file(s) uploaded');if(failed.length)await driveAlert('Some files could not be uploaded',failed.join('\\n'),'warning')}
