@@ -1222,3 +1222,108 @@ html[data-theme="dark"] .portal-site-footer h3{color:#cbd5e1}
 @media(prefers-reduced-motion:reduce){
  html,html *,html *::before,html *::after{transition-duration:0s!important;animation-duration:.01ms!important}
 }
+
+
+/* Complete dark-theme coverage for every remaining light-only APML surface.
+   These rules intentionally leave the quotation/PDF export canvas white. */
+html[data-theme="dark"] .portal-menu-toggle{
+  background:#151e2e!important;
+  color:#e2e8f0!important;
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-menu-toggle:hover,
+html[data-theme="dark"] .portal-menu-toggle[aria-expanded="true"]{
+  background:#3b1820!important;
+  color:#fecaca!important;
+  border-color:#67383e!important;
+}
+html[data-theme="dark"] .portal-page-content .legacy-home{
+  color:#e2e8f0!important;
+}
+html[data-theme="dark"] .portal-page-content .legacy-tool-card,
+html[data-theme="dark"] .portal-page-content .legacy-telemetry>div,
+html[data-theme="dark"] .portal-page-content .other-project-card{
+  background:#151e2e!important;
+  color:#e2e8f0!important;
+  border-color:#334155!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.24)!important;
+}
+html[data-theme="dark"] .portal-page-content .legacy-section-bar>span,
+html[data-theme="dark"] .portal-page-content .legacy-card-head span{
+  background:#2a2027!important;
+  color:#fecaca!important;
+  border-color:#63343b!important;
+}
+html[data-theme="dark"] .portal-page-content .other-project-logo{
+  background:#202a38!important;
+  border:1px solid #334155!important;
+}
+html[data-theme="dark"] .portal-page-content .other-project-card p,
+html[data-theme="dark"] .portal-page-content .legacy-tool-card p,
+html[data-theme="dark"] .portal-page-content .legacy-telemetry,
+html[data-theme="dark"] .portal-page-content .legacy-hero-description,
+html[data-theme="dark"] .portal-page-content .legacy-hero-note,
+html[data-theme="dark"] .portal-page-content .legacy-eyebrow{
+  color:#a8b5c7!important;
+}
+html[data-theme="dark"] .portal-page-content .legacy-hero h1{
+  color:#f8fafc!important;
+}
+html[data-theme="dark"] .portal-page-content .legacy-hero h1 span{
+  color:#f87171!important;
+}
+html[data-theme="dark"] .portal-page-content .legacy-tool-card a,
+html[data-theme="dark"] .portal-page-content .other-project-card a{
+  color:#fca5a5!important;
+}
+html[data-theme="dark"] .apml-hero-mascot-bubble,
+html[data-theme="dark"] .apml-floating-tip{
+  background:#151e2e!important;
+  color:#f8fafc!important;
+  border-color:#475569!important;
+  box-shadow:4px 4px 0 #334155!important;
+}
+html[data-theme="dark"] .install-prompt{
+  background:#151e2e!important;
+  color:#f8fafc!important;
+  border-color:#334155!important;
+  box-shadow:0 14px 44px rgba(0,0,0,.45)!important;
+}
+html[data-theme="dark"] .install-prompt strong{color:#f8fafc!important}
+html[data-theme="dark"] .install-prompt span{color:#a8b5c7!important}
+html[data-theme="dark"] .install-prompt .install-dismiss{
+  background:transparent!important;
+  color:#cbd5e1!important;
+}
+html[data-theme="dark"] .portal-site-footer .footer-author-pill{
+  background:#151e2e!important;
+  color:#e2e8f0!important;
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content .help-icon,
+html[data-theme="dark"] .portal-page-content .art-logo,
+html[data-theme="dark"] .portal-page-content .float-chip{
+  background:#202a38!important;
+  color:#f1f5f9!important;
+  border-color:#394657!important;
+}
+html[data-theme="dark"] .portal-page-content .search-box,
+html[data-theme="dark"] .portal-page-content .category-tab,
+html[data-theme="dark"] .portal-page-content .quick-strip>div,
+html[data-theme="dark"] .portal-page-content .module-card,
+html[data-theme="dark"] .portal-page-content .migration-card,
+html[data-theme="dark"] .portal-page-content .info-grid article,
+html[data-theme="dark"] .portal-page-content .bottom-note{
+  background:#151e2e!important;
+  color:#e2e8f0!important;
+  border-color:#334155!important;
+}
+html[data-theme="dark"] .portal-page-content .search-box input{
+  background:transparent!important;
+  color:#f8fafc!important;
+}
+html[data-theme="dark"] .portal-page-content .category-tab.selected{
+  background:#3b1820!important;
+  color:#fecaca!important;
+  border-color:#67383e!important;
+}
