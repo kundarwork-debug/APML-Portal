@@ -16,7 +16,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
   const name=item.name||'apml-file';
-  try{if(window.apmlHasAnalyticsConsent?.())await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(v=>(Number(v)||0)+1)}catch(e){console.warn('Drive download analytics unavailable',e)}
+  try{await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(v=>(Number(v)||0)+1)}catch(e){console.warn('Drive download counter unavailable',e)}
   try{
    if(window.ApmNativeDownload?.start){window.ApmNativeDownload.start(item.fileId,name);return}
    const response=await fetch(item.fileId);if(!response.ok)throw Error('Download request failed');
