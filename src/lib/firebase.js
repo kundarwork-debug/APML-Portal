@@ -79,4 +79,11 @@ export async function getApmlPresenceServices() {
 
   return { database: firebase.database(app), user }
 }
-
+export async function incrementApmlMediaDownload() {
+  const { database } = await getApmlPresenceServices()
+  const result = await database.ref('analytics/totalMediaDownloads').transaction(
+    value => (Number(value) || 0) + 1
+  )
+  if (!result.committed) throw new Error('Firebase did not commit the media download count.')
+  return result.snapshot.val()
+}

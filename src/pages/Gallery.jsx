@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { incrementApmlMediaDownload } from '../lib/firebase'
 import './Gallery.css'
 
 const firebaseConfig = {
@@ -314,7 +315,7 @@ export default function Gallery() {
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     await metric(item, 'downloadsCount')
     try {
-      await window.firebase.database().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
+      await incrementApmlMediaDownload()
     } catch (error) { console.warn('Gallery download counter unavailable', error) }
     try {
       window.APMNotify?.send?.({
