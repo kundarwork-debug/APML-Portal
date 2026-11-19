@@ -3,7 +3,7 @@ import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, F
 import './Drive.css'
 import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
-import { getApmlDatabase } from '../lib/firebase'
+import { getApmlPresenceAuth, getApmlPresenceDatabase } from '../lib/firebase'
 import { driveApi } from '../lib/driveApi'
 const cloud='wbrmw2pm',preset='apml_drive';const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
 export default function Drive(){const [folders,setFolders]=useState([]),[files,setFiles]=useState([]),[parent,setParent]=useState('root'),[busy,setBusy]=useState(false),[status,setStatus]=useState('Connecting to cloud drive…'),[page,setPage]=useState(1);const input=useRef();const {admin,signIn,signOut}=useApmlAdminAuth();async function refreshDrive(){const data=await driveApi('/drive');const nextFolders=Array.isArray(data.folders)?data.folders:[],nextFiles=Array.isArray(data.files)?data.files:[];setFolders(nextFolders);setFiles(nextFiles);try{localStorage.setItem('apml_catbox_link_folders_v1',JSON.stringify(nextFolders));localStorage.setItem('apml_catbox_link_files_v1',JSON.stringify(nextFiles))}catch{}setStatus('Live sync connected')}
@@ -13,15 +13,35 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  const hereFiles=useMemo(()=>files.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)),[files,parent])
  const trash=parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(trash)setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
+ async function recordMediaDownload(){
+  try{
+   const auth=getApmlPresenceAuth()
+   if(!auth.currentUser?.isAnonymous)await auth.signInAnonymously()
+   const result=await getApmlPresenceDatabase().ref('analytics/totalMediaDownloads').transaction(value=>(Number(value)||0)+1)
+   if(!result.committed)throw Error('The Firebase counter update was not committed.')
+  }catch(error){console.warn('Drive download counter unavailable:',error)}
+ }
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
-  const name=item.name||'apml-file';
-  try{if(window.apmlHasAnalyticsConsent?.())await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(v=>(Number(v)||0)+1)}catch(e){console.warn('Drive download analytics unavailable',e)}
+  const name=item.name||'apml-file'
+  let openedFallback=false
   try{
-   if(window.ApmNativeDownload?.start){window.ApmNativeDownload.start(item.fileId,name);await driveToast('Download started');return}
-   const response=await fetch(item.fileId);if(!response.ok)throw Error('Download request failed');
-   const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);await driveToast('Download started');
-  }catch(e){console.warn('Drive direct download fallback',e);const a=document.createElement('a');a.href=item.fileId;a.download=name;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();await driveToast('Download opened in a new tab','info')}
+   if(window.ApmNativeDownload?.start){
+    await window.ApmNativeDownload.start(item.fileId,name)
+   }else{
+    const response=await fetch(item.fileId)
+    if(!response.ok)throw Error('Download request failed')
+    const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a')
+    a.href=url;a.download=name;document.body.append(a);a.click();a.remove()
+    setTimeout(()=>URL.revokeObjectURL(url),5000)
+   }
+  }catch(error){
+   console.warn('Drive direct download fallback',error)
+   const a=document.createElement('a');a.href=item.fileId;a.download=name;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove()
+   openedFallback=true
+  }
+  await recordMediaDownload()
+  await driveToast(openedFallback?'Download opened in a new tab':'Download started',openedFallback?'info':undefined)
  }
  async function createFolder(){if(!admin)return;try{const name=await driveInput('Create new folder',{placeholder:'Folder name',confirmText:'Create folder'});if(!name)return;await driveApi('/drive/folders',{method:'POST',body:{name,parentId:parent,timestamp:Date.now()}});await refreshDrive();await driveToast('Folder created')}catch(e){await driveAlert('Could not create folder',e.message,'error')}}
  async function upload(selected){if(!admin||!selected?.length)return;setBusy(true);let ok=0,failed=[];for(const file of selected){try{const video=(file.type||'').startsWith('video/');if(file.size>(video?100:10)*1024*1024)throw Error('File exceeds the '+(video?'100':'10')+' MB limit');const form=new FormData();form.append('file',file);form.append('upload_preset',preset);form.append('folder','apml-drive');const res=await fetch('https://api.cloudinary.com/v1_1/'+cloud+'/auto/upload',{method:'POST',body:form});const data=await res.json();if(!res.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed');await driveApi('/drive/files',{method:'POST',body:{fileId:data.secure_url,parentId:parent,name:file.name,size:file.size||0,timestamp:Date.now()}});ok++}catch(e){failed.push(file.name+': '+e.message)}}if(input.current)input.current.value='';setBusy(false);if(ok){await refreshDrive();await driveToast(ok+' file(s) uploaded')}if(failed.length)await driveAlert('Some files could not be uploaded',failed.join('\\n'),'warning')}
