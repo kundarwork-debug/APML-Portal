@@ -180,37 +180,6 @@
     } catch (e) { return false; }
   }
 
-  function announceVisit() {
-    try {
-      if (ENABLED.visit === false || muted() || looksLikeBot() || !window.apmlHasAnalyticsConsent || !window.apmlHasAnalyticsConsent()) return;
-      var now = Date.now();
-      var last = Number(localStorage.getItem('apml_visit_last') || 0);
-      if (last && now - last < VISIT.cooldownHours * 3600 * 1000) return;
-      localStorage.setItem('apml_visit_last', String(now));
-
-      // the Worker adds the rough location, the time and the live numbers
-      send({ type: 'visit', title: 'Someone is online', file: pageName(), folder: deviceText() });
-    } catch (e) { /* ignore */ }
-  }
-
-  // wait a moment, and until the tab is really on screen, so pre-loads and instant bounces do not count
-  function startVisit() {
-    setTimeout(function () {
-      if (document.visibilityState === 'hidden') {
-        var onShow = function () {
-          if (document.visibilityState === 'visible') {
-            document.removeEventListener('visibilitychange', onShow);
-            announceVisit();
-          }
-        };
-        document.addEventListener('visibilitychange', onShow);
-      } else {
-        announceVisit();
-      }
-    }, VISIT.delayMs);
-  }
-  window.addEventListener("apml-analytics-consent-granted", announceVisit);
-
   // ---------------- announcements ----------------
   var annNow = null, annPinned = '', annLastPoll = 0, annTries = 0;
 
