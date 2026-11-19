@@ -296,7 +296,6 @@ export default function Gallery() {
     } catch {}
   }
   async function recordMediaDownload() {
-    if (!window.apmlHasAnalyticsConsent?.()) return
     try {
       const auth = getApmlPresenceAuth()
       if (!auth.currentUser?.isAnonymous) await auth.signInAnonymously()
@@ -363,7 +362,6 @@ export default function Gallery() {
       console.warn('Gallery download fallback:', error)
     }
     await Promise.all([metric(item, 'downloadsCount'), recordMediaDownload()])
-    window.logDailyActivity?.('media')
     window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
     await driveToast(openedFallback ? 'Download opened in a new tab' : 'Download started', openedFallback ? 'info' : undefined)
   }
