@@ -13,9 +13,11 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  const trash=parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(trash)setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function recordMediaDownload(){
-  const response=await fetch(base+'/counter/increment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({counter:'media'})});
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok||result.ok!==true)throw Error(result.error||'Lifetime media counter could not be updated');
+  try{
+   const response=await fetch(base+'/counter/increment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({counter:'media'})});
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok||result.ok!==true)throw Error(result.error||'Lifetime media counter could not be updated');
+  }catch(error){console.warn('Drive lifetime download counter unavailable',error)}
   if(window.apmlHasAnalyticsConsent?.()){
    try{await window.logDailyActivity?.('media')}catch(error){console.warn('Drive daily analytics unavailable',error)}
   }
