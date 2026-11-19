@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
 import {Plus,Trash2,Download,RotateCcw,FileText,Calculator} from 'lucide-react'
 import './Editor.css'
+import { getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
 const sharedDefault=()=>({date:dateNow(),custName:'',custCompany:'Unregistered',custGst:'GST Exempted',fromCity:'',toCity:''})
 const mk=(items)=>items.map(([label,amount=0])=>({label,amount}))
@@ -11,13 +12,31 @@ const SPLITS={exact:{freight:60,'car freight':0,'packing charges':20,'loading ch
 const clone=x=>JSON.parse(JSON.stringify(x)),money=n=>(Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})
 const calc=d=>{const subtotal=d.costItems.reduce((s,x)=>s+(Number(x.amount)||0),0),gst=subtotal*(Number(d.gstPercent)||0)/100;return{subtotal,gst,grand:subtotal+gst}}
 
-const EDITOR_FIREBASE={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
 const loadSweetAlert=()=>new Promise((resolve,reject)=>{if(window.Swal){resolve(window.Swal);return}const existing=document.querySelector('script[data-editor-sweetalert]');const script=existing||document.createElement('script');if(!existing){script.src='https://cdn.jsdelivr.net/npm/sweetalert2@11';script.dataset.editorSweetalert='true';document.head.appendChild(script)}script.addEventListener('load',()=>window.Swal?resolve(window.Swal):reject(Error('SweetAlert2 failed to initialize')),{once:true});script.addEventListener('error',()=>reject(Error('Could not load SweetAlert2')),{once:true})});
 async function editorAlert(options){try{const Swal=await loadSweetAlert();return await Swal.fire({confirmButtonColor:'#2563eb',...options})}catch(error){console.error('SweetAlert2 unavailable:',error);window.alert(options.text||options.title||'Something went wrong.');}}
-const editorScript=(src,ready)=>new Promise((resolve,reject)=>{if(ready()){resolve();return}let el=[...document.scripts].find(s=>s.src===src);if(!el){el=document.createElement('script');el.src=src;document.head.append(el)}el.addEventListener('load',()=>ready()?resolve():reject(Error('Firebase SDK did not initialize')), {once:true});el.addEventListener('error',reject,{once:true})})
-async function editorDatabase(){await editorScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',()=>!!window.firebase?.apps);await editorScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',()=>!!window.firebase?.database);if(!window.firebase.apps.length)window.firebase.initializeApp(EDITOR_FIREBASE);return window.firebase.database()}
-async function saveQuotationToDrive(blob,fileName){if(!blob||blob.size>10*1024*1024)throw Error('Quotation PDF exceeds the 10 MB Drive limit.');const db=await editorDatabase(),form=new FormData();form.append('file',blob,fileName);form.append('upload_preset','apml_drive');form.append('folder','apml-drive');const response=await fetch('https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload',{method:'POST',body:form}),data=await response.json().catch(()=>({}));if(!response.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed');const folders=await db.ref('catbox_gdrive_folders').once('value'),all=folders.val()||{};let folderId=Object.keys(all).find(key=>all[key]?.parentId==='root'&&String(all[key]?.name||'').trim().toLowerCase()==='quotation');if(!folderId){folderId='quotation_folder';await db.ref('catbox_gdrive_folders/'+folderId).set({name:'Quotation',parentId:'root',timestamp:Date.now()})}await db.ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:folderId,name:fileName,size:blob.size||0,timestamp:Date.now()});return true}
-async function recordPdfDownload(){try{const db=await editorDatabase();const lifetime=await db.ref('analytics/totalPdfDownloads').transaction(value=>(Number(value)||0)+1);if(!lifetime.committed)console.warn('APML lifetime PDF count could not be recorded.')}catch(error){console.warn('APML lifetime PDF count unavailable:',error)}}
+async function editorDatabase(){const {database}=await getApmlPresenceServices();return database}
+async function saveQuotationToDrive(blob,fileName){
+ if(!blob||blob.size>10*1024*1024)throw Error('Quotation PDF exceeds the 10 MB Drive limit.')
+ const db=await editorDatabase(),form=new FormData()
+ form.append('file',blob,fileName)
+ form.append('upload_preset','apml_drive')
+ form.append('folder','apml-drive')
+ const response=await fetch('https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload',{method:'POST',body:form})
+ const data=await response.json().catch(()=>({}))
+ if(!response.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed')
+ const folderRef=db.ref('catbox_gdrive_folders')
+ const folders=await folderRef.once('value'),all=folders.val()||{}
+ let folderId=Object.keys(all).find(key=>all[key]?.parentId==='root'&&String(all[key]?.name||'').trim().toLowerCase()==='quotation')
+ if(!folderId){
+  const reservedRef=folderRef.child('quotation_folder')
+  const reserved=await reservedRef.once('value')
+  const newFolderRef=reserved.exists()?folderRef.push():reservedRef
+  folderId=newFolderRef.key
+  await newFolderRef.set({name:'Quotation',parentId:'root',timestamp:Date.now()})
+ }
+ await db.ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:folderId,name:fileName,size:blob.size||0,timestamp:Date.now()})
+ return true
+}
 
 function Field({label,children}){return <label className="editor-field"><span>{label}</span>{children}</label>}
 function Preview({company,d,s}){const t=calc(d);return <div className={'quote-document '+company}><div className="doc-letterhead"><p className="doc-company">{d.companyName}</p>{company==='exact'?<p className="doc-cin">{d.cin}</p>:<p className="doc-sub">{d.cin} · Regd. Office: {d.addr}<br/>Phone: {d.phone}{d.showEmail?' · Email: '+d.email:''}</p>}</div><div className="doc-body"><div className="doc-meta"><span>{company==='exact'?'Date: '+s.date:d.gstLabel+': '+d.gstNo}</span><span>{company==='exact'?d.docNoLabel+': '+d.docNo:'Date: '+s.date}</span></div><div className="doc-customer">{company==='exact'&&<>GST No: {d.gstNo}<br/></>}{company==='exact'?'MR. / MS.: ':'TO: '}<b>{s.custName}</b><br/>Company Name: {s.custCompany}<br/>GST No: {s.custGst}{company==='maxcare'&&<><br/>{d.docNoLabel}: {d.docNo}</>}</div><p className="doc-quotation">QUOTATION</p><p className="doc-intro">{company==='exact'?<>Dear Sir / Mam,<br/><br/>Below are our best prices for moving your <b>{s.fromCity} to {s.toCity}</b>. We hope you will find our price competitive enough &amp; will give us an opportunity to service you.</>:<>We thank you for your inquiry to move your household goods from <b>{s.fromCity} to {s.toCity}</b>. We have pleasure in quoting our charges as follows:</>}</p><table className="doc-table"><thead><tr>{company==='maxcare'&&<th>S.No</th>}<th>{company==='exact'?'Cost Item':'Particulars'}</th><th className="amt">Amount (INR)</th></tr></thead><tbody>{d.costItems.map((x,i)=><tr key={i}>{company==='maxcare'&&<td>{i+1}</td>}<td>{x.label}</td><td className="amt">{money(x.amount)}</td></tr>)}<tr className="total-row">{company==='maxcare'&&<td>{d.costItems.length+1}</td>}<td>Total</td><td className="amt">{money(t.subtotal)}</td></tr><tr>{company==='maxcare'&&<td>{d.costItems.length+2}</td>}<td>GST Charges @ {Number(d.gstPercent)||0}%</td><td className="amt">{money(t.gst)}</td></tr><tr className="grand-row">{company==='maxcare'&&<td/>}<td>Total with GST</td><td className="amt">{money(t.grand)}</td></tr></tbody></table><p className="doc-terms-title">TERMS &amp; CONDITION:</p><ol className="doc-terms">{d.terms.map((x,i)=><li key={i}>{x}</li>)}</ol>{company==='exact'?<div className="doc-footer"><b>{d.addrLabel}:</b> {d.addr}<br/><b>Phone:</b> {d.phone}</div>:<div className="doc-footer">Thanking you and looking forward to rendering our service to you.<br/>With Regards,<div className="doc-sign">M/s {d.companyName}</div></div>}</div></div>}
@@ -33,7 +52,7 @@ const download=async()=>{
  if(!shared.custName.trim()||!shared.fromCity.trim()||!shared.toCity.trim()){await editorAlert({icon:'warning',title:'Fill in the quotation details',text:'Please enter the customer name, moving-from location and moving-to location before generating the PDF.'});return}
  if(t.grand<=0){await editorAlert({icon:'warning',title:'Fill in the amount',text:'Please enter a valid quotation amount before generating the PDF.'});return}
  setBusy(true);setStatus('Preparing A4 PDF…');
- let exportStage=null;
+ let exportStage=null,pdfCountRecorded=true;
  try{
   const load=(src,ok)=>ok()?Promise.resolve():new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=()=>ok()?res():rej(Error('PDF library failed'));e.onerror=()=>rej(Error('Could not load PDF library'));document.head.append(e)});
   await Promise.all([load('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>!!window.html2canvas),load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)]);
@@ -62,12 +81,21 @@ const download=async()=>{
   const clean=x=>String(x||'').replace(/[^a-zA-Z0-9 ]/g,'').trim()||'Customer';
   const name=clean(shared.custName)+'_'+clean(d.companyName)+'.pdf',file=pdf.output('blob'),url=URL.createObjectURL(file),a=document.createElement('a');
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  recordPdfDownload().catch(error=>console.warn('APML quotation analytics failed:',error));
+  try{await incrementApmlPdfGenerated()}catch(error){pdfCountRecorded=false;console.warn('APML quotation analytics failed:',error)}
   if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
-  setBusy(false);
-  await editorAlert({icon:'success',title:'PDF generated successfully!',text:name});
-  // Save to Drive independently; do not block the editor or PDF download.
-  saveQuotationToDrive(file,name).catch(driveError=>console.warn('Quotation Drive background save failed:',driveError));
+  setStatus('Saving PDF to Drive/Quotation…');
+  let driveError=null;
+  try{await saveQuotationToDrive(file,name)}catch(error){driveError=error;console.warn('Quotation Drive save failed:',error)}
+  if(driveError){
+   setStatus('PDF generated; Drive save failed');
+   await editorAlert({icon:'warning',title:'PDF generated, but Drive save failed',text:`${name} was downloaded. ${pdfCountRecorded?'The generated-PDF count was recorded.':'The generated-PDF count could not be recorded.'} ${driveError.message||''}`});
+  }else if(!pdfCountRecorded){
+   setStatus('PDF saved; generated-PDF count update failed');
+   await editorAlert({icon:'warning',title:'PDF saved, but the counter did not update',text:`${name} was saved to Drive/Quotation, but its generated-PDF count could not be recorded.`});
+  }else{
+   setStatus('Saved to Drive/Quotation');
+   await editorAlert({icon:'success',title:'PDF generated successfully!',text:`${name} was saved to Drive/Quotation.`});
+  }
  }catch(e){console.error(e);await editorAlert({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
  finally{exportStage?.remove();setBusy(false)}
 }
@@ -79,7 +107,7 @@ return <div className="editor-page"><div className="editor-layout"><section clas
 {d.costItems.map((x,i)=><div className="editor-dynamic-row" key={i}><input aria-label="Cost item description" value={x.label} onChange={e=>patch('costItems',d.costItems.map((z,j)=>j===i?{...z,label:e.target.value}:z))}/><input aria-label="Cost item amount" type="number" value={x.amount} onChange={e=>patch('costItems',d.costItems.map((z,j)=>j===i?{...z,amount:e.target.value}:z))}/><button className="remove-row" onClick={()=>patch('costItems',d.costItems.filter((_,j)=>j!==i))} aria-label="Remove cost item"><Trash2 size={16}/></button></div>)}<button className="editor-add" onClick={()=>patch('costItems',[...d.costItems,{label:'New Charge',amount:0}])}><Plus size={16}/> Add cost item</button><div className="editor-totals"><div><span>Subtotal</span><strong>₹ {money(t.subtotal)}</strong></div><div><span>GST ({Number(d.gstPercent)||0}%)</span><strong>₹ {money(t.gst)}</strong></div><div className="grand"><span>Total with GST</span><strong>₹ {money(t.grand)}</strong></div></div></div>
 <div className="editor-group"><h2>Terms &amp; conditions</h2>{d.terms.map((x,i)=><div className="editor-dynamic-row term-edit" key={i}><textarea value={x} onChange={e=>patch('terms',d.terms.map((z,j)=>j===i?e.target.value:z))}/><button className="remove-row" onClick={()=>patch('terms',d.terms.filter((_,j)=>j!==i))} aria-label="Remove term"><Trash2 size={16}/></button></div>)}<button className="editor-add" onClick={()=>patch('terms',[...d.terms,'New term or condition.'])}><Plus size={16}/> Add term</button></div>
 <div className="editor-group"><h2>Registered office</h2><Field label={d.addrLabel}><textarea value={d.addr} onChange={e=>patch('addr',e.target.value)}/></Field><div className="editor-two"><Field label="Phone"><input value={d.phone} onChange={e=>patch('phone',e.target.value)}/></Field>{d.showEmail&&<Field label="Email"><input value={d.email} onChange={e=>patch('email',e.target.value)}/></Field>}</div></div>
-<button className="editor-reset" onClick={reset}><RotateCcw size={15}/> Reset template to default</button><div className="editor-download"><button className="apml-download-btn" onClick={download} disabled={busy}><Download size={18}/><span className="apml-download-label">{busy?'Generating PDF…':'Download A4 PDF'}</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button>{status&&<p role="status">{status}</p>}</div></section>
+<button className="editor-reset" onClick={reset}><RotateCcw size={15}/> Reset template to default</button><div className="editor-download"><button className="apml-download-btn" onClick={download} disabled={busy}><Download size={18}/><span className="apml-download-label">{busy?(status||'Generating PDF…'):'Download A4 PDF'}</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button>{status&&<p role="status">{status}</p>}</div></section>
 <section className="editor-preview"><div className="preview-caption"><FileText size={15}/> LIVE A4 PREVIEW <span>Changes update instantly</span></div><div className="preview-scroll"><div className="preview-paper" ref={preview}><Preview company={company} d={d} s={shared}/></div></div></section></div>
 {busy&&<div className="quote-generating-overlay" role="status" aria-live="polite">
   <div className="spinnerContainer">

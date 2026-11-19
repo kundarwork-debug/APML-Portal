@@ -87,3 +87,12 @@ export async function incrementApmlMediaDownload() {
   if (!result.committed) throw new Error('Firebase did not commit the media download count.')
   return result.snapshot.val()
 }
+
+export async function incrementApmlPdfGenerated() {
+  const { database } = await getApmlPresenceServices()
+  const result = await database.ref('analytics/totalPdfDownloads').transaction(
+    value => (Number(value) || 0) + 1
+  )
+  if (!result.committed) throw new Error('Firebase did not commit the generated PDF count.')
+  return result.snapshot.val()
+}
