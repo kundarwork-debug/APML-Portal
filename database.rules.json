@@ -16,6 +16,14 @@
       ]
     },
     "analytics": {
+      "daily_logs": {
+        "$date": {
+          "$counter": {
+            ".write": "auth != null && (($counter == 'visitors' || $counter == 'pdf' || $counter == 'media') && auth.token.firebase.sign_in_provider == 'anonymous' || auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))",
+            ".validate": "newData.isNumber() && (data.exists() ? newData.val() == data.val() + 1 : newData.val() == 1)"
+          }
+        }
+      },
       "visitor_sessions": {
         "$sessionKey": {
           ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && ((data.exists() && data.child('uid').val() == auth.uid && (!newData.exists() || newData.child('uid').val() == auth.uid)) || (!data.exists() && newData.child('uid').val() == auth.uid))",
