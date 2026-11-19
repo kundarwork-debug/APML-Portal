@@ -53,7 +53,7 @@ const download=async()=>{
  if(t.grand<=0){await editorAlert({icon:'warning',title:'Fill in the amount',text:'Please enter a valid quotation amount before generating the PDF.'});return}
  setBusy(true);setStatus('Preparing A4 PDF…');
  const showGenerationResult=async options=>{setBusy(false);await new Promise(resolve=>requestAnimationFrame(()=>resolve()));await editorAlert(options)};
- let exportStage=null,pdfCountRecorded=true;
+ let exportStage=null;
  try{
   const load=(src,ok)=>ok()?Promise.resolve():new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=()=>ok()?res():rej(Error('PDF library failed'));e.onerror=()=>rej(Error('Could not load PDF library'));document.head.append(e)});
   await Promise.all([load('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>!!window.html2canvas),load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)]);
@@ -71,7 +71,7 @@ const download=async()=>{
   document.body.appendChild(exportStage);
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const exportHeight=Math.max(1123,exportNode.scrollHeight,Math.ceil(exportNode.getBoundingClientRect().height));
-  const canvas=await window.html2canvas(exportNode,{scale:3,useCORS:true,backgroundColor:'#ffffff',width:794,height:exportHeight,windowWidth:1200,windowHeight:Math.max(1200,exportHeight),scrollX:0,scrollY:0,logging:false});
+  const canvas=await window.html2canvas(exportNode,{scale:2,useCORS:true,backgroundColor:'#ffffff',width:794,height:exportHeight,windowWidth:1200,windowHeight:Math.max(1200,exportHeight),scrollX:0,scrollY:0,logging:false});
   if(!canvas.width||!canvas.height)throw Error('Could not render the quotation page.');
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.96));
   const bytes=blob?new Uint8Array(await blob.arrayBuffer()):canvas.toDataURL('image/jpeg',.96);
@@ -82,21 +82,19 @@ const download=async()=>{
   const clean=x=>String(x||'').replace(/[^a-zA-Z0-9 ]/g,'').trim()||'Customer';
   const name=clean(shared.custName)+'_'+clean(d.companyName)+'.pdf',file=pdf.output('blob'),url=URL.createObjectURL(file),a=document.createElement('a');
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
-  try{await incrementApmlPdfGenerated()}catch(error){pdfCountRecorded=false;console.warn('APML quotation analytics failed:',error)}
+  setStatus('PDF downloaded. Updating the generated-PDF count in the background…');
+  setBusy(false);
   if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
-  setStatus('Saving PDF to Drive/Quotation…');
-  let driveError=null;
-  try{await saveQuotationToDrive(file,name)}catch(error){driveError=error;console.warn('Quotation Drive save failed:',error)}
-  if(driveError){
-   setStatus('PDF generated; Drive save failed');
-   await showGenerationResult({icon:'warning',title:'PDF generated, but Drive save failed',text:`${name} was downloaded. ${pdfCountRecorded?'The generated-PDF count was recorded.':'The generated-PDF count could not be recorded.'} ${driveError.message||''}`});
-  }else if(!pdfCountRecorded){
-   setStatus('PDF saved; generated-PDF count update failed');
-   await showGenerationResult({icon:'warning',title:'PDF saved, but the counter did not update',text:`${name} was saved to Drive/Quotation, but its generated-PDF count could not be recorded.`});
-  }else{
-   setStatus('Saved to Drive/Quotation');
-   await showGenerationResult({icon:'success',title:'PDF generated successfully!',text:`${name} was saved to Drive/Quotation.`});
-  }
+  void (async()=>{
+   let countError=null,driveError=null;
+   try{await incrementApmlPdfGenerated()}catch(error){countError=error;console.warn('APML quotation analytics failed:',error)}
+   setStatus('PDF downloaded. Saving a copy to Drive/Quotation in the background…');
+   try{await saveQuotationToDrive(file,name)}catch(error){driveError=error;console.warn('Quotation Drive save failed:',error)}
+   const countStatus=countError?`PDF count update failed: ${countError.message||countError}`:'PDF generated count updated';
+   const driveStatus=driveError?`Drive save failed: ${driveError.message||driveError}`:'saved to Drive/Quotation';
+   setStatus(`PDF downloaded. ${countStatus}; ${driveStatus}.`);
+  })();
+  await showGenerationResult({icon:'success',title:'PDF downloaded',text:`${name} is downloading. The generated-PDF count and Drive/Quotation save are continuing in the background.`});
  }catch(e){console.error(e);await showGenerationResult({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
  finally{exportStage?.remove();setBusy(false)}
 }
