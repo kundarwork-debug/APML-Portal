@@ -112,7 +112,6 @@ function OperationalTelemetry(){
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
-    listen('presence','users',snap=>snap.numChildren()||1)
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
     const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
     const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
@@ -125,21 +124,6 @@ function OperationalTelemetry(){
     foldersRef.on('value',snap=>{const folders=snap.val()||{};quotationFolderIds=new Set(Object.keys(folders).filter(id=>folders[id]?.parentId==='root'&&String(folders[id]?.name||'').trim().toLowerCase()==='quotation'));updateArchiveCount()},error=>console.warn('APML quotation folder telemetry unavailable',error))
     filesRef.on('value',snap=>{quotationFiles=snap.val()||{};updateArchiveCount()},error=>console.warn('APML quotation archive telemetry unavailable',error))
     listen('analytics/totalMediaDownloads','media')
-    const startPresence=()=>{
-     try{
-      if(!window.apmlHasAnalyticsConsent?.())return
-      let id
-      try{id=sessionStorage.getItem('apml_presence_session')}catch(_){}
-      if(!id){id='user_'+Math.random().toString(36).slice(2,9);try{sessionStorage.setItem('apml_presence_session',id)}catch(_){}}
-      const own=db.ref('presence/'+id)
-      db.ref('.info/connected').on('value',snap=>{
-       if(snap.val()===true){own.onDisconnect().remove();own.set({online:true,timestamp:Date.now()})}
-      })
-     }catch(error){console.warn('APML presence unavailable',error)}
-    }
-    startPresence()
-    window.addEventListener('apml-analytics-consent-granted',startPresence)
-    refs.push({off:()=>window.removeEventListener('apml-analytics-consent-granted',startPresence)})
    }catch(error){console.warn('APML homepage telemetry could not connect',error)}
   }
   start()
