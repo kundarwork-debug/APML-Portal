@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Footer } from './ui/footer'
 import { getApmlPresenceServices } from '../lib/firebase'
 import { Component as HamburgerButton } from './ui/demo'
-import { ChevronDown, Home, FileText, Users, Cloud, Images, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale } from 'lucide-react'
+import { ChevronDown, Home, FileText, Users, Cloud, Images, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Search, X, ArrowRight } from 'lucide-react'
 
 const links = [
  {to:'/',label:'Home',icon:Home},{to:'/editor',label:'Quotation Editor',icon:FileText},
@@ -185,6 +185,23 @@ function FloatingMascot({pagePath}){
 export default function Shell(){
  const [menuOpen,setMenuOpen]=useState(false),[installEvent,setInstallEvent]=useState(null),[showInstall,setShowInstall]=useState(false)
  const [darkTheme,setDarkTheme]=useState(()=>{try{return localStorage.getItem('apml-theme')==='dark'}catch(_){return false}})
+ const [paletteOpen,setPaletteOpen]=useState(false),[paletteQuery,setPaletteQuery]=useState(''),[paletteIndex,setPaletteIndex]=useState(0)
+ const paletteInput=useRef(null)
+ const navigate=useNavigate()
+ const paletteItems=useMemo(()=>links.filter(item=>(item.label+' '+item.to).toLowerCase().includes(paletteQuery.trim().toLowerCase())),[paletteQuery])
+ useEffect(()=>{
+  const onKeyDown=event=>{
+   if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();setPaletteOpen(true);return}
+   if(event.key==='Escape'&&paletteOpen){event.preventDefault();setPaletteOpen(false);setPaletteQuery('')}
+   if(!paletteOpen||!paletteItems.length)return
+   if(event.key==='ArrowDown'){event.preventDefault();setPaletteIndex(index=>(index+1)%paletteItems.length)}
+   if(event.key==='ArrowUp'){event.preventDefault();setPaletteIndex(index=>(index-1+paletteItems.length)%paletteItems.length)}
+   if(event.key==='Enter'){event.preventDefault();const item=paletteItems[paletteIndex];if(item){navigate(item.to);setPaletteOpen(false);setPaletteQuery('')}}
+  }
+  window.addEventListener('keydown',onKeyDown)
+  return()=>window.removeEventListener('keydown',onKeyDown)
+ },[paletteOpen,paletteItems,paletteIndex,navigate])
+ useEffect(()=>{if(paletteOpen){setPaletteIndex(0);window.requestAnimationFrame(()=>paletteInput.current?.focus())}},[paletteOpen])
  const location=useLocation()
  useEffect(()=>{
   let active=true,db=null,connectionRef=null,ownRef=null,heartbeat=null,connected=false,connectionHandler=null
@@ -271,8 +288,16 @@ export default function Shell(){
      <Link to="/bug-report" className="portal-nav-support"><LifeBuoy size={17}/> <span>Support</span></Link>
     </div>
    </nav>
-   <div className="portal-header-actions"><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label><HamburgerButton open={menuOpen} onToggle={()=>setMenuOpen(v=>!v)}/></div>
-  </div></header>
+   <div className="portal-header-actions"><button type="button" className="apml-command-trigger" onClick={()=>setPaletteOpen(true)} aria-label="Search pages and tools"><Search size={16}/><span>Search anything...</span><kbd>Ctrl K</kbd></button><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label><HamburgerButton open={menuOpen} onToggle={()=>setMenuOpen(v=>!v)}/></div>
+  </div></header> 
+  {paletteOpen&&<div className="apml-command-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget){setPaletteOpen(false);setPaletteQuery('')}}}>
+   <section className="apml-command-dialog" role="dialog" aria-modal="true" aria-label="Search APML Portal">
+    <div className="apml-command-input-wrap"><Search size={19}/><input ref={paletteInput} value={paletteQuery} onChange={event=>{setPaletteQuery(event.target.value);setPaletteIndex(0)}} placeholder="Search pages, tools and sections..." aria-label="Search pages and tools"/><kbd>ESC</kbd><button type="button" onClick={()=>{setPaletteOpen(false);setPaletteQuery('')}} aria-label="Close search"><X size={18}/></button></div>
+    <div className="apml-command-results"><p className="apml-command-caption">{paletteItems.length?'PAGES & TOOLS':'NO MATCHES'}</p>
+     {paletteItems.map((item,index)=>{const Icon=item.icon;return <button type="button" key={item.to} className={index===paletteIndex?'is-active':''} onMouseEnter={()=>setPaletteIndex(index)} onClick={()=>{navigate(item.to);setPaletteOpen(false);setPaletteQuery('')}}><span className="apml-command-item-icon"><Icon size={17}/></span><span><strong>{item.label}</strong><small>{item.to==='/'?'Your workspace':item.to.replace('/','').replaceAll('-',' ')}</small></span><ArrowRight size={16}/></button>})}
+    </div><footer><span><kbd>↑</kbd><kbd>↓</kbd> to navigate</span><span><kbd>↵</kbd> to open</span><span><kbd>ESC</kbd> to close</span></footer>
+   </section>
+  </div>}
   <main className="page-content portal-page-content"><Outlet/></main>
   {location.pathname!=="/about"&&<FloatingMascot pagePath={location.pathname}/>}
   <Footer
