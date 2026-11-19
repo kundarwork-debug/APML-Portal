@@ -38,13 +38,24 @@ function HeroMascot({name,editingName,nameDraft,setNameDraft,onEditName,onSaveNa
   window.addEventListener('pointermove',move,{passive:true})
   return()=>window.removeEventListener('pointermove',move)
  },[])
+ const greeting=(()=>{
+  const hour=new Date().getHours()
+  if(hour>=5&&hour<12)return 'Good morning'
+  if(hour>=12&&hour<17)return 'Good afternoon'
+  if(hour>=17&&hour<21)return 'Good evening'
+  return 'Good night'
+ })()
  const boop=()=>{
   const next=reactions[Math.floor(Math.random()*3)]
   setReaction(next);setBubble(true)
   clearTimeout(timer.current);clearTimeout(reactionTimer.current)
   reactionTimer.current=setTimeout(()=>setReaction(''),850)
-  timer.current=setTimeout(()=>{if(!editingName)setBubble(false)},6000)
+  timer.current=setTimeout(()=>{if(!editingName)setBubble(false)},10000)
  }
+ useEffect(()=>{
+  setBubble(true)
+  timer.current=setTimeout(()=>{if(!editingName)setBubble(false)},10000)
+ },[])
  useEffect(()=>{if(editingName){clearTimeout(timer.current);setBubble(true)}},[editingName])
  useEffect(()=>()=>{clearTimeout(timer.current);clearTimeout(reactionTimer.current)},[])
  return <div className="apml-mascot-stage">
@@ -56,7 +67,7 @@ function HeroMascot({name,editingName,nameDraft,setNameDraft,onEditName,onSaveNa
    </span>
   </button>
   {bubble&&<div className="apml-hero-mascot-bubble apml-welcome-bubble">
-   <span className="apml-welcome-hey">Hey there! 👋</span>
+   <span className="apml-welcome-hey">{greeting}! 👋</span>
    {editingName?<form className="apml-mascot-name-form" onSubmit={onSaveName}>
     <label className="sr-only" htmlFor="apml-mascot-name">Your name</label>
     <input id="apml-mascot-name" autoFocus maxLength={32} value={nameDraft} onChange={event=>setNameDraft(event.target.value)} placeholder="Enter your name"/>
