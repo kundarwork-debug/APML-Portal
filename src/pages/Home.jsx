@@ -157,6 +157,20 @@ function OperationalTelemetry(){
 export default function Home(){
  const [query,setQuery]=useState('')
  const [hubReady,setHubReady]=useState(false)
+ const [welcomeName,setWelcomeName]=useState(()=>{try{return localStorage.getItem('apml-welcome-name')||''}catch(_){return ''}})
+ const [nameDraft,setNameDraft]=useState(()=>{try{return localStorage.getItem('apml-welcome-name')||''}catch(_){return ''}})
+ const [editingName,setEditingName]=useState(false)
+ const hour=new Date().getHours()
+ const greeting=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening'
+ const todayLabel=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})
+ const saveWelcomeName=event=>{
+  event?.preventDefault()
+  const clean=nameDraft.trim().replace(/\s+/g,' ').slice(0,32)
+  setWelcomeName(clean)
+  setNameDraft(clean)
+  try{if(clean)localStorage.setItem('apml-welcome-name',clean);else localStorage.removeItem('apml-welcome-name')}catch(_){}
+  setEditingName(false)
+ }
  const revealRoot=useRef(null)
  useEffect(()=>{const timer=window.setTimeout(()=>setHubReady(true),420);return()=>window.clearTimeout(timer)},[])
  useEffect(()=>{
@@ -173,6 +187,19 @@ export default function Home(){
  return <div ref={revealRoot} className={"home-page legacy-home "+(hubReady?"hub-ready":"hub-loading")}>
   <section className="legacy-hero apml-reveal is-visible" aria-labelledby="homeHeroTitle">
    <HeroMascot/>
+   <div className="apml-personal-welcome">
+    <div className="apml-personal-welcome-copy">
+     <p>{greeting}</p>
+     <h2>Welcome back, <span>{welcomeName||'there'}</span>.</h2>
+     <small>{todayLabel} · Your workspace is ready.</small>
+    </div>
+    {!editingName?<button type="button" className="apml-welcome-edit" onClick={()=>{setNameDraft(welcomeName);setEditingName(true)}}>{welcomeName?'Edit name':'Personalise'} <ArrowUpRight size={14}/></button>:<form className="apml-welcome-name-form" onSubmit={saveWelcomeName}>
+     <label className="sr-only" htmlFor="apml-welcome-name">Your preferred name</label>
+     <input id="apml-welcome-name" autoFocus maxLength={32} value={nameDraft} onChange={event=>setNameDraft(event.target.value)} placeholder="Your name"/>
+     <button type="submit">Save</button>
+     <button type="button" className="apml-welcome-cancel" onClick={()=>{setNameDraft(welcomeName);setEditingName(false)}}>Cancel</button>
+    </form>}
+   </div>
    <p className="legacy-eyebrow"><i/> APML PORTAL</p>
    <h1 id="homeHeroTitle">The workday,<br/><span>made simpler.</span></h1>
    <p className="legacy-hero-description">A connected workspace for the tools, information and everyday operations your team relies on.</p>
