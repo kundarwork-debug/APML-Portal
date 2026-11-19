@@ -317,7 +317,6 @@ export default function Shell(){
      title: 'Helpful Links',
      links: [
       { name: 'Admin', Icon: LockKeyhole, href: '/admin' },
-      { name: 'Play Now', href: '/play' }
      ]
     }
    ]}
