@@ -1389,3 +1389,41 @@ html[data-theme="dark"] .apml-skeleton-card{background:#151e2e;border-color:#334
 @media(max-width:900px){.apml-command-trigger{width:38px;min-width:38px;justify-content:center;padding:0}.apml-command-trigger span,.apml-command-trigger kbd{display:none}}
 @media(max-width:760px){.legacy-hero{padding-top:42px;padding-bottom:40px}.legacy-tool-grid,.apml-skeleton-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.legacy-tool-card.wide,.legacy-tool-card.bento-gallery,.legacy-tool-card.bento-directory,.legacy-tool-card.bento-field-officer,.legacy-tool-card.bento-apml-lite,.legacy-tool-card.bento-car-rate,.legacy-tool-card.bento-local-rate,.apml-skeleton-card,.apml-skeleton-card:nth-child(1),.apml-skeleton-card:nth-child(2){grid-column:span 1}.legacy-tool-card{padding:16px;min-height:220px}.apml-command-backdrop{padding:10vh 12px 16px}.apml-command-dialog footer{gap:9px;flex-wrap:wrap}.apml-command-input-wrap{padding:14px}.apml-skeleton-card{min-height:175px;padding:16px}}
 @media(prefers-reduced-motion:reduce){.apml-reveal,.apml-command-backdrop,.apml-command-dialog,.apml-skeleton-icon:after,.apml-skeleton-line:after{animation:none!important;transition:none!important}.apml-reveal{opacity:1;transform:none}}
+
+
+/* Personalised APML Home welcome */
+.apml-personal-welcome{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  width:min(680px,100%);margin:0 auto 24px;padding:17px 20px;
+  border:1px solid #eadfda;border-radius:17px;background:rgba(255,255,255,.78);
+  box-shadow:0 8px 24px rgba(35,25,20,.045);text-align:left;
+  backdrop-filter:blur(12px)
+}
+.apml-personal-welcome-copy{min-width:0}
+.apml-personal-welcome-copy>p{margin:0 0 3px;color:#b4232c;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.apml-personal-welcome-copy h2{margin:0;color:#202124;font-size:clamp(17px,2.2vw,22px);font-weight:800;letter-spacing:-.045em}
+.apml-personal-welcome-copy h2 span{color:#b4232c}
+.apml-personal-welcome-copy small{display:block;margin-top:5px;color:#777a80;font-size:11px}
+.apml-welcome-edit{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;padding:8px 11px;border:1px solid #ead2ce;border-radius:10px;background:#fff7f6;color:#a91f28;font-size:11px;font-weight:750;transition:background .18s,border-color .18s}
+.apml-welcome-edit:hover{background:#ffefed;border-color:#d9aaa1}
+.apml-welcome-name-form{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.apml-welcome-name-form input{width:145px;min-width:0;padding:8px 10px;border:1px solid #ddd3ce;border-radius:9px;background:#fff;color:#202124;font:600 12px inherit;outline:none}
+.apml-welcome-name-form input:focus{border-color:#b4232c;box-shadow:0 0 0 3px rgba(180,35,44,.1)}
+.apml-welcome-name-form button{padding:8px 10px;border:1px solid #b4232c;border-radius:9px;background:#b4232c;color:#fff;font-size:11px;font-weight:750}
+.apml-welcome-name-form .apml-welcome-cancel{border-color:#e5e1d9;background:transparent;color:#777a80}
+html[data-theme="dark"] .apml-personal-welcome{background:rgba(21,30,46,.88);border-color:#334155;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+html[data-theme="dark"] .apml-personal-welcome-copy h2{color:#f8fafc}
+html[data-theme="dark"] .apml-personal-welcome-copy h2 span{color:#f87171}
+html[data-theme="dark"] .apml-personal-welcome-copy small{color:#a8b5c7}
+html[data-theme="dark"] .apml-welcome-edit{background:#2a2027;border-color:#63343b;color:#fecaca}
+html[data-theme="dark"] .apml-welcome-edit:hover{background:#3b1820}
+html[data-theme="dark"] .apml-welcome-name-form input{background:#0f172a;border-color:#475569;color:#f8fafc}
+html[data-theme="dark"] .apml-welcome-name-form .apml-welcome-cancel{background:transparent;border-color:#475569;color:#cbd5e1}
+@media(max-width:600px){
+ .apml-personal-welcome{align-items:flex-start;gap:10px;margin-bottom:19px;padding:14px 15px}
+ .apml-personal-welcome-copy h2{font-size:17px}
+ .apml-personal-welcome-copy small{font-size:10px}
+ .apml-welcome-edit{padding:7px 9px;font-size:10px}
+ .apml-welcome-name-form{max-width:150px;gap:5px}
+ .apml-welcome-name-form input{width:100%}
+}
