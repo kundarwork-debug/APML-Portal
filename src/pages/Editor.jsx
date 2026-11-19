@@ -52,6 +52,7 @@ const download=async()=>{
  if(!shared.custName.trim()||!shared.fromCity.trim()||!shared.toCity.trim()){await editorAlert({icon:'warning',title:'Fill in the quotation details',text:'Please enter the customer name, moving-from location and moving-to location before generating the PDF.'});return}
  if(t.grand<=0){await editorAlert({icon:'warning',title:'Fill in the amount',text:'Please enter a valid quotation amount before generating the PDF.'});return}
  setBusy(true);setStatus('Preparing A4 PDF…');
+ const showGenerationResult=async options=>{setBusy(false);await new Promise(resolve=>requestAnimationFrame(()=>resolve()));await editorAlert(options)};
  let exportStage=null,pdfCountRecorded=true;
  try{
   const load=(src,ok)=>ok()?Promise.resolve():new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=()=>ok()?res():rej(Error('PDF library failed'));e.onerror=()=>rej(Error('Could not load PDF library'));document.head.append(e)});
@@ -88,15 +89,15 @@ const download=async()=>{
   try{await saveQuotationToDrive(file,name)}catch(error){driveError=error;console.warn('Quotation Drive save failed:',error)}
   if(driveError){
    setStatus('PDF generated; Drive save failed');
-   await editorAlert({icon:'warning',title:'PDF generated, but Drive save failed',text:`${name} was downloaded. ${pdfCountRecorded?'The generated-PDF count was recorded.':'The generated-PDF count could not be recorded.'} ${driveError.message||''}`});
+   await showGenerationResult({icon:'warning',title:'PDF generated, but Drive save failed',text:`${name} was downloaded. ${pdfCountRecorded?'The generated-PDF count was recorded.':'The generated-PDF count could not be recorded.'} ${driveError.message||''}`});
   }else if(!pdfCountRecorded){
    setStatus('PDF saved; generated-PDF count update failed');
-   await editorAlert({icon:'warning',title:'PDF saved, but the counter did not update',text:`${name} was saved to Drive/Quotation, but its generated-PDF count could not be recorded.`});
+   await showGenerationResult({icon:'warning',title:'PDF saved, but the counter did not update',text:`${name} was saved to Drive/Quotation, but its generated-PDF count could not be recorded.`});
   }else{
    setStatus('Saved to Drive/Quotation');
-   await editorAlert({icon:'success',title:'PDF generated successfully!',text:`${name} was saved to Drive/Quotation.`});
+   await showGenerationResult({icon:'success',title:'PDF generated successfully!',text:`${name} was saved to Drive/Quotation.`});
   }
- }catch(e){console.error(e);await editorAlert({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
+ }catch(e){console.error(e);await showGenerationResult({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
  finally{exportStage?.remove();setBusy(false)}
 }
 return <div className="editor-page"><div className="editor-layout"><section className="editor-panel">

@@ -43,7 +43,7 @@
 
 
 /* Quotation generation overlay follows the editor's warm ivory and APML red theme. */
-.quote-generating-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(250,247,244,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.quote-generating-overlay{position:fixed;inset:0;z-index:1050;display:flex;align-items:center;justify-content:center;background:rgba(250,247,244,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .quote-generating-overlay .spinnerContainer{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:30px 26px;border:1px solid #eee5df;border-radius:16px;background:#fffdfb;box-shadow:0 12px 36px #4a2f2318;min-width:270px}
 .quote-generating-overlay .spinner{width:56px;height:56px;display:grid;border:4px solid transparent;border-radius:50%;border-right-color:#b91c1c;animation:quote-tri-spinner 1s infinite linear}
 .quote-generating-overlay .spinner:before,.quote-generating-overlay .spinner:after{content:"";grid-area:1/1;margin:2px;border:inherit;border-radius:50%;animation:quote-tri-spinner 2s infinite}
