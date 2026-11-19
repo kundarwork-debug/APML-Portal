@@ -301,11 +301,12 @@ export default function Gallery() {
   }
   async function recordGalleryDownload(item, name) {
     await metric(item, 'downloadsCount')
-    // Lifetime media downloads are counted independently of analytics consent.
-    try {
-      const result = await getApmlDatabase().ref('analytics/totalMediaDownloads').transaction(value => (Number(value) || 0) + 1)
-      if (!result.committed) console.warn('Gallery media download count was not committed.')
-    } catch (error) { console.warn('Gallery lifetime download count unavailable:', error) }
+    // The Worker uses its private Firebase service account; browser users do not need database write access.
+    const counterResponse = await fetch(DRIVE_API_URL + '/counter/increment', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ counter: 'media' })
+    })
+    const counterResult = await counterResponse.json().catch(() => ({}))
+    if (!counterResponse.ok || counterResult.ok !== true) throw new Error(counterResult.error || 'Lifetime media counter could not be updated')
     // Detailed daily analytics remains consent-based.
     if (window.apmlHasAnalyticsConsent?.()) {
       try { await window.logDailyActivity?.('media') }
@@ -364,7 +365,7 @@ export default function Gallery() {
       anchor.click()
       anchor.remove()
       console.warn('Gallery download fallback:', error)
-      await driveToast('Download opened in a new tab', 'info')
+      await driveToast('Download opened in a new tab; it was not counted as a completed download', 'info')
     }
   }
   async function move(item, folder) {
