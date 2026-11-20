@@ -126,3 +126,81 @@
 .fo-loading small{font:500 11px 'Plus Jakarta Sans',sans-serif;color:#777}
 @keyframes fo-loader-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.fo-loader-ring svg{animation:none}}
+
+
+/* Premium Field Officer refinement — complete dark theme coverage */
+html[data-theme="dark"] .fo-page{color:#edf1f5}
+html[data-theme="dark"] .fo-eyebrow,
+html[data-theme="dark"] .fo-subtitle,
+html[data-theme="dark"] .fo-live-status,
+html[data-theme="dark"] .fo-status-count,
+html[data-theme="dark"] .fo-contact-main span,
+html[data-theme="dark"] .fo-contact-branch>span,
+html[data-theme="dark"] .fo-contact-phone>span,
+html[data-theme="dark"] .fo-contact-phone em{color:#a8b5c7}
+html[data-theme="dark"] .fo-title,
+html[data-theme="dark"] .fo-action-intro strong,
+html[data-theme="dark"] .fo-contact-main strong,
+html[data-theme="dark"] .fo-contact-branch strong,
+html[data-theme="dark"] .fo-results-heading h2{color:#edf1f5}
+html[data-theme="dark"] .fo-stats>span,
+html[data-theme="dark"] .fo-action-bar,
+html[data-theme="dark"] .fo-toolbar,
+html[data-theme="dark"] .fo-contact-list{background:#202630;border-color:#394554;color:#e8edf3;box-shadow:0 1px 3px #0003}
+html[data-theme="dark"] .fo-action-icon{background:#3a252b;color:#ff9298}
+html[data-theme="dark"] .fo-action-intro small{color:#a8b5c7}
+html[data-theme="dark"] .fo-search,
+html[data-theme="dark"] .fo-search input,
+html[data-theme="dark"] .fo-filter-tabs button,
+html[data-theme="dark"] .fo-quick-filters button,
+html[data-theme="dark"] .fo-action:not(.fo-action-primary){background:#151e2e;border-color:#46515f;color:#e8edf3}
+html[data-theme="dark"] .fo-search input::placeholder{color:#8995a3}
+html[data-theme="dark"] .fo-search:focus-within{border-color:#d94b55;box-shadow:0 0 0 3px #d94b5526}
+html[data-theme="dark"] .fo-filter-tabs button.selected{background:#42272c;border-color:#754047;color:#ff9a9e;box-shadow:none}
+html[data-theme="dark"] .fo-quick-filters button.selected{background:#42272c;border-color:#754047;color:#ff9a9e}
+html[data-theme="dark"] .fo-action-primary,
+html[data-theme="dark"] .fo-action-primary:hover{background:#a92d36;border-color:#c64b54;color:#fff}
+html[data-theme="dark"] .fo-contact-row{background:#202630;border-color:#35404d}
+html[data-theme="dark"] .fo-contact-row:hover{background:#292f3a}
+html[data-theme="dark"] .fo-contact-avatar{background:#48272e;color:#ff9ba1}
+html[data-theme="dark"] .fo-contact-branch strong,
+html[data-theme="dark"] .fo-contact-phone .fo-copy-phone{color:#e8edf3}
+html[data-theme="dark"] .fo-contact-phone .fo-copy-phone:hover{color:#ff9298}
+html[data-theme="dark"] .fo-contact-status{background:#183b30;color:#8ce0b2}
+html[data-theme="dark"] .fo-contact-status.leave,
+html[data-theme="dark"] .fo-contact-status.assco{background:#44331f;color:#f2c17e}
+html[data-theme="dark"] .fo-contact-status.left{background:#44272d;color:#ff9a9e}
+html[data-theme="dark"] .fo-contact-actions a,
+html[data-theme="dark"] .fo-contact-actions button{color:#b7c1ce}
+html[data-theme="dark"] .fo-contact-actions a:hover,
+html[data-theme="dark"] .fo-contact-actions button:hover{background:#3b282e;border-color:#754047;color:#ff9a9e}
+html[data-theme="dark"] .fo-contact-actions .fo-danger{color:#ff9298}
+html[data-theme="dark"] .fo-contact-row.deleted{background:#090b0f;border-color:#303741;color:#f1f3f5}
+html[data-theme="dark"] .fo-contact-row.deleted:hover{background:#11151b}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-avatar{background:#050607;border-color:#505a66;color:#fff}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-main strong,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-branch strong,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-phone .fo-copy-phone{color:#f1f3f5}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-main span,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-branch>span,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-phone>span{color:#9da8b5}
+html[data-theme="dark"] .fo-contact-status.deleted{background:#303741;border-color:#505a66;color:#f1f3f5}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-actions button{color:#dce3eb}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-actions .fo-danger{color:#ff9298}
+html[data-theme="dark"] .fo-modal-backdrop{background:#05080dcc}
+html[data-theme="dark"] .fo-modal{background:#202630;border-color:#394554;color:#edf1f5;box-shadow:0 24px 80px #0008}
+html[data-theme="dark"] .fo-modal-head small,
+html[data-theme="dark"] .fo-form-grid label{color:#a8b5c7}
+html[data-theme="dark"] .fo-modal-head>button,
+html[data-theme="dark"] .fo-form-grid input,
+html[data-theme="dark"] .fo-form-grid select{background:#151e2e;border-color:#46515f;color:#edf1f5}
+html[data-theme="dark"] .fo-form-grid input:focus,
+html[data-theme="dark"] .fo-form-grid select:focus{border-color:#d94b55;box-shadow:0 0 0 3px #d94b5526;outline:0}
+html[data-theme="dark"] .fo-modal-actions button:not(.fo-save){background:#151e2e;border-color:#46515f;color:#e8edf3}
+html[data-theme="dark"] .fo-modal-actions .fo-save{background:#a92d36;border-color:#c64b54;color:#fff}
+html[data-theme="dark"] .fo-loading{color:#a8b5c7}
+html[data-theme="dark"] .fo-loader-ring{background:#2b2028;border-color:#63343b;color:#ff9298}
+html[data-theme="dark"] .fo-loading strong{color:#edf1f5}
+html[data-theme="dark"] .fo-loading small{color:#a8b5c7}
+html[data-theme="dark"] .fo-fallback-toast{background:#edf1f5;color:#151a21}
+@media(prefers-reduced-motion:reduce){.fo-contact-row,.fo-action{transition:none!important}}
