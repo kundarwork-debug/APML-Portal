@@ -1,0 +1,8 @@
+.apml-state-error,.apml-state-loading{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px;border:1px solid var(--line,#e5e7eb);border-radius:16px;background:var(--paper,#fff);color:var(--ink,#202124);text-align:center}
+.apml-state-error p,.apml-state-loading span{margin:0;color:var(--muted,#6b7280)}
+.apml-state-error button{padding:9px 14px;border:1px solid var(--red,#b4232c);border-radius:9px;background:var(--red,#b4232c);color:#fff;font-weight:700;cursor:pointer}
+.apml-state-skeleton-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;width:100%;margin-top:8px}
+.apml-state-skeleton{min-height:82px;border-radius:12px;background:linear-gradient(100deg,color-mix(in srgb,var(--muted,#777) 10%,var(--paper,#fff)),color-mix(in srgb,var(--muted,#777) 20%,var(--paper,#fff)),color-mix(in srgb,var(--muted,#777) 10%,var(--paper,#fff)));background-size:200% 100%;animation:apmlStateShimmer 1.3s ease infinite}
+@keyframes apmlStateShimmer{to{background-position-x:-200%}}
+html[data-theme="dark"] .apml-state-error,html[data-theme="dark"] .apml-state-loading{background:#151e2e;border-color:#334155;color:#f8fafc}
+@media(prefers-reduced-motion:reduce){.apml-state-skeleton{animation:none}}
