@@ -894,3 +894,135 @@ html[data-theme="dark"] .portal-page-content :where(
 html[data-theme="dark"] .portal-page-content :where(
   .directory-search input,.drive-search input,.gallery-search input
 ){background:transparent!important;color:var(--apml-ink)!important}
+
+
+/* Dark-theme audit pass — calculators, directories, forms and policy pages. */
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-card,.bug-card,.car-card,.local-card,.policy-card,
+  .directory-panel,.directory-modal,.directory-record,.directory-loading,
+  .directory-empty,.directory-error,.directory-busy
+){
+  background:var(--apml-surface)!important;
+  color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+  box-shadow:var(--apml-shadow-card)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-page,.bug-page,.car-page,.local-page,.policy-page,.directory-page
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-page header p,.bug-lead,.bug-note,.car-hero p,.car-field>label,
+  .car-search-help,.car-price-row>span,.car-price-row small,.car-note,
+  .local-hero p,.local-field>label,.local-breakdown span,.local-total small,
+  .local-note,.policy-card p,.policy-card header small,.directory-kicker,
+  .directory-live,.directory-panel-title small,.directory-location,
+  .directory-address,.directory-footer-count,.directory-muted
+){color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-page h1,.bug-card h1,.car-hero h1,.local-hero h1,
+  .directory-heading h1,.directory-panel-title,.directory-person strong,
+  .directory-phone,.directory-address strong,.policy-card h1,.policy-card h2
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-card input,.lite-card select,.lite-static,.bug-card input,
+  .bug-card textarea,.car-field input,.car-field select,
+  .local-page input[type="number"],.directory-search input,
+  .directory-form-grid input,.directory-form-grid select,
+  .directory-form-grid textarea
+){
+  background:var(--apml-surface-soft)!important;
+  color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-card input,.lite-card select,.bug-card input,.bug-card textarea,
+  .car-field input,.car-field select,.local-page input
+)::placeholder{color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-row,.car-price-row,.local-breakdown>div,
+  .car-card-title,.local-card-title,.policy-card header,
+  .directory-record,.directory-table-head,.directory-modal-head,
+  .directory-modal-actions,.directory-footer-count
+){border-color:var(--apml-border)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-table-wrap th,.car-table-wrap th,.local-table-scroll th,
+  .directory-table-head
+){background:#222936!important;color:#cbd3dd!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-table-wrap td,.car-table-wrap td,.local-table-scroll td,
+  .directory-record
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-table-wrap tr.active,.car-table-wrap tr.selected,
+  .local-table-scroll tr.chosen,.directory-record:hover
+){background:#30272c!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .lite-total strong,.local-volume strong,.local-total>b,
+  .car-total>b,.directory-person a,.directory-copy-phone,
+  .policy-card a
+){color:#f0787e!important}
+html[data-theme="dark"] .portal-page-content .car-total,
+html[data-theme="dark"] .portal-page-content .local-total{
+  background:#30272c!important;border-color:#a9434b!important;color:var(--apml-ink)!important;
+}
+html[data-theme="dark"] .portal-page-content .lite-alert{
+  background:#202f43!important;color:#b9d3ff!important;
+}
+html[data-theme="dark"] .portal-page-content .lite-error,
+html[data-theme="dark"] .portal-page-content .bug-error{
+  background:#38252b!important;color:#ffb4b8!important;
+}
+html[data-theme="dark"] .portal-page-content .bug-success{
+  background:#1d3a2d!important;color:#9ce0b8!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-toolbar,.directory-actions,.directory-chips,
+  .directory-search,.directory-results,.directory-table-wrap,
+  .directory-modal
+){
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-btn,.directory-chips button,.directory-row-actions button,
+  .directory-modal-actions button,.directory-admin
+){
+  background:var(--apml-surface-soft)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-btn.create,.directory-btn.import,.directory-admin-active,
+  .directory-modal-actions .primary
+){background:#a9434b!important;color:#fff!important;border-color:#c75b63!important}
+html[data-theme="dark"] .portal-page-content .directory-record.is-deleted{
+  background:#24272d!important;color:#e8ebef!important;border-color:#414955!important;
+}
+html[data-theme="dark"] .portal-page-content .directory-record.is-deleted :where(strong,span,a,button){
+  color:#e8ebef!important;
+}
+html[data-theme="dark"] .portal-page-content .directory-modal-backdrop{
+  background:rgba(0,0,0,.76)!important;
+}
+html[data-theme="dark"] .portal-page-content .directory-google-admin{
+  background:#222936!important;border-color:#46515f!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-toast,.directory-error,.directory-busy
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content .admin-gate{
+  background:transparent!important;color:var(--apml-ink)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .admin-lock,.admin-tool-icon
+){background:#38252b!important;color:#ff9ba1!important}
+html[data-theme="dark"] .portal-page-content .admin-tool-icon.analytics{
+  background:#202f43!important;color:#91bfff!important;
+}
+html[data-theme="dark"] .portal-page-content .admin-login{
+  background:#a9434b!important;color:#fff!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .admin-back,.admin-back-link,.admin-session,.admin-tool-copy small
+){color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content .admin-tool-copy em{color:#f0787e!important}
+html[data-theme="dark"] .portal-page-content .policy-links{border-color:var(--apml-border)!important}
