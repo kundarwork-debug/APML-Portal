@@ -55,3 +55,34 @@
 .quote-generating-overlay .word{display:block;height:40px;line-height:40px;padding-left:6px;color:#b91c1c;animation:quote-cycle-words 5s infinite}
 @keyframes quote-cycle-words{10%{transform:translateY(-105%)}25%{transform:translateY(-100%)}35%{transform:translateY(-205%)}50%{transform:translateY(-200%)}60%{transform:translateY(-305%)}75%{transform:translateY(-300%)}85%{transform:translateY(-405%)}100%{transform:translateY(-400%)}}
 .quote-generating-caption{font:600 10px 'DM Sans',Arial,sans-serif;color:#625b56;text-align:center;margin-top:3px}
+
+
+/* APML Midnight — quotation editor action buttons.
+   Keep the existing dimensions, shape and layout; only replace light surfaces. */
+html[data-theme="dark"] .editor-page .editor-add,
+html[data-theme="dark"] .editor-page .remove-row,
+html[data-theme="dark"] .editor-page .editor-reset{
+  background:var(--apml-surface-soft,#222936)!important;
+  color:var(--apml-ink,#f1f3f5)!important;
+  border-color:var(--apml-border,#303947)!important;
+}
+html[data-theme="dark"] .editor-page .editor-add{
+  color:#ffb4b8!important;
+  border-style:dashed;
+}
+html[data-theme="dark"] .editor-page .remove-row{
+  color:#ff9299!important;
+}
+html[data-theme="dark"] .editor-page .editor-add:hover,
+html[data-theme="dark"] .editor-page .remove-row:hover,
+html[data-theme="dark"] .editor-page .editor-reset:hover{
+  background:#2b252d!important;
+  color:#ffd5d7!important;
+  border-color:#704047!important;
+}
+html[data-theme="dark"] .editor-page .editor-add:focus-visible,
+html[data-theme="dark"] .editor-page .remove-row:focus-visible,
+html[data-theme="dark"] .editor-page .editor-reset:focus-visible{
+  outline:2px solid var(--apml-red-500,#f0787e);
+  outline-offset:2px;
+}
