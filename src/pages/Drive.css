@@ -47,3 +47,64 @@
 .drive-empty-state .apml-empty-illustration{display:block;width:min(100%,250px);height:170px;object-fit:contain;margin:0 auto 2px}
 html[data-theme="dark"] .drive-empty-state{background:#171e29;border-color:#354050;color:#b8c2d0}
 html[data-theme="dark"] .drive-empty-state strong{color:#f1f3f5}
+
+
+/* Premium APML Drive refinement — cohesive dark surfaces */
+html[data-theme="dark"] .drive-page{color:#edf1f5}
+html[data-theme="dark"] .drive-eyebrow,
+html[data-theme="dark"] .drive-subtitle,
+html[data-theme="dark"] .drive-live-status,
+html[data-theme="dark"] .drive-status-count,
+html[data-theme="dark"] .drive-section-heading>span,
+html[data-theme="dark"] .drive-file-date,
+html[data-theme="dark"] .drive-file-meta,
+html[data-theme="dark"] .drive-trash-note{color:#a8b5c7}
+html[data-theme="dark"] .drive-title,
+html[data-theme="dark"] .drive-section-heading h2,
+html[data-theme="dark"] .drive-folder-name,
+html[data-theme="dark"] .drive-file-name{color:#edf1f5}
+html[data-theme="dark"] .drive-stat,
+html[data-theme="dark"] .drive-action-bar,
+html[data-theme="dark"] .drive-folder-card,
+html[data-theme="dark"] .drive-file-card,
+html[data-theme="dark"] .drive-pagination{background:#202630;border-color:#394554;color:#e8edf3;box-shadow:0 1px 3px #0003}
+html[data-theme="dark"] .drive-stat{color:#b8c2d0}
+html[data-theme="dark"] .drive-crumb-part button{color:#ff9298}
+html[data-theme="dark"] .drive-crumb-part button.current{color:#edf1f5}
+html[data-theme="dark"] .drive-crumb-part button:hover{background:#3a252b}
+html[data-theme="dark"] .drive-crumb-separator{color:#8995a3}
+html[data-theme="dark"] .drive-crumb-part b{color:#ff9298}
+html[data-theme="dark"] .drive-action:not(.drive-action-primary){background:#151e2e;border-color:#46515f;color:#e8edf3}
+html[data-theme="dark"] .drive-action:not(.drive-action-primary):hover{background:#292a34;border-color:#754047;color:#ff9298}
+html[data-theme="dark"] .drive-action-primary,
+html[data-theme="dark"] .drive-action-primary:hover{background:#a92d36;border-color:#c64b54;color:#fff}
+html[data-theme="dark"] .drive-folder-icon{background:#3a252b;color:#ff9298}
+html[data-theme="dark"] .drive-trash-folder .drive-folder-icon{background:#42272c;color:#ff9298}
+html[data-theme="dark"] .drive-folder-actions button,
+html[data-theme="dark"] .drive-admin-actions button,
+html[data-theme="dark"] .drive-open-link{background:#303a48;color:#c2ccd8}
+html[data-theme="dark"] .drive-folder-actions button:hover,
+html[data-theme="dark"] .drive-admin-actions button:hover,
+html[data-theme="dark"] .drive-open-link:hover{background:#42272c;color:#ff9298}
+html[data-theme="dark"] .drive-file-preview{background:#151e2e}
+html[data-theme="dark"] .drive-file-preview.pdf-preview{background:#39252b}
+html[data-theme="dark"] .drive-file-preview.sheet-preview{background:#1d382f}
+html[data-theme="dark"] .drive-file-preview.doc-preview{background:#252f3d}
+html[data-theme="dark"] .drive-file-type-icon{color:#aebdce}
+html[data-theme="dark"] .pdf-preview .drive-file-type-icon{color:#ff9298}
+html[data-theme="dark"] .sheet-preview .drive-file-type-icon{color:#82d6ad}
+html[data-theme="dark"] .drive-file-type-icon small{background:#ffffff12}
+html[data-theme="dark"] .drive-file-type{background:#42272c;color:#ff9a9e}
+html[data-theme="dark"] .drive-download,
+html[data-theme="dark"] .drive-download:hover{background:#a92d36;color:#fff}
+html[data-theme="dark"] .drive-pagination{color:#b8c2d0}
+html[data-theme="dark"] .drive-pagination button{background:#151e2e;border-color:#46515f;color:#e8edf3}
+html[data-theme="dark"] .drive-pagination button:disabled{opacity:.35}
+html[data-theme="dark"] .drive-pagination b{color:#ff9298}
+html[data-theme="dark"] .drive-empty-state{background:#171e29;border-color:#354050;color:#b8c2d0}
+html[data-theme="dark"] .drive-empty-state strong{color:#f1f3f5}
+html[data-theme="dark"] .apml-drive-skeleton-card{background:#202630;border-color:#394554}
+html[data-theme="dark"] .apml-skeleton-preview,
+html[data-theme="dark"] .apml-skeleton-line{background:linear-gradient(90deg,#293341 25%,#354252 45%,#293341 65%);background-size:200% 100%}
+html[data-theme="dark"] .drive-trash-note{color:#a8b5c7}
+@media(prefers-reduced-motion:reduce){.drive-folder-card,.drive-file-card,.drive-action{transition:none!important}}
