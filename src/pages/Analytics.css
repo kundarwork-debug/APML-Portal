@@ -62,3 +62,14 @@ html[data-theme="dark"] .an-period{background:rgba(248,113,113,.09);border-color
 @media(max-width:620px){.an-page{padding:10px 0 40px}.an-heading{gap:13px;margin-bottom:18px}.an-heading h1{font-size:31px}.an-heading-actions{gap:8px}.an-updated{font-size:10px}.an-live-status{font-size:9px;padding:6px 8px}.an-heading-actions button{margin-left:auto;min-height:36px}.an-metrics{gap:10px}.an-metric{padding:15px 14px 14px;border-radius:14px}.an-metric-icon{margin-bottom:11px}.an-metric em{min-height:28px}.an-panel{padding:16px;border-radius:15px}.an-two-col .an-panel{padding:16px}.an-section-title{margin-top:25px}.an-footnote{padding:11px 12px}}
 @media(hover:none){.an-metric:hover{transform:none;box-shadow:0 7px 24px rgba(28,25,23,.035)}}
 @media(prefers-reduced-motion:reduce){.an-metric,.an-heading-actions button{transition:none}.an-metric:hover,.an-heading-actions button:hover{transform:none}}
+
+
+/* Visitor intelligence refinement */
+.an-metrics-four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.an-panel-head h2{font-weight:760}
+.an-apex-chart .apexcharts-xaxis-label,.an-apex-chart .apexcharts-yaxis-label,.an-heat-apex .apexcharts-yaxis-label{fill:var(--text-muted)!important}
+.an-apex-chart .apexcharts-gridline{stroke:var(--border-subtle)!important;opacity:.8}
+.an-two-col .an-panel{overflow:hidden}
+.an-metric em{line-height:1.45}
+@media(max-width:850px){.an-metrics-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.an-metrics-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
