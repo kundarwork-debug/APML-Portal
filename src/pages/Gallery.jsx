@@ -3,6 +3,7 @@ import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../li
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
 import './Gallery.css'
+import { EmptyState } from '../components/ui/StateViews'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
@@ -494,7 +495,7 @@ export default function Gallery() {
             </div>
           </article>
         })}
-        {!pageItems.length && <div className="gallery-empty"><img className="apml-empty-illustration" src="/illustrations/apml-empty-folder.svg" alt="" loading="lazy"/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
+        {!pageItems.length && <EmptyState className="gallery-empty" illustration="/illustrations/apml-empty-folder.svg" title={activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'} description={activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}/>}
       </div>
       {renderPagination()}
     </section>}
