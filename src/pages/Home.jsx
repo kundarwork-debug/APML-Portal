@@ -187,7 +187,7 @@ function OperationalTelemetry(){
   <div>
    <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Portal activity</h2><p>A live snapshot of usage across APML Portal tools and services.</p></div><span><i/> All operational systems monitored</span></div>
    <div className="legacy-telemetry-stats">
-    <div><small>Live Active Sessions</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
+    <div><small>Live Active Sessions</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Total people online</em></div>
     <div><small>PDF Generated</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Quotation documents created</em></div>
     <div><small>Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Downloads from Drive and Gallery</em></div>
    </div>
