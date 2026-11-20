@@ -25,7 +25,7 @@ function TrendChart({rows}){
 function Heatmap({rows}){
  const days=useMemo(()=>{
   const map=new Map(rows.map(row=>[row.date,row]))
-  const end=new Date();end.setHours(0,0,0,0)
+  const end=new Date((rows[rows.length-1]?.date||new Date().toLocaleDateString('en-CA'))+'T00:00:00');end.setHours(0,0,0,0)
   const start=new Date(end);start.setDate(start.getDate()-364)
   const first=new Date(start);first.setDate(first.getDate()-first.getDay())
   const cells=[]
@@ -69,7 +69,6 @@ export default function Analytics(){
  const rows=data?.daily||[]
  const visitors=data?.visitorIntelligence||{}
  const performance=data?.performance||{}
- const totalVisitors=rows.reduce((sum,row)=>sum+(Number(row.visitors)||0),0)
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
  const peak=Math.max(0,...rows.map(row=>Number(row.peak)||0))
@@ -81,7 +80,7 @@ export default function Analytics(){
   {busy&&!data?<section className="an-loading"><span/><span/><span/><span/></section>:null}
   {data&&<>
    <section className="an-metrics">
-    <Metric icon={Users} label="Unique visitors" value={number(totalVisitors)} note="Daily unique visitor totals · last 7 days"/>
+    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct visitors in the available 7-day session sample"/>
     <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Quotation documents created"/>
     <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive and Gallery downloads"/>
     <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · 7 days"/>
@@ -96,7 +95,7 @@ export default function Analytics(){
    </section>
    <section className="an-section-title"><span className="an-section-label">VISITOR INTELLIGENCE</span><h2>Who is using the portal</h2><p>Aggregated insights from consented visitor sessions.</p></section>
    <section className="an-metrics an-metrics-three">
-    <Metric icon={Eye} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct visitor IDs in the available session sample"/>
+    <Metric icon={Eye} label="Recorded sessions" value={number(visitors.sessions)} note="Consented sessions in the available sample"/>
     <Metric icon={Users} label="Returning visitors" value={number(visitors.returningBrowsers)} note="Visitors with more than one recorded session"/>
     <Metric icon={Clock3} label="Average session" value={duration(visitors.averageSessionSeconds)} note={number(visitors.sessions)+' recorded sessions'}/>
    </section>
