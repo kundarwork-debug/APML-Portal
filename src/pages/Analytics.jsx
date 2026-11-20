@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Activity, AlertTriangle, BarChart3, Clock3, Download, Eye, Gauge, RefreshCw, Users } from 'lucide-react'
+import Chart from 'react-apexcharts'
 import './Analytics.css'
 
 const API='https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=7'
@@ -8,41 +9,49 @@ const dateLabel=value=>new Date(value+'T00:00:00').toLocaleDateString('en-IN',{d
 const duration=value=>{const n=Number(value)||0;return n>=60?Math.round(n/60)+' min':n+' sec'}
 
 function TrendChart({rows}){
- const max=Math.max(1,...rows.map(row=>Number(row.visitors)||0))
- const width=700,height=210,left=34,right=12,top=14,bottom=34
- const points=rows.map((row,index)=>({x:left+(rows.length===1?0:index*(width-left-right)/(rows.length-1)),y:top+(height-top-bottom)*(1-(Number(row.visitors)||0)/max)}))
- const line=points.map((p,index)=>(index?'L':'M')+' '+p.x+' '+p.y).join(' ')
- const area=line+' L '+points[points.length-1]?.x+' '+(height-bottom)+' L '+points[0]?.x+' '+(height-bottom)+' Z'
- return <div className="an-chart-wrap">
-  <svg className="an-trend-chart" viewBox={'0 0 '+width+' '+height} role="img" aria-label="Unique visitors by day over the last seven days">
-   {[0,.5,1].map((ratio,index)=><g key={index}><line x1={left} x2={width-right} y1={top+(height-top-bottom)*ratio} y2={top+(height-top-bottom)*ratio}/><text x={left-9} y={top+(height-top-bottom)*ratio+4} textAnchor="end">{Math.round(max*(1-ratio))}</text></g>)}
-   <path className="an-chart-area" d={area}/><path className="an-chart-line" d={line}/>
-   {points.map((point,index)=><g key={rows[index].date}><circle cx={point.x} cy={point.y} r="4"/><text className="an-chart-date" x={point.x} y={height-8} textAnchor="middle">{new Date(rows[index].date+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short'})}</text><title>{dateLabel(rows[index].date)}: {number(rows[index].visitors)} unique visitors</title></g>)}
-  </svg>
- </div>
+ const categories=rows.map(row=>new Date(row.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}))
+ const options={
+  chart:{type:'area',toolbar:{show:false},zoom:{enabled:false},fontFamily:'inherit',foreColor:'#8b929e',background:'transparent',animations:{enabled:true,speed:450}},
+  colors:['#b91c1c'],stroke:{curve:'smooth',width:3},fill:{type:'gradient',gradient:{shadeIntensity:.25,opacityFrom:.24,opacityTo:.025,stops:[0,90,100]}},
+  dataLabels:{enabled:false},markers:{size:4,strokeWidth:2,strokeColors:'#fff',hover:{size:6}},
+  grid:{borderColor:'rgba(145,155,170,.18)',strokeDashArray:4,padding:{left:8,right:12}},
+  xaxis:{categories,axisBorder:{show:false},axisTicks:{show:false},labels:{style:{fontSize:'11px'}}},
+  yaxis:{min:0,forceNiceScale:true,labels:{formatter:value=>Math.round(value).toLocaleString('en-IN'),style:{fontSize:'10px'}}},
+  tooltip:{theme:'dark',y:{formatter:value=>number(value)+' unique visitors'}},
+  legend:{show:false}
+ }
+ return <div className="an-apex-chart"><Chart type="area" height={250} options={options} series={[{name:'Unique visitors',data:rows.map(row=>Number(row.visitors)||0)}]}/></div>
 }
 
 function Heatmap({rows}){
- const days=useMemo(()=>{
-  const map=new Map(rows.map(row=>[row.date,row]))
-  const end=new Date((rows[rows.length-1]?.date||new Date().toLocaleDateString('en-CA'))+'T00:00:00');end.setHours(0,0,0,0)
-  const start=new Date(end);start.setDate(start.getDate()-364)
-  const first=new Date(start);first.setDate(first.getDate()-first.getDay())
-  const cells=[]
-  for(let cursor=new Date(first);cursor<=end;cursor.setDate(cursor.getDate()+1)){
-   const key=cursor.toLocaleDateString('en-CA')
-   const row=map.get(key)
-   cells.push({key,count:Number(row?.visitors)||0,month:cursor.getMonth(),outside:cursor<start})
+ const byDate=new Map(rows.map(row=>[row.date,Number(row.visitors)||0]))
+ const end=new Date((rows[rows.length-1]?.date||new Date().toLocaleDateString('en-CA'))+'T00:00:00')
+ end.setHours(0,0,0,0)
+ const start=new Date(end);start.setDate(start.getDate()-364)
+ const first=new Date(start);first.setDate(first.getDate()-first.getDay())
+ const weeks=[]
+ for(let cursor=new Date(first);cursor<=end;){
+  const week=[]
+  for(let day=0;day<7;day++){
+   const current=new Date(cursor);current.setDate(cursor.getDate()+day)
+   const key=current.toLocaleDateString('en-CA')
+   week.push({x:current.toLocaleDateString('en-IN',{day:'numeric',month:'short'}),y:current<start||current>end?0:(byDate.get(key)||0)})
   }
-  return cells
- },[rows])
- const max=Math.max(1,...days.map(day=>day.count))
- const months=days.reduce((result,day,index)=>{if(!day.outside&&(!index||day.month!==days[index-1].month))result.push({month:day.month,index});return result},[])
- return <div className="an-heat-scroll">
-  <div className="an-heat-months">{months.map(item=><span key={item.index} style={{gridColumn:Math.floor(item.index/7)+1}}>{new Date(2026,item.month,1).toLocaleDateString('en-IN',{month:'short'})}</span>)}</div>
-  <div className="an-heat-grid">{days.map(day=><span key={day.key} className={'an-heat-cell'+(day.outside?' outside':'')} style={{'--level':day.count?Math.max(.2,day.count/max):0}} title={day.key+': '+number(day.count)+' unique visitors'}/>)}</div>
-  <div className="an-heat-legend"><span>Less</span>{[0,.25,.5,.75,1].map(level=><i key={level} style={{'--level':level}}/>)}<span>More</span></div>
- </div>
+  weeks.push(week);cursor.setDate(cursor.getDate()+7)
+ }
+ const weekdays=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+ const series=weekdays.map((name,index)=>({name,data:weeks.map((week,weekIndex)=>({x:'W'+(weekIndex+1),y:week[index].y,meta:week[index].x}))}))
+ const options={
+  chart:{type:'heatmap',toolbar:{show:false},fontFamily:'inherit',foreColor:'#8b929e',background:'transparent'},
+  dataLabels:{enabled:false},stroke:{width:2,colors:['var(--surface-card, #fff)']},
+  plotOptions:{heatmap:{radius:3,enableShades:true,shadeIntensity:.55,colorScale:{ranges:[{from:0,to:0,color:'#f1f2f4',name:'No activity'},{from:1,to:2,color:'#f4b8bc',name:'Low'},{from:3,to:5,color:'#e87980',name:'Medium'},{from:6,to:100000,color:'#a91f2b',name:'High'}]}}},
+  xaxis:{type:'category',labels:{show:false},axisBorder:{show:false},axisTicks:{show:false}},
+  yaxis:{labels:{style:{fontSize:'10px'}}},
+  grid:{show:false,padding:{left:4,right:4,top:-8,bottom:0}},
+  tooltip:{custom:({seriesIndex,dataPointIndex,w})=>{const point=w.config.series[seriesIndex].data[dataPointIndex];return '<div class="apex-tooltip-custom"><b>'+weekdays[seriesIndex]+'</b> · '+point.meta+'<br/>'+number(point.y)+' unique visitors</div>'}},
+  legend:{show:false}
+ }
+ return <div className="an-heat-apex"><Chart type="heatmap" height={190} options={options} series={series}/><div className="an-heat-legend"><span>Less</span><i className="low"/><i className="mid"/><i className="high"/><span>More</span></div></div>
 }
 
 function Metric({icon:Icon,label,value,note}){
@@ -100,8 +109,8 @@ export default function Analytics(){
     <Metric icon={Clock3} label="Average session" value={duration(visitors.averageSessionSeconds)} note={number(visitors.sessions)+' recorded sessions'}/>
    </section>
    <section className="an-two-col">
-    <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">AUDIENCE</span><h2>Devices</h2></div></div>{devices.length?devices.map(item=><div className="an-rank" key={item.name}><span>{item.name}</span><b>{number(item.count)}</b><i style={{'--fill':Math.max(4,item.count/Math.max(1,devices[0].count)*100)+'%'}}/></div>):<p className="an-muted">No device breakdown available.</p>}</article>
-    <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">ENGAGEMENT</span><h2>Top pages</h2></div></div>{topPages.length?topPages.slice(0,6).map(item=><div className="an-page-row" key={item.name}><span>{item.name}</span><b>{number(item.views)} views</b></div>):<p className="an-muted">No page-level engagement data available.</p>}</article>
+    <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">AUDIENCE</span><h2>Devices</h2></div></div>{devices.length?<Chart type="donut" height={245} options={{chart:{fontFamily:'inherit',background:'transparent'},labels:devices.map(item=>item.name),colors:['#b91c1c','#e87980','#f3b6ba','#7f1d1d','#c7cbd1'],legend:{position:'bottom',fontSize:'11px',labels:{colors:'#8b929e'}},dataLabels:{enabled:true},stroke:{width:2,colors:['var(--surface-card, #fff)']},plotOptions:{pie:{donut:{size:'66%',labels:{show:true,total:{show:true,label:'Devices',color:'#8b929e'}}}}},tooltip:{y:{formatter:value=>number(value)}}}} series={devices.map(item=>Number(item.count)||0)}/>:<p className="an-muted">No device breakdown available.</p>}</article>
+    <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">ENGAGEMENT</span><h2>Top pages</h2></div></div>{topPages.length?<Chart type="bar" height={Math.max(210,topPages.slice(0,6).length*42)} options={{chart:{type:'bar',toolbar:{show:false},fontFamily:'inherit',background:'transparent'},plotOptions:{bar:{horizontal:true,borderRadius:5,barHeight:'58%'}},colors:['#b91c1c'],dataLabels:{enabled:false},xaxis:{categories:topPages.slice(0,6).map(item=>item.name),labels:{style:{fontSize:'10px',colors:'#8b929e'}},axisBorder:{show:false},axisTicks:{show:false}},yaxis:{labels:{style:{fontSize:'10px',colors:'#8b929e'},maxWidth:150}},grid:{borderColor:'rgba(145,155,170,.18)',strokeDashArray:4},tooltip:{y:{formatter:value=>number(value)+' views'}}}} series={[{name:'Views',data:topPages.slice(0,6).map(item=>Number(item.views)||0)}]}/>:<p className="an-muted">No page-level engagement data available.</p>}</article>
    </section>
    <section className="an-section-title"><span className="an-section-label">PORTAL ACTIVITY</span><h2>Operational events</h2><p>Document generation and media downloads are tracked independently.</p></section>
    <section className="an-panel an-event-panel"><div className="an-event-row"><span className="an-event-icon"><Download size={17}/></span><div><b>PDF generated</b><small>Quotation documents created in the Editor.</small></div><strong>{number(totalPdf)}</strong></div><div className="an-event-row"><span className="an-event-icon"><Download size={17}/></span><div><b>Media downloads</b><small>Files from APML Drive and media from Gallery.</small></div><strong>{number(totalMedia)}</strong></div></section>
