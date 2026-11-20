@@ -78,3 +78,48 @@ html[data-theme="dark"] .home-page .legacy-card-head img,html[data-theme="dark"]
 @media(max-width:900px){.home-page .legacy-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.home-page .legacy-tool-card,.home-page .legacy-tool-card.wide,.home-page .legacy-tool-card:first-child,.home-page .legacy-tool-card:nth-child(2){grid-column:span 1;min-height:220px}}
 @media(max-width:600px){.home-page .legacy-workspace{padding-inline:15px}.home-page .legacy-section-bar{align-items:flex-start}.home-page .legacy-tool-grid{grid-template-columns:minmax(0,1fr);gap:11px}.home-page .legacy-tool-card,.home-page .legacy-tool-card.wide,.home-page .legacy-tool-card:first-child,.home-page .legacy-tool-card:nth-child(2){grid-column:1;min-height:0;padding:18px;border-radius:16px}.home-page .legacy-card-head{margin-bottom:13px}.home-page .legacy-tool-card p{max-width:100%}.home-page .legacy-telemetry{padding-inline:15px}}
 @media(prefers-reduced-motion:reduce){.home-page .legacy-tool-card{transition:none}.home-page .legacy-tool-card:hover{transform:none}}
+
+
+/* Phase 3 — shared motion and interaction language */
+:where(.portal-page-content button,.portal-page-content [role="button"],.portal-header button,.portal-site-footer a){
+  transition:
+    color var(--apml-motion-fast) var(--apml-ease),
+    background-color var(--apml-motion-fast) var(--apml-ease),
+    border-color var(--apml-motion-fast) var(--apml-ease),
+    box-shadow var(--apml-motion-fast) var(--apml-ease),
+    transform var(--apml-motion-fast) var(--apml-ease),
+    opacity var(--apml-motion-fast) var(--apml-ease);
+}
+:where(.portal-page-content button,.portal-page-content [role="button"],.portal-header button):active:not(:disabled){
+  transform:scale(.985);
+}
+:where(.portal-page-content button,.portal-page-content [role="button"],.portal-header button):disabled{
+  cursor:not-allowed;
+}
+:where(.portal-page-content .module-card,.portal-page-content .migration-card,.portal-page-content .info-grid article,.portal-page-content .other-project-card,.portal-page-content .legacy-tool-card){
+  transition:
+    transform var(--apml-motion-base) var(--apml-ease),
+    border-color var(--apml-motion-base) var(--apml-ease),
+    box-shadow var(--apml-motion-base) var(--apml-ease),
+    background-color var(--apml-motion-base) var(--apml-ease);
+}
+@media(hover:hover) and (pointer:fine){
+  :where(.portal-page-content .module-card,.portal-page-content .migration-card,.portal-page-content .info-grid article,.portal-page-content .other-project-card):hover{
+    transform:translateY(-2px);
+    border-color:color-mix(in srgb,var(--apml-red-500) 28%,var(--apml-border));
+    box-shadow:var(--apml-shadow-hover);
+  }
+}
+.apml-page-transition{
+  animation:apmlPageEnter var(--apml-motion-slow) var(--apml-ease) both;
+}
+@keyframes apmlPageEnter{
+  from{opacity:0;transform:translateY(7px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+  .apml-page-transition{animation:none!important}
+  :where(.portal-page-content button,.portal-page-content [role="button"],.portal-header button,.portal-site-footer a){transition:none!important}
+  :where(.portal-page-content button,.portal-page-content [role="button"],.portal-header button):active:not(:disabled){transform:none}
+  :where(.portal-page-content .module-card,.portal-page-content .migration-card,.portal-page-content .info-grid article,.portal-page-content .other-project-card,.portal-page-content .legacy-tool-card){transition:none!important}
+}
