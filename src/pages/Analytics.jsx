@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, AlertTriangle, BarChart3, Clock3, Download, Eye, Gauge, RefreshCw, Users } from 'lucide-react'
+import { Activity, AlertTriangle, BarChart3, Download, RefreshCw, Users } from 'lucide-react'
 import Chart from 'react-apexcharts'
 import './Analytics.css'
 
@@ -53,8 +53,15 @@ function Heatmap({rows}){
  return <div className="an-heat-apex"><Chart type="heatmap" height={190} options={options} series={series}/><div className="an-heat-legend"><span>Less</span><i className="low"/><i className="mid"/><i className="high"/><span>More</span></div></div>
 }
 
-function Metric({icon:Icon,label,value,note}){
- return <article className="an-metric"><span className="an-metric-icon"><Icon size={17}/></span><small>{label}</small><strong>{value}</strong><em>{note}</em></article>
+function Metric({icon:Icon,label,value,note,series=[]}){
+ const points=series.map(point=>Number(point)||0)
+ const options={
+  chart:{type:'area',sparkline:{enabled:true},toolbar:{show:false},animations:{enabled:true,speed:350},background:'transparent'},
+  colors:['#b91c1c'],stroke:{curve:'smooth',width:2.4},fill:{type:'gradient',gradient:{opacityFrom:.22,opacityTo:.015,stops:[0,100]}},
+  dataLabels:{enabled:false},markers:{size:0,hover:{size:4}},tooltip:{enabled:true,theme:'dark',x:{show:false},y:{formatter:v=>number(v)}},
+  grid:{show:false},yaxis:{min:0}
+ }
+ return <article className="an-metric"><span className="an-metric-icon"><Icon size={17}/></span><small>{label}</small><strong>{value}</strong><em>{note}</em><div className="an-metric-spark"><Chart type="area" height={54} width="100%" options={options} series={[{name:label,data:points}]}/></div></article>
 }
 
 export default function Analytics(){
@@ -91,10 +98,10 @@ export default function Analytics(){
   {busy&&!data?<section className="an-loading"><span/><span/><span/><span/></section>:null}
   {data&&<>
    <section className="an-metrics">
-    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct IDs · consented 7-day sample"/>
-    <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Editor · last 7 days"/>
-    <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive + Gallery · last 7 days"/>
-    <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days"/>
+    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct consented visitors · 7-day sample" series={trendRows.map(row=>row.visitors)}/>
+    <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Editor · last 7 days" series={rows.map(row=>row.pdf)}/>
+    <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive + Gallery · last 7 days" series={rows.map(row=>row.media)}/>
+    <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days" series={rows.map(row=>row.peak)}/>
    </section>
    <section className="an-panel">
     <div className="an-panel-head"><div><span className="an-section-label">TRAFFIC OVERVIEW</span><h2>{trendLabel}</h2><p>{hasDailyUniqueVisitors?'Distinct consented visitors per day.':'Session starts per day while the visitor aggregate is being updated.'}</p></div><span className="an-period">Last 7 days</span></div>
@@ -104,26 +111,6 @@ export default function Analytics(){
     <div className="an-panel-head"><div><span className="an-section-label">YEAR AT A GLANCE</span><h2>Visitor activity</h2><p>Daily recorded visit activity across the last 365 days.</p></div></div>
     <Heatmap rows={data.heatmap||[]}/>
    </section>
-   <section className="an-section-title"><span className="an-section-label">VISITOR INTELLIGENCE</span><h2>Who is using the portal</h2><p>Aggregated insights from consented visitor sessions.</p></section>
-   <section className="an-metrics an-metrics-four">
-    <Metric icon={Eye} label="Recorded sessions" value={number(visitors.sessions)} note="Consented sessions in the available sample"/>
-    <Metric icon={Users} label="Returning visitors" value={number(visitors.returningBrowsers)} note="Visitors with multiple recorded sessions"/>
-    <Metric icon={Activity} label="Active now" value={number(visitors.activeNow)} note="Seen in the last 60 seconds"/>
-    <Metric icon={Clock3} label="Average session" value={duration(visitors.averageSessionSeconds)} note={number(visitors.sessions)+' recorded sessions'}/>
-   </section>
-   <section className="an-two-col">
-    <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">AUDIENCE</span><h2>Devices</h2></div></div>{devices.length?<Chart type="donut" height={245} options={{chart:{fontFamily:'inherit',background:'transparent'},labels:devices.map(item=>item.name),colors:['#b91c1c','#e87980','#f3b6ba','#7f1d1d','#c7cbd1'],legend:{position:'bottom',fontSize:'11px',labels:{colors:'#8b929e'}},dataLabels:{enabled:true},stroke:{width:2,colors:['var(--surface-card, #fff)']},plotOptions:{pie:{donut:{size:'66%',labels:{show:true,total:{show:true,label:'Devices',color:'#8b929e'}}}}},tooltip:{y:{formatter:value=>number(value)}}}} series={devices.map(item=>Number(item.count)||0)}/>:<p className="an-muted">No device breakdown available.</p>}</article>
-    <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">ENGAGEMENT</span><h2>Top pages</h2></div></div>{topPages.length?<Chart type="bar" height={Math.max(210,topPages.slice(0,6).length*42)} options={{chart:{type:'bar',toolbar:{show:false},fontFamily:'inherit',background:'transparent'},plotOptions:{bar:{horizontal:true,borderRadius:5,barHeight:'58%'}},colors:['#b91c1c'],dataLabels:{enabled:false},xaxis:{categories:topPages.slice(0,6).map(item=>item.name),labels:{style:{fontSize:'10px',colors:'#8b929e'}},axisBorder:{show:false},axisTicks:{show:false}},yaxis:{labels:{style:{fontSize:'10px',colors:'#8b929e'},maxWidth:150}},grid:{borderColor:'rgba(145,155,170,.18)',strokeDashArray:4},tooltip:{y:{formatter:value=>number(value)+' views'}}}} series={[{name:'Views',data:topPages.slice(0,6).map(item=>Number(item.views)||0)}]}/>:<p className="an-muted">No page-level engagement data available.</p>}</article>
-   </section>
-   <section className="an-section-title"><span className="an-section-label">PORTAL ACTIVITY</span><h2>Operational events</h2><p>Document generation and media downloads are tracked independently.</p></section>
-   <section className="an-panel an-event-panel"><div className="an-event-row"><span className="an-event-icon"><Download size={17}/></span><div><b>PDF generated</b><small>Quotation documents created in the Editor.</small></div><strong>{number(totalPdf)}</strong></div><div className="an-event-row"><span className="an-event-icon"><Download size={17}/></span><div><b>Media downloads</b><small>Files from APML Drive and media from Gallery.</small></div><strong>{number(totalMedia)}</strong></div></section>
-   <section className="an-section-title"><span className="an-section-label">PERFORMANCE INTELLIGENCE</span><h2>Experience &amp; speed</h2><p>Page performance from the available consented measurements.</p></section>
-   <section className="an-metrics an-metrics-three">
-    <Metric icon={Gauge} label="Average page load" value={performance.averageLoadMs==null?'—':number(performance.averageLoadMs)+' ms'} note={number(performance.samples)+' measurements'}/>
-    <Metric icon={Gauge} label="75th percentile load" value={performance.p75LoadMs==null?'—':number(performance.p75LoadMs)+' ms'} note="Recorded page-load times"/>
-    <Metric icon={Activity} label="Service worker coverage" value={performance.serviceWorkerControlledPercent==null?'—':performance.serviceWorkerControlledPercent+'%'} note="Measured page loads controlled by PWA worker"/>
-   </section>
-   {performance.pages?.length>0&&<section className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">SLOWEST PAGES</span><h2>Average load time</h2></div></div>{performance.pages.slice(0,6).map(item=><div className="an-page-row" key={item.name}><span>{item.name}</span><b>{number(item.averageLoadMs)} ms</b></div>)}</section>}
    <p className="an-footnote">{(data.dataNotes||[]).join(' ')} Visitor intelligence and performance details are limited to the latest 500 stored sessions. Daily totals are aggregated separately.</p>
   </>}
  </div>
