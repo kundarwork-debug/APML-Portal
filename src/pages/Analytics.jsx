@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Activity, AlertTriangle, BarChart3, Clock3, Download, Eye, Gauge, RefreshCw, Users } from 'lucide-react'
 import Chart from 'react-apexcharts'
+import { supabase } from '../lib/supabaseAuth'
 import './Analytics.css'
 
 const API='https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=7'
 const number=value=>Number(value||0).toLocaleString('en-IN')
-const dateLabel=value=>new Date(value+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'})
 const duration=value=>{const n=Number(value)||0;return n>=60?Math.round(n/60)+' min':n+' sec'}
 
 function TrendChart({rows}){
@@ -66,7 +66,12 @@ export default function Analytics(){
  const load=useCallback(async()=>{
   setBusy(true);setError('')
   try{
-   const response=await fetch(API,{cache:'no-store',headers:{Accept:'application/json'}})
+   if(!supabase)throw new Error('Secure administrator sign-in is unavailable. Please check the portal configuration.')
+   const {data:sessionData,error:sessionError}=await supabase.auth.getSession()
+   if(sessionError)throw sessionError
+   const accessToken=sessionData.session?.access_token
+   if(!accessToken)throw new Error('Your administrator session has expired. Please sign in again.')
+   const response=await fetch(API,{cache:'no-store',headers:{Accept:'application/json',Authorization:'Bearer '+accessToken}})
    if(!response.ok)throw new Error('Analytics service returned HTTP '+response.status+'.')
    const result=await response.json()
    if(!result.ok)throw new Error(result.error||'Analytics data is unavailable.')
