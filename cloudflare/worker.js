@@ -1907,8 +1907,6 @@ async function handlePublicAnalytics(request) {
 }
 
 async function handleNovaAnalytics(request, env) {
-  const admin = await getAdminEmail(request, env);
-  if (!admin) return json({ ok: false, error: 'Administrator authentication required.' }, 401);
   const url = new URL(request.url);
   const now = Date.now();
   const today = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
