@@ -1342,3 +1342,10 @@ html[data-theme="dark"] .apml-mascot-name-form .apml-mascot-name-cancel{border-c
     overflow-wrap:anywhere;
   }
 }
+
+/* Portal activity is a single, keyboard-accessible link to the public analytics page. */
+.legacy-telemetry-link{display:block;color:inherit;text-decoration:none;border-radius:22px;outline-offset:4px}
+.legacy-telemetry-link:hover .legacy-telemetry>div{border-color:#d9aaa1;box-shadow:0 12px 30px -18px #1c191738}
+.legacy-telemetry-link:focus-visible{outline:3px solid #b91c1c}
+.legacy-telemetry-head h2 .legacy-telemetry-open{margin-left:2px;opacity:.65;transition:transform .2s,opacity .2s}
+.legacy-telemetry-link:hover .legacy-telemetry-open{transform:translate(2px,-2px);opacity:1}
