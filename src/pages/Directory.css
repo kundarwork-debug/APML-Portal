@@ -125,3 +125,64 @@
 .directory-loading b{font:800 12px 'Plus Jakarta Sans',sans-serif;color:#303236}
 .directory-loading small{font:500 11px 'Plus Jakarta Sans',sans-serif;color:#777}
 @media(prefers-reduced-motion:reduce){.hub-loader-mark span,.directory-loader-ring svg{animation:none}}
+
+
+/* Premium directory refinement — dark theme coverage */
+html[data-theme="dark"] .directory-page{color:#edf1f5}
+html[data-theme="dark"] .directory-heading h1,
+html[data-theme="dark"] .directory-panel-title,
+html[data-theme="dark"] .directory-person b,
+html[data-theme="dark"] .directory-location b{color:#edf1f5}
+html[data-theme="dark"] .directory-kicker,
+html[data-theme="dark"] .directory-heading p,
+html[data-theme="dark"] .directory-person small,
+html[data-theme="dark"] .directory-location small,
+html[data-theme="dark"] .directory-address>span,
+html[data-theme="dark"] .directory-footer-count{color:#a8b5c7}
+html[data-theme="dark"] .directory-live,
+html[data-theme="dark"] .directory-panel,
+html[data-theme="dark"] .directory-results,
+html[data-theme="dark"] .directory-record,
+html[data-theme="dark"] .directory-chips button,
+html[data-theme="dark"] .directory-admin,
+html[data-theme="dark"] .directory-btn:not(.create):not(.import),
+html[data-theme="dark"] .directory-row-actions button,
+html[data-theme="dark"] .directory-modal,
+html[data-theme="dark"] .directory-modal-head>button{background:#202630;border-color:#394554;color:#e8edf3}
+html[data-theme="dark"] .directory-live b,
+html[data-theme="dark"] .directory-panel-title svg,
+html[data-theme="dark"] .directory-address a,
+html[data-theme="dark"] .directory-address button,
+html[data-theme="dark"] .directory-row-actions button{color:#ff9298}
+html[data-theme="dark"] .directory-search,
+html[data-theme="dark"] .directory-form-grid input,
+html[data-theme="dark"] .directory-form-grid textarea{background:#151e2e;border-color:#46515f;color:#edf1f5}
+html[data-theme="dark"] .directory-search input{color:#edf1f5}
+html[data-theme="dark"] .directory-search input::placeholder{color:#8995a3}
+html[data-theme="dark"] .directory-chips button.selected{background:#42272c;border-color:#67383e;color:#ff9a9e}
+html[data-theme="dark"] .directory-record:not(.is-deleted):hover,
+html[data-theme="dark"] .directory-row-actions button:hover{background:#292a34;border-color:#754047}
+html[data-theme="dark"] .directory-record.is-deleted{background:#090b0f;color:#f1f3f5}
+html[data-theme="dark"] .directory-record.is-deleted .directory-person b,
+html[data-theme="dark"] .directory-record.is-deleted .directory-location b,
+html[data-theme="dark"] .directory-record.is-deleted .directory-phone{color:#f1f3f5}
+html[data-theme="dark"] .directory-record.is-deleted .directory-person small,
+html[data-theme="dark"] .directory-record.is-deleted .directory-location small,
+html[data-theme="dark"] .directory-record.is-deleted .directory-address>span{color:#9da8b5}
+html[data-theme="dark"] .directory-record.is-deleted .directory-address a,
+html[data-theme="dark"] .directory-record.is-deleted .directory-address button{color:#a9c5ed}
+html[data-theme="dark"] .directory-record.is-deleted .directory-row-actions button{background:#202630;border-color:#46515f;color:#a9e2c3}
+html[data-theme="dark"] .directory-record.is-deleted .directory-row-actions button.danger{color:#ff8585}
+html[data-theme="dark"] .directory-table-head{background:#252e39;border-color:#394554;color:#a8b5c7}
+html[data-theme="dark"] .directory-modal-backdrop{background:#05080dcc}
+html[data-theme="dark"] .directory-modal-head small,
+html[data-theme="dark"] .directory-form-grid label{color:#a8b5c7}
+html[data-theme="dark"] .directory-form-grid input:focus,
+html[data-theme="dark"] .directory-form-grid textarea:focus{border-color:#d94b55;box-shadow:0 0 0 3px #d94b5526}
+html[data-theme="dark"] .directory-loading b,
+html[data-theme="dark"] .directory-empty b{color:#edf1f5}
+html[data-theme="dark"] .directory-loader-ring{background:#2b2028;border-color:#63343b;color:#ff9298}
+html[data-theme="dark"] .directory-empty,
+html[data-theme="dark"] .directory-loading{color:#a8b5c7}
+html[data-theme="dark"] .directory-error{color:#ff9298}
+@media(prefers-reduced-motion:reduce){.directory-btn,.directory-admin,.directory-record,.directory-row-actions button{transition:none!important}}
