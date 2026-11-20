@@ -7,7 +7,7 @@ const API='https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=7'
 const number=value=>Number(value||0).toLocaleString('en-IN')
 const duration=value=>{const n=Number(value)||0;return n>=60?Math.round(n/60)+' min':n+' sec'}
 
-function TrendChart({rows}){
+function TrendChart({rows,label='Daily unique visitors'}){
  const categories=rows.map(row=>new Date(row.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}))
  const options={
   chart:{type:'area',toolbar:{show:false},zoom:{enabled:false},fontFamily:'inherit',foreColor:'#8b929e',background:'transparent',animations:{enabled:true,speed:450}},
@@ -16,10 +16,10 @@ function TrendChart({rows}){
   grid:{borderColor:'rgba(145,155,170,.18)',strokeDashArray:4,padding:{left:8,right:12}},
   xaxis:{categories,axisBorder:{show:false},axisTicks:{show:false},labels:{style:{fontSize:'11px'}}},
   yaxis:{min:0,forceNiceScale:true,labels:{formatter:value=>Math.round(value).toLocaleString('en-IN'),style:{fontSize:'10px'}}},
-  tooltip:{theme:'dark',y:{formatter:value=>number(value)+' unique visitors'}},
+  tooltip:{theme:'dark',y:{formatter:value=>number(value)+' '+label.toLowerCase()}}, 
   legend:{show:false}
  }
- return <div className="an-apex-chart"><Chart type="area" height={250} options={options} series={[{name:'Unique visitors',data:rows.map(row=>Number(row.visitors)||0)}]}/></div>
+ return <div className="an-apex-chart"><Chart type="area" height={250} options={options} series={[{name:label,data:rows.map(row=>Number(row.visitors)||0)}]}/></div>
 }
 
 function Heatmap({rows}){
@@ -76,7 +76,9 @@ export default function Analytics(){
  useEffect(()=>{load();const timer=setInterval(load,300000);return()=>clearInterval(timer)},[load])
  const rows=data?.daily||[]
  const visitors=data?.visitorIntelligence||{}
- const uniqueVisitorRows=visitors.dailyUniqueVisitors||[]
+ const hasDailyUniqueVisitors=Array.isArray(visitors.dailyUniqueVisitors)&&visitors.dailyUniqueVisitors.length>0
+ const trendRows=hasDailyUniqueVisitors?visitors.dailyUniqueVisitors:(visitors.dailySessions||[]).map(row=>({date:row.date,visitors:row.sessions}))
+ const trendLabel=hasDailyUniqueVisitors?'Daily unique visitors':'Daily sessions'
  const performance=data?.performance||{}
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
@@ -95,8 +97,8 @@ export default function Analytics(){
     <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days"/>
    </section>
    <section className="an-panel">
-    <div className="an-panel-head"><div><span className="an-section-label">TRAFFIC OVERVIEW</span><h2>Unique visitors</h2><p>Daily unique visitors over the last seven days.</p></div><span className="an-period">Last 7 days</span></div>
-    {rows.length?<TrendChart rows={uniqueVisitorRows}/>:<p className="an-muted">No daily traffic records are available for this period.</p>}
+    <div className="an-panel-head"><div><span className="an-section-label">TRAFFIC OVERVIEW</span><h2>{trendLabel}</h2><p>{hasDailyUniqueVisitors?'Distinct consented visitors per day.':'Session starts per day while the visitor aggregate is being updated.'}</p></div><span className="an-period">Last 7 days</span></div>
+    {rows.length?<TrendChart rows={trendRows} label={trendLabel}/>:<p className="an-muted">No daily traffic records are available for this period.</p>}
    </section>
    <section className="an-panel">
     <div className="an-panel-head"><div><span className="an-section-label">YEAR AT A GLANCE</span><h2>Visitor activity</h2><p>Daily recorded visit activity across the last 365 days.</p></div></div>
