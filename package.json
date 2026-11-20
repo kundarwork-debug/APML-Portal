@@ -19,8 +19,8 @@
     "@radix-ui/react-toggle": "^1.1.1",
     "class-variance-authority": "^0.7.1",
     "@supabase/supabase-js": "^2.57.0",
-    "apexcharts": "^8.9.1",
-    "react-apexcharts": "^2.2.1"
+     "chart.js": "^4.4.9",
+    "react-chartjs-2": "^5.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
