@@ -73,3 +73,12 @@ html[data-theme="dark"] .an-period{background:rgba(248,113,113,.09);border-color
 .an-metric em{line-height:1.45}
 @media(max-width:850px){.an-metrics-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.an-metrics-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Compact trend charts inside each headline metric card */
+.an-metric-spark{height:54px;margin:8px -4px -5px;overflow:hidden;opacity:.96}
+.an-metric-spark .apexcharts-canvas{max-width:100%}
+.an-metric-spark .apexcharts-tooltip{border:1px solid var(--border-subtle,#e7dfd7)!important;border-radius:8px!important}
+.an-metric{display:flex;flex-direction:column}
+.an-metric-spark{margin-top:auto;padding-top:8px}
+html[data-theme="dark"] .an-metric-spark .apexcharts-tooltip{background:#182233!important;border-color:#39465a!important;color:#e2e8f0!important}
