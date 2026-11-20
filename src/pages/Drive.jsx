@@ -4,6 +4,7 @@ import './Drive.css'
 import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
+import { EmptyState } from '../components/ui/StateViews'
 const cfg={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
 const cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-work.workers.dev';const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
 function script(src){return new Promise((ok,no)=>{let s=[...document.scripts].find(x=>x.src===src);const ready=()=>src.includes('firebase-auth')?!!window.firebase?.auth:src.includes('firebase-database')?!!window.firebase?.database:src.includes('firebase-app')?!!window.firebase?.apps:!!s?.dataset.loaded;if(ready()){ok();return}if(s){s.addEventListener('load',ok,{once:true});s.addEventListener('error',no,{once:true});return}s=document.createElement('script');s.src=src;s.onload=()=>{s.dataset.loaded='1';ok()};s.onerror=no;document.head.append(s)})}
@@ -119,7 +120,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
       {admin&&<div className="drive-admin-actions">{trash?<><button title="Restore file" onClick={()=>restore(x,'file')}><RotateCcw size={14}/></button><button title="Delete permanently" onClick={()=>permanent(x,'file')}><Trash2 size={14}/></button></>:<><button title="Rename file" onClick={()=>rename(x,'file')}><Pencil size={14}/></button><button title="Move to trash" onClick={()=>move(x,'file')}><Trash2 size={14}/></button></>}</div>}
      </div>
     </article>)}
-    {!displayFolders.length&&!pagedFiles.length&&<div className="drive-empty-state"><img className="apml-empty-illustration" src="/illustrations/apml-empty-folder.svg" alt="" loading="lazy"/><strong>This folder is empty</strong><span>{admin?'Create a folder or upload a file to get started.':'Files shared to this folder will appear here.'}</span></div>}
+    {!displayFolders.length&&!pagedFiles.length&&<EmptyState className="drive-empty-state" illustration="/illustrations/apml-empty-folder.svg" title="This folder is empty" description={admin?'Create a folder or upload a file to get started.':'Files shared to this folder will appear here.'}/>}
    </div>
    {pageCount>1&&<nav className="drive-pagination" aria-label="Drive file pages"><button disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}><ChevronLeft size={17}/> Previous</button><span>Page <b>{Math.min(page,pageCount)}</b> of {pageCount}</span><button disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))}>Next <ChevronRight size={17}/></button></nav>}
   </section>}
