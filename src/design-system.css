@@ -162,3 +162,125 @@ html[data-theme="dark"] .home-page .legacy-card-head img,html[data-theme="dark"]
 @media(prefers-reduced-motion:reduce){
  .apml-skeleton-preview::after,.apml-skeleton-line::after,.apml-directory-skeleton i::after{animation:none;transform:none;opacity:.18}
 }
+
+
+/* Phase 5 — shared visual language across every portal page */
+:root{
+  --red:var(--apml-red-600);
+  --red-dark:var(--apml-red-700);
+  --ink:var(--apml-ink);
+  --muted:var(--apml-muted);
+  --line:var(--apml-border);
+  --paper:var(--apml-surface);
+  --canvas:var(--apml-canvas);
+  --shadow:var(--apml-shadow-card);
+  --apml-font-body:'DM Sans',sans-serif;
+  --apml-font-display:'Manrope',sans-serif;
+}
+html[data-theme="dark"]{
+  --apml-red-500:#f0787e;
+  --apml-red-600:#e56b72;
+  --apml-red-700:#c94e58;
+  --apml-ink:#f1f3f5;
+  --apml-muted:#a7b0bd;
+  --apml-canvas:#11151c;
+  --apml-surface:#191e27;
+  --apml-surface-soft:#222936;
+  --apml-border:#303947;
+  --apml-shadow-card:0 1px 2px rgba(0,0,0,.22),0 12px 30px rgba(0,0,0,.18);
+  --apml-shadow-hover:0 14px 34px rgba(0,0,0,.3);
+  --red:var(--apml-red-600);
+  --red-dark:var(--apml-red-700);
+  --ink:var(--apml-ink);
+  --muted:var(--apml-muted);
+  --line:var(--apml-border);
+  --paper:var(--apml-surface);
+  --canvas:var(--apml-canvas);
+  --shadow:var(--apml-shadow-card);
+}
+html,body{font-family:var(--apml-font-body)}
+body{background:var(--apml-canvas);color:var(--apml-ink)}
+.portal-header{
+  background:color-mix(in srgb,var(--apml-surface) 92%,transparent);
+  border-color:var(--apml-border);
+}
+.portal-nav{background:var(--apml-surface);border-color:var(--apml-border)}
+.portal-nav a{color:var(--apml-muted)}
+.portal-nav a:hover,.portal-nav a.active{
+  background:color-mix(in srgb,var(--apml-red-500) 9%,var(--apml-surface));
+  color:var(--apml-red-600);
+}
+.portal-page-content{color:var(--apml-ink)}
+.portal-page-content :where(h1,h2,h3,h4){font-family:var(--apml-font-display);letter-spacing:-.025em}
+.portal-page-content :where(p){text-wrap:pretty}
+.portal-page-content :where(.card,.panel,.content-card,.feature-card,.surface-card,.info-card,.stat-card,.kpi,.table-section,.quick-pricing-card){
+  border-color:var(--apml-border);
+  border-radius:var(--apml-radius-md);
+}
+.portal-page-content :where(input:not([type="checkbox"]):not([type="radio"]),textarea,select){
+  border-color:var(--apml-border);
+  border-radius:var(--apml-radius-sm);
+  font:500 13px/1.45 var(--apml-font-body);
+}
+.portal-page-content :where(input:not([type="checkbox"]):not([type="radio"]),textarea,select):focus-visible{
+  border-color:var(--apml-red-500);
+  outline:3px solid color-mix(in srgb,var(--apml-red-500) 16%,transparent);
+  outline-offset:1px;
+}
+.portal-site-footer{
+  background:var(--apml-canvas);
+  border-color:var(--apml-border);
+}
+.portal-site-footer :where(a:hover){color:var(--apml-red-600)}
+.portal-page-content :where(.module-card,.migration-card,.info-grid article,.other-project-card,.legacy-tool-card,.legacy-telemetry>div){
+  border-color:var(--apml-border);
+  box-shadow:var(--apml-shadow-card);
+}
+.portal-page-content :where(.module-card,.migration-card,.info-grid article,.other-project-card):hover{
+  border-color:color-mix(in srgb,var(--apml-red-500) 32%,var(--apml-border));
+  box-shadow:var(--apml-shadow-hover);
+}
+html[data-theme="dark"] body{background:var(--apml-canvas);color:var(--apml-ink)}
+html[data-theme="dark"] .portal-header,
+html[data-theme="dark"] .portal-site-footer{
+  background:color-mix(in srgb,var(--apml-surface) 94%,transparent)!important;
+  color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-nav{
+  background:var(--apml-surface)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-nav a,
+html[data-theme="dark"] .portal-nav-support{color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-nav a:hover,
+html[data-theme="dark"] .portal-nav a.active,
+html[data-theme="dark"] .portal-nav-support:hover{
+  background:color-mix(in srgb,var(--apml-red-500) 15%,var(--apml-surface))!important;
+  color:#ffd5d7!important;
+  border-color:color-mix(in srgb,var(--apml-red-500) 34%,var(--apml-border))!important;
+}
+html[data-theme="dark"] .portal-page-content :where(.card,.panel,.content-card,.feature-card,.surface-card,.info-card,.stat-card,.kpi,.table-section,.quick-pricing-card){
+  background-color:var(--apml-surface)!important;
+  color:var(--apml-ink);
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(input:not([type="checkbox"]):not([type="radio"]),textarea,select){
+  background-color:var(--apml-surface-soft)!important;
+  color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(input,textarea)::placeholder{color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(.module-card,.migration-card,.info-grid article,.other-project-card,.legacy-tool-card,.legacy-telemetry>div){
+  background-color:var(--apml-surface)!important;
+  border-color:var(--apml-border)!important;
+  box-shadow:var(--apml-shadow-card)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(.module-card,.migration-card,.info-grid article,.other-project-card):hover{
+  border-color:color-mix(in srgb,var(--apml-red-500) 45%,var(--apml-border))!important;
+  box-shadow:var(--apml-shadow-hover)!important;
+}
+html[data-theme="dark"] .portal-site-footer :where(a:hover){color:#ffb1b5!important}
+@media(prefers-reduced-motion:reduce){
+  .portal-page-content :where(.module-card,.migration-card,.info-grid article,.other-project-card){transition:none!important}
+}
