@@ -17,12 +17,35 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
   const name=item.name||'apml-file';
-  try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
+  let fallbackTab=null;
   try{
-   if(window.ApmNativeDownload?.start){window.ApmNativeDownload.start(item.fileId,name);return}
-   const response=await fetch(item.fileId);if(!response.ok)throw Error('Download request failed');
-   const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
-  }catch(e){console.warn('Drive direct download fallback',e);const a=document.createElement('a');a.href=item.fileId;a.download=name;a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove()}
+   if(window.ApmNativeDownload?.start){
+    window.ApmNativeDownload.start(item.fileId,name);
+    try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
+    await driveToast('Download started');
+    return;
+   }
+   // Reserve a tab during the click gesture so the fallback is not blocked after fetch.
+   fallbackTab=window.open('about:blank','_blank');
+   const response=await fetch(item.fileId);
+   if(!response.ok)throw Error('Download request failed (HTTP '+response.status+')');
+   const blob=await response.blob();
+   if(!blob.size)throw Error('The downloaded file is empty.');
+   const url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download=name;a.style.display='none';document.body.append(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),10000);
+   if(fallbackTab&&!fallbackTab.closed)fallbackTab.close();
+   try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
+   await driveToast('Download started');
+  }catch(e){
+   console.warn('Drive download fallback',e);
+   if(fallbackTab&&!fallbackTab.closed){
+    fallbackTab.location.href=item.fileId;
+    await driveToast('Opening file in a new tab');
+   }else{
+    await driveAlert('Download could not start','Your browser blocked the download. Use the Open file icon to view or save it.','warning');
+   }
+  }
  }
  async function createFolder(){try{const name=await driveInput('Create new folder',{placeholder:'Folder name',confirmText:'Create folder'});if(!name)return;await window.firebase.database().ref('catbox_gdrive_folders').push({name,parentId:parent,timestamp:Date.now()});await driveToast('Folder created')}catch(e){await driveAlert('Could not create folder',e.message,'error')}}
  async function upload(selected){if(!selected?.length)return;setBusy(true);let ok=0,failed=[];for(const file of selected){try{const video=(file.type||'').startsWith('video/');if(file.size>(video?100:10)*1024*1024)throw Error('File exceeds the '+(video?'100':'10')+' MB limit');const form=new FormData();form.append('file',file);form.append('upload_preset',preset);form.append('folder','apml-drive');const res=await fetch('https://api.cloudinary.com/v1_1/'+cloud+'/auto/upload',{method:'POST',body:form});const data=await res.json();if(!res.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed');await window.firebase.database().ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:parent,name:file.name,size:file.size||0,timestamp:Date.now()});ok++}catch(e){failed.push(file.name+': '+e.message)}}if(input.current)input.current.value='';setBusy(false);if(ok)await driveToast(ok+' file(s) uploaded');if(failed.length)await driveAlert('Some files could not be uploaded',failed.join('\\n'),'warning')}
