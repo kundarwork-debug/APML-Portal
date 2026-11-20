@@ -96,7 +96,6 @@ export default function Gallery() {
   const { admin, signIn, signOut } = useApmlAdminAuth()
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('Connecting to gallery…')
-  const [search, setSearch] = useState('')
   const [lightbox, setLightbox] = useState(null)
   const [page, setPage] = useState(1)
   const [uploadStatus, setUploadStatus] = useState('Select destination category and choose photos or videos')
@@ -158,14 +157,13 @@ export default function Gallery() {
       : activeFolder === ''
         ? item.folder !== 'deleted' && item.folder !== 'others'
         : item.folder === activeFolder)
-    .filter(item => (item.name || '').toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => (Number(b.downloadsCount) * 2 + Number(b.viewsCount)) - (Number(a.downloadsCount) * 2 + Number(a.viewsCount)) || (b.timestamp || 0) - (a.timestamp || 0)),
-  [items, activeFolder, search])
+  [items, activeFolder])
   const pageCount = Math.max(1, Math.ceil(visible.length / pageSize))
   const currentPage = Math.min(page, pageCount)
   const pageItems = visible.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  useEffect(() => { setPage(1) }, [activeFolder, search])
+  useEffect(() => { setPage(1) }, [activeFolder])
 
   function saveFolders(next) {
     setFolders(next)
@@ -462,7 +460,6 @@ export default function Gallery() {
         </span>)}
         {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
       </div>
-      <label className="gallery-search"><MaterialIcon name="search" style={{ fontSize: 16 }}/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search media…"/></label>
     </section>
 
     <div className="gallery-live-status"><span className="gallery-live-dot"/>{status}<span>{visible.length} items</span></div>
