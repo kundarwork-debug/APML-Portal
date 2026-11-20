@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useState} from 'react'
-import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw} from 'lucide-react'
+import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw,LoaderCircle} from 'lucide-react'
 import {getApmlDatabase} from '../lib/firebase'
 import { useApmlAdminAuth } from '../lib/supabaseAuth'
 import {driveAlert,driveConfirm,driveToast} from '../lib/sweetalert'
@@ -89,7 +89,7 @@ export default function FieldOfficer(){
      <div className="fo-contact-actions">{isDeleted(x)?(admin?<><button onClick={()=>update(x.id,{isDeleted:false})} title="Restore"><RotateCcw size={16}/></button><button className="fo-danger" onClick={()=>permanentlyDelete(x.id)} title="Delete forever"><Trash2 size={16}/></button></>:null):<><button onClick={()=>setEdit({...empty,...x})} title="Edit details"><Pencil size={16}/></button><button className="fo-danger" onClick={()=>update(x.id,{isDeleted:true})} title="Hide contact"><Trash2 size={16}/></button></>}
      </div>
     </article>)}
-    {!filtered.length&&<div className="fo-empty"><Users size={28}/><strong>{status.includes('Connecting')?'Loading field officers…':'No matching field officers found'}</strong><span>Try another name, branch code or status filter.</span></div>}
+    {!filtered.length&&status.includes('Connecting')?<div className="fo-loading" role="status" aria-live="polite"><span className="fo-loader-ring"><LoaderCircle size={25}/></span><strong>Loading field officers</strong><small>Connecting to live APML records…</small></div>:!filtered.length&&<div className="fo-empty"><Users size={28}/><strong>{status.startsWith('Unable')||status.startsWith('Firebase')?'Unable to load field officers':'No matching field officers found'}</strong><span>Try another name, branch code or status filter.</span></div>}
    </div>
   </section>
   {edit&&<div className="fo-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setEdit(null)}}><form className="fo-modal" onSubmit={e=>{e.preventDefault();save()}}><div className="fo-modal-head"><div><b>{edit.id?'Edit field officer':'Create field officer'}</b><small>Keep branch and contact information current</small></div><button type="button" onClick={()=>setEdit(null)} aria-label="Close">×</button></div><div className="fo-form-grid">
