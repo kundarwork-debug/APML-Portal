@@ -89,6 +89,7 @@ function catboxInfo(raw) {
 
 export default function Gallery() {
   const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [folders, setFolders] = useState(DEFAULT_FOLDERS)
   const [activeFolder, setActiveFolder] = useState('')
   const [uploadFolder, setUploadFolder] = useState('')
@@ -112,7 +113,7 @@ export default function Gallery() {
         setFolders(merged)
       }
     } catch {}
-    try { setItems(JSON.parse(localStorage.getItem(MEDIA_CACHE_KEY) || '[]')) } catch {}
+    try { const cachedItems = JSON.parse(localStorage.getItem(MEDIA_CACHE_KEY) || '[]'); setItems(cachedItems); if (cachedItems.length) setLoading(false) } catch {}
     let live = true
     let ref
     let handler
@@ -129,9 +130,10 @@ export default function Gallery() {
           setItems(rows)
           try { localStorage.setItem(MEDIA_CACHE_KEY, JSON.stringify(rows)) } catch {}
           setStatus('Live sync connected')
-        }, error => setStatus(`Gallery sync error: ${error.message}`))
+          setLoading(false)
+        }, error => { setStatus(`Gallery sync error: ${error.message}`); setLoading(false) })
       } catch (error) {
-        if (live) setStatus(`Gallery unavailable: ${error.message}`)
+        if (live) { setStatus(`Gallery unavailable: ${error.message}`); setLoading(false) }
       }
     })()
     return () => {
@@ -457,7 +459,7 @@ export default function Gallery() {
 
     <div className="gallery-live-status"><span className="gallery-live-dot"/>{status}<span>{visible.length} items</span></div>
 
-    <section className="gallery-media-section">
+    {loading ? <section className="gallery-media-section apml-loading-section" aria-label="Loading gallery media" aria-busy="true"><div className="gallery-section-heading"><h2><MaterialIcon name="collections" style={{ fontSize: 17 }}/> Preparing your gallery</h2><span>Syncing media…</span></div><div className="gallery-grid apml-gallery-skeleton-grid">{Array.from({ length: 8 }, (_, index) => <div className="gallery-card apml-gallery-skeleton-card" key={index}><span className="apml-skeleton-preview"/><span className="apml-skeleton-line long"/><span className="apml-skeleton-line short"/></div>)}</div></section> : <section className="gallery-media-section">
       <div className="gallery-section-heading"><h2><MaterialIcon name="collections" style={{ fontSize: 17 }}/>{activeFolder === 'deleted' ? 'Archived Media' : activeFolder ? folders.find(folder => folder.id === activeFolder)?.label || 'Media' : 'All Media'}</h2><span>{visible.length} {visible.length === 1 ? 'item' : 'items'}</span></div>
       <div className="gallery-grid">
         {pageItems.map(item => {
@@ -490,7 +492,7 @@ export default function Gallery() {
         {!pageItems.length && <div className="gallery-empty"><MaterialIcon name="photo_library" style={{ fontSize: 34 }}/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
       </div>
       {renderPagination()}
-    </section>
+    </section>}
 
     {lightbox && <div className="gallery-lightbox" role="dialog" aria-modal="true" aria-label={lightbox.name || 'Media preview'} onMouseDown={event => { if (event.target === event.currentTarget) setLightbox(null) }}>
       <button className="gallery-lightbox-close" onClick={() => setLightbox(null)} aria-label="Close preview"><MaterialIcon name="close" style={{ fontSize: 23 }}/></button>
