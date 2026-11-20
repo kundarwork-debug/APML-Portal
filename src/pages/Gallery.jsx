@@ -494,7 +494,7 @@ export default function Gallery() {
             </div>
           </article>
         })}
-        {!pageItems.length && <div className="gallery-empty"><MaterialIcon name="photo_library" style={{ fontSize: 34 }}/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
+        {!pageItems.length && <div className="gallery-empty"><img className="apml-empty-illustration" src="/illustrations/apml-empty-folder.svg" alt="" loading="lazy"/><strong>{activeFolder === 'deleted' ? 'Your trash is clear' : 'Nothing here just yet'}</strong><span>{activeFolder === 'deleted' ? 'Deleted media will appear here.' : 'Images and videos added to this collection will appear here.'}</span></div>}
       </div>
       {renderPagination()}
     </section>}
