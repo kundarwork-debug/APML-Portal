@@ -1047,3 +1047,77 @@ html[data-theme="dark"] .portal-page-content .directory-address button:hover,
 html[data-theme="dark"] .portal-page-content .directory-row-actions button:hover{
   color:#f0787e!important;
 }
+
+
+/* Phase 1 refinement — complete semantic tokens shared by legacy and new UI.
+   This layer standardises colour and type references without changing component geometry. */
+:root{
+  --apml-text-primary:var(--apml-ink);
+  --apml-text-secondary:var(--apml-muted);
+  --apml-text-tertiary:color-mix(in srgb,var(--apml-muted) 72%,var(--apml-surface));
+  --apml-accent:var(--apml-red-600);
+  --apml-accent-strong:var(--apml-red-700);
+  --apml-accent-soft:color-mix(in srgb,var(--apml-red-500) 9%,var(--apml-surface));
+  --apml-control-bg:var(--apml-surface);
+  --apml-control-border:var(--apml-border);
+  --apml-control-placeholder:var(--apml-muted);
+  --apml-focus-ring:color-mix(in srgb,var(--apml-red-500) 22%,transparent);
+  --apml-overlay:rgba(24,24,27,.48);
+  --apml-radius-control:var(--apml-radius-sm);
+  --apml-font-size-xs:11px;
+  --apml-font-size-sm:12px;
+  --apml-font-size-md:14px;
+  --apml-font-size-lg:16px;
+  --apml-font-weight-normal:400;
+  --apml-font-weight-medium:500;
+  --apml-font-weight-semibold:600;
+  --apml-font-weight-bold:700;
+  --apml-line-height-body:1.6;
+  --apml-line-height-heading:1.2;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --apml-text-primary:var(--apml-ink);
+  --apml-text-secondary:var(--apml-muted);
+  --apml-text-tertiary:#8793a2;
+  --apml-accent:var(--apml-red-600);
+  --apml-accent-strong:var(--apml-red-700);
+  --apml-accent-soft:color-mix(in srgb,var(--apml-red-500) 14%,var(--apml-surface));
+  --apml-control-bg:var(--apml-surface-soft);
+  --apml-control-border:var(--apml-border);
+  --apml-control-placeholder:var(--apml-muted);
+  --apml-focus-ring:color-mix(in srgb,var(--apml-red-500) 30%,transparent);
+  --apml-overlay:rgba(0,0,0,.68);
+}
+html,body{
+  font-family:var(--apml-font-body);
+  color:var(--apml-text-primary);
+}
+body{
+  line-height:var(--apml-line-height-body);
+}
+.portal-page-content :where(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,select
+){
+  color:var(--apml-text-primary);
+  border-color:var(--apml-control-border);
+  border-radius:var(--apml-radius-control);
+  font-family:var(--apml-font-body);
+}
+.portal-page-content :where(input,textarea)::placeholder{
+  color:var(--apml-control-placeholder);
+  opacity:1;
+}
+.portal-page-content :where(input,textarea,select):focus-visible{
+  outline:2px solid var(--apml-focus-ring);
+  outline-offset:1px;
+}
+.portal-page-content :where(button:disabled,[role="button"][aria-disabled="true"]){
+  cursor:not-allowed;
+}
+@media(prefers-reduced-motion:reduce){
+  .portal-page-content,.portal-page-content *{
+    scroll-behavior:auto!important;
+  }
+}
