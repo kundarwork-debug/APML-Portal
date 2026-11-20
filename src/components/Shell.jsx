@@ -273,7 +273,7 @@ export default function Shell(){
     </div><footer><span><kbd>↑</kbd><kbd>↓</kbd> to navigate</span><span><kbd>↵</kbd> to open</span><span><kbd>ESC</kbd> to close</span></footer>
    </section>
   </div>}
-  <main className="page-content portal-page-content"><Outlet/></main>
+  <main className="page-content portal-page-content"><div key={location.pathname} className="apml-page-transition"><Outlet/></div></main>
   {location.pathname!=="/about"&&<FloatingMascot pagePath={location.pathname}/>}
   <Footer
    className="portal-site-footer"
