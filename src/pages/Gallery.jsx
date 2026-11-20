@@ -323,7 +323,6 @@ export default function Gallery() {
         }
       })
     } catch {}
-    let fallbackTab = null
     try {
       if (window.ApmNativeDownload?.start) {
         window.ApmNativeDownload.start(item.url, name)
@@ -334,8 +333,6 @@ export default function Gallery() {
         return
       }
 
-      // Reserve a tab during the click gesture for browsers that block cross-origin downloads.
-      fallbackTab = window.open('about:blank', '_blank')
       let response
       try {
         response = await fetch(item.url)
@@ -357,7 +354,6 @@ export default function Gallery() {
       anchor.click()
       anchor.remove()
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
-      if (fallbackTab && !fallbackTab.closed) fallbackTab.close()
 
       void metric(item, 'downloadsCount')
       void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
@@ -365,12 +361,7 @@ export default function Gallery() {
       await driveToast('Download started')
     } catch (error) {
       console.warn('Gallery download fallback:', error)
-      if (fallbackTab && !fallbackTab.closed) {
-        fallbackTab.location.href = item.url
-        await driveToast('Opening media in a new tab')
-      } else {
-        await driveAlert('Download could not start', 'Your browser blocked the download. Open the media preview and use the browser’s save option.', 'warning')
-      }
+      await driveAlert('Download could not start', 'Your browser blocked the download. Open the media preview and use the browser’s save option.', 'warning')
     }
   }
   async function move(item, folder) {
