@@ -76,6 +76,7 @@ export default function Analytics(){
  useEffect(()=>{load();const timer=setInterval(load,300000);return()=>clearInterval(timer)},[load])
  const rows=data?.daily||[]
  const visitors=data?.visitorIntelligence||{}
+ const uniqueVisitorRows=visitors.dailyUniqueVisitors||[]
  const performance=data?.performance||{}
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
@@ -88,23 +89,24 @@ export default function Analytics(){
   {busy&&!data?<section className="an-loading"><span/><span/><span/><span/></section>:null}
   {data&&<>
    <section className="an-metrics">
-    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Unique visitors · 7-day sample"/>
+    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct IDs · consented 7-day sample"/>
     <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Editor · last 7 days"/>
     <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive + Gallery · last 7 days"/>
     <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days"/>
    </section>
    <section className="an-panel">
     <div className="an-panel-head"><div><span className="an-section-label">TRAFFIC OVERVIEW</span><h2>Unique visitors</h2><p>Daily unique visitors over the last seven days.</p></div><span className="an-period">Last 7 days</span></div>
-    {rows.length?<TrendChart rows={rows}/>:<p className="an-muted">No daily traffic records are available for this period.</p>}
+    {rows.length?<TrendChart rows={uniqueVisitorRows}/>:<p className="an-muted">No daily traffic records are available for this period.</p>}
    </section>
    <section className="an-panel">
-    <div className="an-panel-head"><div><span className="an-section-label">YEAR AT A GLANCE</span><h2>Visitor activity</h2><p>Daily unique visitor intensity across the last 365 days.</p></div></div>
+    <div className="an-panel-head"><div><span className="an-section-label">YEAR AT A GLANCE</span><h2>Visitor activity</h2><p>Daily recorded visit activity across the last 365 days.</p></div></div>
     <Heatmap rows={data.heatmap||[]}/>
    </section>
    <section className="an-section-title"><span className="an-section-label">VISITOR INTELLIGENCE</span><h2>Who is using the portal</h2><p>Aggregated insights from consented visitor sessions.</p></section>
-   <section className="an-metrics an-metrics-three">
+   <section className="an-metrics an-metrics-four">
     <Metric icon={Eye} label="Recorded sessions" value={number(visitors.sessions)} note="Consented sessions in the available sample"/>
-    <Metric icon={Users} label="Returning visitors" value={number(visitors.returningBrowsers)} note="Visitors with more than one recorded session"/>
+    <Metric icon={Users} label="Returning visitors" value={number(visitors.returningBrowsers)} note="Visitors with multiple recorded sessions"/>
+    <Metric icon={Activity} label="Active now" value={number(visitors.activeNow)} note="Seen in the last 60 seconds"/>
     <Metric icon={Clock3} label="Average session" value={duration(visitors.averageSessionSeconds)} note={number(visitors.sessions)+' recorded sessions'}/>
    </section>
    <section className="an-two-col">
