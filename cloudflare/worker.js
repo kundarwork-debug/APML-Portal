@@ -1962,7 +1962,7 @@ async function handleNovaAnalytics(request, env) {
     return stamp >= cutoff && stamp <= rangeEnd;
   });
   const devices = {}, browsers = {}, cities = {}, pages = {}, pageSeconds = {}, hours = Array(24).fill(0);
-  const dailySessions = {}, dropoffs = {}, deviceStats = {};
+  const dailySessions = {}, dailyUniqueVisitors = {}, dropoffs = {}, deviceStats = {};
   const visitorSessions = new Map();
   let pageViews = 0, totalSeconds = 0, performanceCount = 0, loadTotal = 0, domTotal = 0, ttfbTotal = 0;
   let activeNow = 0;
@@ -1983,6 +1983,10 @@ async function handleNovaAnalytics(request, env) {
     if (startedAt) {
       const day = new Date(startedAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
       dailySessions[day] = (dailySessions[day] || 0) + 1;
+      if (session.visitorId) {
+        if (!dailyUniqueVisitors[day]) dailyUniqueVisitors[day] = new Set();
+        dailyUniqueVisitors[day].add(String(session.visitorId));
+      }
       const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', hourCycle: 'h23' }).format(new Date(startedAt)));
       if (Number.isInteger(hour) && hour >= 0 && hour < 24) hours[hour]++;
     }
@@ -2063,7 +2067,9 @@ async function handleNovaAnalytics(request, env) {
       sessions: sessions.length, uniqueBrowsers, newBrowsers: Math.max(0,uniqueBrowsers-returningBrowsers), returningBrowsers,
       activeNow, pageViews, averageSessionSeconds: sessions.length ? Math.round(totalSeconds/sessions.length) : 0,
       devices: top(devices), browsers: top(browsers), cities: top(cities), topPages: visitorPages,
-      dailySessions: visitorDaily, peakHours, dropoffPages, deviceComparison, suggestions
+      dailySessions: visitorDaily,
+      dailyUniqueVisitors: daily.map(row => ({ date: row.date, visitors: dailyUniqueVisitors[row.date] ? dailyUniqueVisitors[row.date].size : 0 })),
+      peakHours, dropoffPages, deviceComparison, suggestions
     },
     performance: {
       samples: performanceCount, averageLoadMs: performanceCount ? Math.round(loadTotal/performanceCount) : null,
@@ -2074,7 +2080,7 @@ async function handleNovaAnalytics(request, env) {
       daily: perfDaily, pages: perfPages
     },
     dataNotes: [
-      'Visitor and performance metrics include only consented sessions among the latest 500 stored sessions.',
+      'Visitor and performance metrics include only consented sessions among the latest 500 stored sessions. Daily unique visitor counts are calculated from those sampled sessions.',
       'Visitor IDs and individual session records are not returned; only aggregate counts and rankings are shared.',
       'Last recorded pages are engagement signals, not confirmed visitor exits. Approximate location is aggregated.'
     ]
