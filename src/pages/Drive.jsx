@@ -119,7 +119,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
       {admin&&<div className="drive-admin-actions">{trash?<><button title="Restore file" onClick={()=>restore(x,'file')}><RotateCcw size={14}/></button><button title="Delete permanently" onClick={()=>permanent(x,'file')}><Trash2 size={14}/></button></>:<><button title="Rename file" onClick={()=>rename(x,'file')}><Pencil size={14}/></button><button title="Move to trash" onClick={()=>move(x,'file')}><Trash2 size={14}/></button></>}</div>}
      </div>
     </article>)}
-    {!displayFolders.length&&!pagedFiles.length&&<div className="drive-empty-state"><Folder size={34}/><strong>This folder is empty</strong><span>{admin?'Create a folder or upload a file to get started.':'Files shared to this folder will appear here.'}</span></div>}
+    {!displayFolders.length&&!pagedFiles.length&&<div className="drive-empty-state"><img className="apml-empty-illustration" src="/illustrations/apml-empty-folder.svg" alt="" loading="lazy"/><strong>This folder is empty</strong><span>{admin?'Create a folder or upload a file to get started.':'Files shared to this folder will appear here.'}</span></div>}
    </div>
    {pageCount>1&&<nav className="drive-pagination" aria-label="Drive file pages"><button disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}><ChevronLeft size={17}/> Previous</button><span>Page <b>{Math.min(page,pageCount)}</b> of {pageCount}</span><button disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))}>Next <ChevronRight size={17}/></button></nav>}
   </section>}
