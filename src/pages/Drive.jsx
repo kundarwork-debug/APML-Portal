@@ -11,14 +11,13 @@ function script(src){return new Promise((ok,no)=>{let s=[...document.scripts].fi
 export default function Drive(){const [folders,setFolders]=useState([]),[files,setFiles]=useState([]),[parent,setParent]=useState('root'),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[status,setStatus]=useState('Connecting to cloud drive…'),[search,setSearch]=useState(''),[page,setPage]=useState(1);const input=useRef();const {admin,signIn,signOut}=useApmlAdminAuth()
  useEffect(()=>{let fref,iref,fh,ih,live=true;(async()=>{try{await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');if(!window.firebase.apps.length)window.firebase.initializeApp(cfg);const db=window.firebase.database();fref=db.ref('catbox_gdrive_folders');iref=db.ref('catbox_gdrive_files');let received=0;const markReady=()=>{received+=1;if(received>=2&&live)setLoading(false)};fh=fref.on('value',s=>{if(!live)return;const d=s.val()||{};const rows=Object.entries(d).map(([key,v])=>({key,...v}));setFolders(rows);try{localStorage.setItem('apml_catbox_link_folders_v1',JSON.stringify(rows))}catch{}setStatus('Live sync connected');markReady()},e=>{if(live){setStatus('Folder sync error: '+e.message);setLoading(false)}});ih=iref.on('value',s=>{if(!live)return;const d=s.val()||{};const rows=Object.entries(d).map(([key,v])=>({key,...v}));setFiles(rows);try{localStorage.setItem('apml_catbox_link_files_v1',JSON.stringify(rows))}catch{}markReady()},e=>{if(live){setStatus('File sync error: '+e.message);setLoading(false)}})}catch(e){setStatus('Cloud drive unavailable: '+e.message);setLoading(false)}})();try{const cachedFolders=JSON.parse(localStorage.getItem('apml_catbox_link_folders_v1')||'[]');const cachedFiles=JSON.parse(localStorage.getItem('apml_catbox_link_files_v1')||'[]');setFolders(cachedFolders);setFiles(cachedFiles);if(cachedFolders.length||cachedFiles.length)setLoading(false)}catch{}return()=>{live=false;if(fref&&fh)fref.off('value',fh);if(iref&&ih)iref.off('value',ih)}},[])
  useEffect(()=>{setPage(1)},[parent]);
- const hereFolders=useMemo(()=>folders.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted').filter(x=>x.name?.toLowerCase().includes(search.toLowerCase())),[folders,parent,search])
+ const hereFolders=useMemo(()=>folders.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted'),[folders,parent,search])
  const hereFiles=useMemo(()=>files.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted').filter(x=>x.name?.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)),[files,parent,search])
  const trash=parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(trash)setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
   const name=item.name||'apml-file';
-  let fallbackTab=null;
   try{
    if(window.ApmNativeDownload?.start){
     window.ApmNativeDownload.start(item.fileId,name);
@@ -26,8 +25,6 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
     await driveToast('Download started');
     return;
    }
-   // Reserve a tab during the click gesture so the fallback is not blocked after fetch.
-   fallbackTab=window.open('about:blank','_blank');
    const response=await fetch(item.fileId);
    if(!response.ok)throw Error('Download request failed (HTTP '+response.status+')');
    const blob=await response.blob();
@@ -35,17 +32,11 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    const url=URL.createObjectURL(blob),a=document.createElement('a');
    a.href=url;a.download=name;a.style.display='none';document.body.append(a);a.click();a.remove();
    setTimeout(()=>URL.revokeObjectURL(url),10000);
-   if(fallbackTab&&!fallbackTab.closed)fallbackTab.close();
    try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
    await driveToast('Download started');
   }catch(e){
    console.warn('Drive download fallback',e);
-   if(fallbackTab&&!fallbackTab.closed){
-    fallbackTab.location.href=item.fileId;
-    await driveToast('Opening file in a new tab');
-   }else{
-    await driveAlert('Download could not start','Your browser blocked the download. Use the Open file icon to view or save it.','warning');
-   }
+   await driveAlert('Download could not start','Your browser blocked the download. Use the Open file icon to view or save it.','warning');
   }
  }
  async function createFolder(){try{const name=await driveInput('Create new folder',{placeholder:'Folder name',confirmText:'Create folder'});if(!name)return;await window.firebase.database().ref('catbox_gdrive_folders').push({name,parentId:parent,timestamp:Date.now()});await driveToast('Folder created')}catch(e){await driveAlert('Could not create folder',e.message,'error')}}
@@ -92,7 +83,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
     {trash&&<span className="drive-crumb-part"><span className="drive-crumb-separator">/</span><b>Trash Archive</b></span>}
    </nav>
    <div className="drive-action-buttons">
-    <label className="drive-search"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search current folder…"/></label>
+
     <button className="drive-action" onClick={()=>{setParent('root');setPage(1)}}><HardDrive size={15}/> My Drive</button>
     <button className="drive-action" onClick={createFolder}><FolderPlus size={15}/> New Folder</button>
     <button className="drive-action" onClick={addLink}><Link2 size={15}/> Catbox Link</button>
