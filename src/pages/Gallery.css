@@ -101,3 +101,8 @@ html[data-theme="dark"] .gallery-page .gallery-action:disabled{
   border-color:#303947;
   color:#a7b0bd;
 }
+
+/* APML-themed illustration for empty folders */
+.gallery-empty .apml-empty-illustration{display:block;width:min(100%,250px);height:170px;object-fit:contain;margin:0 auto 2px}
+html[data-theme="dark"] .gallery-empty{background:#171e29;border-color:#354050;color:#b8c2d0}
+html[data-theme="dark"] .gallery-empty strong{color:#f1f3f5}
