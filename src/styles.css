@@ -705,7 +705,7 @@ html:has(.not-found-page) .apml-floating-mascot{display:none!important}
 .apml-download-btn:focus .download-icon,.apml-download-btn:focus-visible .download-icon{animation:apml-download-heartbeat 1.5s ease-in-out infinite both}
 .apml-download-btn:focus-visible{outline:2px solid #b4232c;outline-offset:3px}
 @keyframes apml-download-heartbeat{0%,100%{transform:scale(1);transform-origin:center center;animation-timing-function:ease-out}10%{transform:scale(.91);animation-timing-function:ease-in}17%{transform:scale(.98);animation-timing-function:ease-out}33%{transform:scale(.87);animation-timing-function:ease-in}45%{transform:scale(1);animation-timing-function:ease-out}}
-@media(prefers-reduced-motion:reduce){.apml-download-btn .button-content{transition:none!important}.apml-download-btn:focus .download-icon,.apml-download-btn:focus-visible .download-icon{animation:none!important}}}
+@media(prefers-reduced-motion:reduce){.apml-download-btn .button-content{transition:none!important}.apml-download-btn:focus .download-icon,.apml-download-btn:focus-visible .download-icon{animation:none!important}}
 
 /* APML footer back-to-top control */
 .portal-site-footer{position:relative}
