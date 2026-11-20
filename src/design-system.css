@@ -1197,3 +1197,17 @@ html[data-theme="dark"] .apml-swal-popup .swal2-icon.swal2-warning{border-color:
   .swal2-popup.apml-swal-popup{width:min(100%,420px)!important;padding:1.25rem!important}
   .swal2-popup.apml-swal-toast{width:calc(100% - 24px)!important}
 }
+
+
+/* Phase 3 — Home activity metrics: clearer separation without changing the dashboard footprint. */
+.home-page .legacy-telemetry>div{background:var(--apml-surface);border-color:var(--apml-border);box-shadow:var(--apml-shadow-card)}
+.home-page .legacy-telemetry-head{border-color:var(--apml-border)}
+.home-page .legacy-telemetry-head>span{border-color:#b7e5d0;background:#effaf4;color:#176b49}
+.home-page .legacy-telemetry-stats{gap:12px}
+.home-page .legacy-telemetry-stats>div{min-width:0;padding:12px 8px;border:1px solid var(--apml-border);border-radius:14px;background:var(--apml-surface-soft)}
+.home-page .legacy-telemetry-stats>div:last-child{border:1px solid var(--apml-border)}
+.home-page .legacy-telemetry-stats small{color:var(--apml-text-secondary);letter-spacing:.01em}
+.home-page .legacy-telemetry-stats strong{color:var(--apml-text-primary);font-variant-numeric:tabular-nums;letter-spacing:-.045em}
+.home-page .legacy-telemetry-stats em{color:var(--apml-text-tertiary);line-height:1.45}
+html[data-theme="dark"] .home-page .legacy-telemetry-head>span{border-color:#315b45;background:#1d3a2d;color:#9ce0b8}
+@media(max-width:600px){.home-page .legacy-telemetry-stats>div,.home-page .legacy-telemetry-stats>div:last-child{padding:12px 10px}}
