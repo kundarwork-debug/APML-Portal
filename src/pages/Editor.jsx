@@ -2,6 +2,7 @@ import {useEffect,useMemo,useRef,useState} from 'react'
 import {Plus,Trash2,Download,RotateCcw,FileText,Calculator} from 'lucide-react'
 import './Editor.css'
 import { getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
+import { apmlDialog } from '../lib/sweetalert'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
 const sharedDefault=()=>({date:dateNow(),custName:'',custCompany:'Unregistered',custGst:'GST Exempted',fromCity:'',toCity:''})
 const mk=(items)=>items.map(([label,amount=0])=>({label,amount}))
@@ -12,8 +13,7 @@ const SPLITS={exact:{freight:60,'car freight':0,'packing charges':20,'loading ch
 const clone=x=>JSON.parse(JSON.stringify(x)),money=n=>(Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})
 const calc=d=>{const subtotal=d.costItems.reduce((s,x)=>s+(Number(x.amount)||0),0),gst=subtotal*(Number(d.gstPercent)||0)/100;return{subtotal,gst,grand:subtotal+gst}}
 
-const loadSweetAlert=()=>new Promise((resolve,reject)=>{if(window.Swal){resolve(window.Swal);return}const existing=document.querySelector('script[data-editor-sweetalert]');const script=existing||document.createElement('script');if(!existing){script.src='https://cdn.jsdelivr.net/npm/sweetalert2@11';script.dataset.editorSweetalert='true';document.head.appendChild(script)}script.addEventListener('load',()=>window.Swal?resolve(window.Swal):reject(Error('SweetAlert2 failed to initialize')),{once:true});script.addEventListener('error',()=>reject(Error('Could not load SweetAlert2')),{once:true})});
-async function editorAlert(options){try{const Swal=await loadSweetAlert();return await Swal.fire({confirmButtonColor:'#2563eb',...options})}catch(error){console.error('SweetAlert2 unavailable:',error);window.alert(options.text||options.title||'Something went wrong.');}}
+async function editorAlert(options){return apmlDialog(options)}
 async function editorDatabase(){const {database}=await getApmlPresenceServices();return database}
 async function saveQuotationToDrive(blob,fileName){
  if(!blob||blob.size>10*1024*1024)throw Error('Quotation PDF exceeds the 10 MB Drive limit.')
