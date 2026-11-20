@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Activity, AlertTriangle, BarChart3, Clock3, Download, Eye, Gauge, RefreshCw, Users } from 'lucide-react'
 import Chart from 'react-apexcharts'
-import { supabase } from '../lib/supabaseAuth'
 import './Analytics.css'
 
 const API='https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=7'
@@ -66,12 +65,7 @@ export default function Analytics(){
  const load=useCallback(async()=>{
   setBusy(true);setError('')
   try{
-   if(!supabase)throw new Error('Secure administrator sign-in is unavailable. Please check the portal configuration.')
-   const {data:sessionData,error:sessionError}=await supabase.auth.getSession()
-   if(sessionError)throw sessionError
-   const accessToken=sessionData.session?.access_token
-   if(!accessToken)throw new Error('Your administrator session has expired. Please sign in again.')
-   const response=await fetch(API,{cache:'no-store',headers:{Accept:'application/json',Authorization:'Bearer '+accessToken}})
+   const response=await fetch(API,{cache:'no-store',headers:{Accept:'application/json'}})
    if(!response.ok)throw new Error('Analytics service returned HTTP '+response.status+'.')
    const result=await response.json()
    if(!result.ok)throw new Error(result.error||'Analytics data is unavailable.')
@@ -89,15 +83,15 @@ export default function Analytics(){
  const devices=visitors.devices||[]
  const topPages=visitors.topPages||[]
  return <div className="an-page">
-  <header className="an-heading"><div><span className="an-kicker"><BarChart3 size={14}/> APML PORTAL · INSIGHTS</span><h1>Analytics</h1><p>A clear view of portal traffic, usage and performance.</p></div><div className="an-heading-actions"><span>{updated?'Updated '+updated.toLocaleTimeString('en-IN'):'Live data'}</span><button onClick={load} disabled={busy}><RefreshCw size={15} className={busy?'an-spin':''}/>{busy?'Refreshing…':'Refresh'}</button></div></header>
+  <header className="an-heading"><div><span className="an-kicker"><BarChart3 size={14}/> APML PORTAL · INSIGHTS</span><h1>Analytics</h1><p>A clear view of portal traffic, usage and performance.</p></div><div className="an-heading-actions"><span className="an-updated">{updated?'Updated '+updated.toLocaleTimeString('en-IN'):'Waiting for data'}</span><span className="an-live-status"><i/> Live analytics</span><button onClick={load} disabled={busy}><RefreshCw size={15} className={busy?'an-spin':''}/>{busy?'Refreshing…':'Refresh'}</button></div></header>
   {error&&<section className="an-error"><AlertTriangle size={19}/><div><b>Analytics data could not be loaded</b><p>{error}</p><button onClick={load}>Try again</button></div></section>}
   {busy&&!data?<section className="an-loading"><span/><span/><span/><span/></section>:null}
   {data&&<>
    <section className="an-metrics">
-    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct visitors in the available 7-day session sample"/>
-    <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Quotation documents created"/>
-    <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive and Gallery downloads"/>
-    <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · 7 days"/>
+    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Unique visitors · 7-day sample"/>
+    <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Editor · last 7 days"/>
+    <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive + Gallery · last 7 days"/>
+    <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days"/>
    </section>
    <section className="an-panel">
     <div className="an-panel-head"><div><span className="an-section-label">TRAFFIC OVERVIEW</span><h2>Unique visitors</h2><p>Daily unique visitors over the last seven days.</p></div><span className="an-period">Last 7 days</span></div>
