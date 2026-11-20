@@ -39,7 +39,7 @@ function Heatmap({rows}){
  const max=Math.max(1,...days.map(day=>day.count))
  const months=days.reduce((result,day,index)=>{if(!day.outside&&(!index||day.month!==days[index-1].month))result.push({month:day.month,index});return result},[])
  return <div className="an-heat-scroll">
-  <div className="an-heat-months">{months.map(item=><span key={item.index} style={{gridColumn:item.index+1}}>{new Date(2026,item.month,1).toLocaleDateString('en-IN',{month:'short'})}</span>)}</div>
+  <div className="an-heat-months">{months.map(item=><span key={item.index} style={{gridColumn:Math.floor(item.index/7)+1}}>{new Date(2026,item.month,1).toLocaleDateString('en-IN',{month:'short'})}</span>)}</div>
   <div className="an-heat-grid">{days.map(day=><span key={day.key} className={'an-heat-cell'+(day.outside?' outside':'')} style={{'--level':day.count?Math.max(.2,day.count/max):0}} title={day.key+': '+number(day.count)+' unique visitors'}/>)}</div>
   <div className="an-heat-legend"><span>Less</span>{[0,.25,.5,.75,1].map(level=><i key={level} style={{'--level':level}}/>)}<span>More</span></div>
  </div>
@@ -98,7 +98,7 @@ export default function Analytics(){
    <section className="an-metrics an-metrics-three">
     <Metric icon={Eye} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct visitor IDs in the available session sample"/>
     <Metric icon={Users} label="Returning visitors" value={number(visitors.returningBrowsers)} note="Visitors with more than one recorded session"/>
-    <Metric icon={Clock3} label="Average session" value={duration(visitors.averageSessionSeconds)} note={number(visitors.sessions)}+' recorded sessions'/>
+    <Metric icon={Clock3} label="Average session" value={duration(visitors.averageSessionSeconds)} note={number(visitors.sessions)+' recorded sessions'}/>
    </section>
    <section className="an-two-col">
     <article className="an-panel"><div className="an-panel-head"><div><span className="an-section-label">AUDIENCE</span><h2>Devices</h2></div></div>{devices.length?devices.map(item=><div className="an-rank" key={item.name}><span>{item.name}</span><b>{number(item.count)}</b><i style={{'--fill':Math.max(4,item.count/Math.max(1,devices[0].count)*100)+'%'}}/></div>):<p className="an-muted">No device breakdown available.</p>}</article>
@@ -108,7 +108,7 @@ export default function Analytics(){
    <section className="an-panel an-event-panel"><div className="an-event-row"><span className="an-event-icon"><Download size={17}/></span><div><b>PDF generated</b><small>Quotation documents created in the Editor.</small></div><strong>{number(totalPdf)}</strong></div><div className="an-event-row"><span className="an-event-icon"><Download size={17}/></span><div><b>Media downloads</b><small>Files from APML Drive and media from Gallery.</small></div><strong>{number(totalMedia)}</strong></div></section>
    <section className="an-section-title"><span className="an-section-label">PERFORMANCE INTELLIGENCE</span><h2>Experience &amp; speed</h2><p>Page performance from the available consented measurements.</p></section>
    <section className="an-metrics an-metrics-three">
-    <Metric icon={Gauge} label="Average page load" value={performance.averageLoadMs==null?'—':number(performance.averageLoadMs)+' ms'} note={number(performance.samples)}+' measurements'/>
+    <Metric icon={Gauge} label="Average page load" value={performance.averageLoadMs==null?'—':number(performance.averageLoadMs)+' ms'} note={number(performance.samples)+' measurements'}/>
     <Metric icon={Gauge} label="75th percentile load" value={performance.p75LoadMs==null?'—':number(performance.p75LoadMs)+' ms'} note="Recorded page-load times"/>
     <Metric icon={Activity} label="Service worker coverage" value={performance.serviceWorkerControlledPercent==null?'—':performance.serviceWorkerControlledPercent+'%'} note="Measured page loads controlled by PWA worker"/>
    </section>
