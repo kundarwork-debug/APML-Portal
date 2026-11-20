@@ -1026,3 +1026,24 @@ html[data-theme="dark"] .portal-page-content :where(
 ){color:var(--apml-muted)!important}
 html[data-theme="dark"] .portal-page-content .admin-tool-copy em{color:#f0787e!important}
 html[data-theme="dark"] .portal-page-content .policy-links{border-color:var(--apml-border)!important}
+
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document.exact .doc-company{
+  color:#f0787e!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-person b,.directory-location b,.directory-address span,
+  .directory-person small,.directory-location small
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-person small,.directory-location small
+){color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content .directory-address a,
+html[data-theme="dark"] .portal-page-content .directory-address button,
+html[data-theme="dark"] .portal-page-content .directory-row-actions button{
+  color:var(--apml-muted)!important;
+}
+html[data-theme="dark"] .portal-page-content .directory-address a:hover,
+html[data-theme="dark"] .portal-page-content .directory-address button:hover,
+html[data-theme="dark"] .portal-page-content .directory-row-actions button:hover{
+  color:#f0787e!important;
+}
