@@ -284,3 +284,451 @@ html[data-theme="dark"] .portal-site-footer :where(a:hover){color:#ffb1b5!import
 @media(prefers-reduced-motion:reduce){
   .portal-page-content :where(.module-card,.migration-card,.info-grid article,.other-project-card){transition:none!important}
 }
+
+
+/* APML Midnight — complete dark theme coverage across every routed page.
+   Keep this layer last so legacy page-level light values cannot leak through. */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --apml-red-500:#f0787e;
+  --apml-red-600:#e56b72;
+  --apml-red-700:#c94e58;
+  --apml-ink:#f1f3f5;
+  --apml-muted:#a7b0bd;
+  --apml-canvas:#101318;
+  --apml-surface:#191e26;
+  --apml-surface-soft:#222936;
+  --apml-border:#303947;
+  --apml-shadow-card:0 1px 2px rgba(0,0,0,.22),0 12px 30px rgba(0,0,0,.18);
+  --apml-shadow-hover:0 14px 34px rgba(0,0,0,.3);
+  --red:var(--apml-red-600);--red-dark:var(--apml-red-700);
+  --ink:var(--apml-ink);--muted:var(--apml-muted);
+  --line:var(--apml-border);--paper:var(--apml-surface);
+  --canvas:var(--apml-canvas);--shadow:var(--apml-shadow-card);
+  --surface:#191e26;--surface-card:#191e26;--surface-raised:#222936;
+  --surface-subtle:#222936;--bg-base:#151a22;--card:#191e26;
+  --border:#303947;--border-subtle:#303947;--text:#f1f3f5;
+  --text-main:#f1f3f5;--text-secondary:#b5bec9;--text-muted:#a7b0bd;
+  --muted-foreground:#a7b0bd;--foreground:#f1f3f5;--primary:#e56b72;
+  --brand:#e56b72;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] .topnav-shell,
+html[data-theme="dark"] .portal-page-content{
+  background:var(--apml-canvas)!important;color:var(--apml-ink);
+}
+html[data-theme="dark"] .portal-header,
+html[data-theme="dark"] .portal-nav,
+html[data-theme="dark"] .portal-site-footer,
+html[data-theme="dark"] .portal-footer{
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-menu-toggle,
+html[data-theme="dark"] .portal-header-actions,
+html[data-theme="dark"] .portal-brand,
+html[data-theme="dark"] .portal-brand b{color:var(--apml-ink)}
+html[data-theme="dark"] .portal-nav a{color:var(--apml-muted)}
+html[data-theme="dark"] .portal-nav a:hover,
+html[data-theme="dark"] .portal-nav a.active{
+  background:#2b252d!important;color:#ffb4b8!important;
+}
+html[data-theme="dark"] .portal-nav.open{background:var(--apml-surface)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .legacy-tool-card,.legacy-telemetry>div,.module-card,.migration-card,
+  .info-grid article,.other-project-card,.card,.panel,.content-card,
+  .feature-card,.surface-card,.info-card,.stat-card,.kpi,.table-section,
+  .quick-pricing-card,.install-prompt,.subpage .migration-card
+){
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;box-shadow:var(--apml-shadow-card)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .legacy-tool-card h3,.legacy-tool-card strong,.module-card h3,
+  .migration-card h2,.info-grid h3,.other-project-card h2,.card h2,
+  .panel h2,.content-card h2,.stat-card strong,.kpi strong
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .legacy-tool-card p,.legacy-section-bar p,.legacy-telemetry-head p,
+  .legacy-telemetry-stats small,.legacy-telemetry-stats em,
+  .module-card p,.migration-card p,.info-grid p,.other-project-card p,
+  .subpage-head p,.back-link,.disclaimer
+){color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  input:not([type="checkbox"]):not([type="radio"]),textarea,select
+){
+  background:var(--bg-base)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(input,textarea)::placeholder{color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(table th,table td){border-color:var(--apml-border)!important}
+html[data-theme="dark"] .portal-page-content :where(table th){background:#222936!important;color:#c4ccd6!important}
+html[data-theme="dark"] .portal-page-content :where(button:not(.portal-menu-toggle):not(.legacy-hero-action)){
+  border-color:var(--apml-border);
+}
+html[data-theme="dark"] .portal-site-footer :where(a,p,span){color:var(--apml-muted)}
+html[data-theme="dark"] .portal-site-footer a:hover{color:#ffb4b8!important}
+
+/* Home, workspace and shared informational cards */
+html[data-theme="dark"] .legacy-home{color:var(--apml-ink)}
+html[data-theme="dark"] .legacy-hero h1{color:var(--apml-ink)}
+html[data-theme="dark"] .legacy-hero-description,
+html[data-theme="dark"] .legacy-eyebrow,
+html[data-theme="dark"] .legacy-hero-note{color:var(--apml-muted)}
+html[data-theme="dark"] .legacy-section-bar{border-color:var(--apml-border)}
+html[data-theme="dark"] .legacy-section-bar>span,
+html[data-theme="dark"] .legacy-card-head span,
+html[data-theme="dark"] .legacy-tags small{
+  background:var(--apml-surface-soft)!important;border-color:var(--apml-border)!important;
+  color:var(--apml-muted)!important;
+}
+html[data-theme="dark"] .legacy-card-head img{background:var(--apml-surface-soft);border-radius:12px}
+html[data-theme="dark"] .legacy-card-footer{border-color:var(--apml-border)}
+html[data-theme="dark"] .legacy-telemetry-head{border-color:var(--apml-border)}
+html[data-theme="dark"] .legacy-telemetry-head>span{background:#183329;color:#8ce0b5;border-color:#285b47}
+html[data-theme="dark"] .legacy-telemetry-head>span i{box-shadow:0 0 0 3px #244b3a}
+html[data-theme="dark"] .legacy-telemetry-stats>div{border-color:var(--apml-border)}
+html[data-theme="dark"] .legacy-telemetry-stats strong{color:var(--apml-ink)}
+html[data-theme="dark"] .module-icon.red,html[data-theme="dark"] .info-icon{
+  background:#38252b!important;color:#ff9ba1!important;
+}
+html[data-theme="dark"] .module-icon.amber{background:#382f20!important;color:#f2c477!important}
+html[data-theme="dark"] .module-icon.blue{background:#202f43!important;color:#91bfff!important}
+html[data-theme="dark"] .module-icon.green{background:#1c352c!important;color:#8bd6ad!important}
+html[data-theme="dark"] .module-icon.violet{background:#302642!important;color:#c1a4ff!important}
+html[data-theme="dark"] .module-icon.pink{background:#3b2632!important;color:#f3a4c6!important}
+html[data-theme="dark"] .module-icon.slate{background:#29313b!important;color:#b8c4d2!important}
+html[data-theme="dark"] .bottom-note{background:var(--apml-surface)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .bottom-note p{color:var(--apml-muted)!important}
+html[data-theme="dark"] .empty-state{border-color:var(--apml-border);color:var(--apml-muted)}
+
+/* Quotation editor: controls go dark; the paper preview deliberately stays white
+   so the generated quotation remains a faithful print/PDF preview. */
+html[data-theme="dark"] .editor-page{color:var(--apml-ink)}
+html[data-theme="dark"] .editor-heading p,
+html[data-theme="dark"] .editor-back,
+html[data-theme="dark"] .editor-date,
+html[data-theme="dark"] .editor-group h2,
+html[data-theme="dark"] .editor-group h2 span{color:var(--apml-muted)}
+html[data-theme="dark"] .editor-date,
+html[data-theme="dark"] .editor-panel,
+html[data-theme="dark"] .editor-totals,
+html[data-theme="dark"] .quick-pricing{
+  background:var(--apml-surface)!important;border-color:var(--apml-border)!important;color:var(--apml-ink)!important;
+}
+html[data-theme="dark"] .company-tabs{background:var(--apml-surface-soft)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .company-tabs button{color:var(--apml-muted)}
+html[data-theme="dark"] .company-tabs button.active.exact,
+html[data-theme="dark"] .company-tabs button.active.maxcare{background:#34303a!important;color:#ffb4b8!important}
+html[data-theme="dark"] .shared-group{background:#28232b!important;border-color:#604047!important}
+html[data-theme="dark"] .editor-field label,
+html[data-theme="dark"] .editor-field small,
+html[data-theme="dark"] .editor-group p{color:var(--apml-muted)}
+html[data-theme="dark"] .editor-field input,
+html[data-theme="dark"] .editor-field select,
+html[data-theme="dark"] .editor-field textarea,
+html[data-theme="dark"] .editor-dynamic-row input,
+html[data-theme="dark"] .term-edit{
+  background:var(--bg-base)!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .editor-group h2:after{background:var(--apml-border)}
+html[data-theme="dark"] .editor-totals{border-color:var(--apml-border)}
+html[data-theme="dark"] .quote-generating-overlay{background:rgba(16,19,24,.88)!important}
+html[data-theme="dark"] .quote-generating-overlay .loader,
+html[data-theme="dark"] .quote-generating-caption{color:var(--apml-ink)}
+
+/* APML Drive */
+html[data-theme="dark"] .drive-page{color:var(--apml-ink)!important}
+html[data-theme="dark"] .drive-eyebrow,
+html[data-theme="dark"] .drive-subtitle,
+html[data-theme="dark"] .drive-breadcrumb,
+html[data-theme="dark"] .drive-crumb-separator,
+html[data-theme="dark"] .drive-live-status,
+html[data-theme="dark"] .drive-status-count,
+html[data-theme="dark"] .drive-section-heading>span,
+html[data-theme="dark"] .drive-file-date,
+html[data-theme="dark"] .drive-file-meta{color:var(--apml-muted)!important}
+html[data-theme="dark"] .drive-title,
+html[data-theme="dark"] .drive-crumb-part button.current,
+html[data-theme="dark"] .drive-section-heading h2,
+html[data-theme="dark"] .drive-folder-name,
+html[data-theme="dark"] .drive-file-name{color:var(--apml-ink)!important}
+html[data-theme="dark"] .drive-stat,
+html[data-theme="dark"] .drive-action-bar,
+html[data-theme="dark"] .drive-search,
+html[data-theme="dark"] .drive-action,
+html[data-theme="dark"] .drive-folder-card,
+html[data-theme="dark"] .drive-file-card,
+html[data-theme="dark"] .drive-empty-state,
+html[data-theme="dark"] .drive-trash-note,
+html[data-theme="dark"] .drive-google-admin{
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;box-shadow:var(--apml-shadow-card);
+}
+html[data-theme="dark"] .drive-search input{background:transparent!important;color:var(--apml-ink)!important}
+html[data-theme="dark"] .drive-folder-icon,
+html[data-theme="dark"] .drive-folder-actions button,
+html[data-theme="dark"] .drive-admin-actions button,
+html[data-theme="dark"] .drive-open-link{background:var(--apml-surface-soft)!important;color:#f29aa0!important}
+html[data-theme="dark"] .drive-file-preview{background:#222936!important}
+html[data-theme="dark"] .drive-file-preview.pdf-preview{background:#39252d!important}
+html[data-theme="dark"] .drive-file-preview.sheet-preview{background:#1e352c!important}
+html[data-theme="dark"] .drive-file-preview.doc-preview{background:#252d3a!important}
+html[data-theme="dark"] .drive-file-type{background:#38252b!important;color:#ff9ba1!important}
+html[data-theme="dark"] .drive-empty-state{color:var(--apml-muted)!important}
+html[data-theme="dark"] .drive-action:hover,
+html[data-theme="dark"] .drive-folder-actions button:hover,
+html[data-theme="dark"] .drive-admin-actions button:hover{background:#38252b!important;color:#ffb4b8!important}
+
+/* Gallery — retain original image/video pixels; darken only the interface chrome. */
+html[data-theme="dark"] .gallery-page{color:var(--apml-ink)!important}
+html[data-theme="dark"] .gallery-eyebrow,
+html[data-theme="dark"] .gallery-subtitle,
+html[data-theme="dark"] .gallery-action-heading small,
+html[data-theme="dark"] .gallery-live-status,
+html[data-theme="dark"] .gallery-live-status>span:last-child,
+html[data-theme="dark"] .gallery-card-meta,
+html[data-theme="dark"] .gallery-card-stats,
+html[data-theme="dark"] .gallery-section-heading>span{color:var(--apml-muted)!important}
+html[data-theme="dark"] .gallery-title,
+html[data-theme="dark"] .gallery-action-heading strong,
+html[data-theme="dark"] .gallery-section-heading h2,
+html[data-theme="dark"] .gallery-empty strong{color:var(--apml-ink)!important}
+html[data-theme="dark"] .gallery-stats>span,
+html[data-theme="dark"] .gallery-action-bar,
+html[data-theme="dark"] .gallery-folder-select,
+html[data-theme="dark"] .gallery-toolbar,
+html[data-theme="dark"] .gallery-folder-tabs>button,
+html[data-theme="dark"] .gallery-folder-tab>button:first-child,
+html[data-theme="dark"] .gallery-search,
+html[data-theme="dark"] .gallery-card,
+html[data-theme="dark"] .gallery-empty,
+html[data-theme="dark"] .gallery-pagination,
+html[data-theme="dark"] .gallery-lightbox-content,
+html[data-theme="dark"] .gallery-admin-actions select{
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .gallery-folder-select select,
+html[data-theme="dark"] .gallery-search input{background:transparent!important;color:var(--apml-ink)!important}
+html[data-theme="dark"] .gallery-upload-icon,
+html[data-theme="dark"] .gallery-mini-action,
+html[data-theme="dark"] .gallery-open-link,
+html[data-theme="dark"] .gallery-admin-actions button{background:var(--apml-surface-soft)!important;color:#f29aa0!important}
+html[data-theme="dark"] .gallery-card-stats{border-color:var(--apml-border)!important}
+html[data-theme="dark"] .gallery-media-preview{background:#090b0e}
+html[data-theme="dark"] .gallery-empty{color:var(--apml-muted)!important}
+html[data-theme="dark"] .gallery-lightbox{background:rgba(0,0,0,.88)!important}
+html[data-theme="dark"] .gallery-folder-tabs>button.selected,
+html[data-theme="dark"] .gallery-folder-tab>button:first-child.selected{background:#a83f49!important;color:#fff!important}
+
+/* Branch directory and field officer workspaces */
+html[data-theme="dark"] .directory-page,
+html[data-theme="dark"] .fo-page{color:var(--apml-ink)!important}
+html[data-theme="dark"] .directory-heading p,
+html[data-theme="dark"] .directory-live,
+html[data-theme="dark"] .fo-eyebrow,
+html[data-theme="dark"] .fo-subtitle,
+html[data-theme="dark"] .fo-live-status,
+html[data-theme="dark"] .fo-status-count,
+html[data-theme="dark"] .fo-results-heading>span,
+html[data-theme="dark"] .fo-card-person small,
+html[data-theme="dark"] .fo-card-details span,
+html[data-theme="dark"] .fo-card-phone{color:var(--apml-muted)!important}
+html[data-theme="dark"] .directory-panel,
+html[data-theme="dark"] .directory-toolbar,
+html[data-theme="dark"] .directory-record,
+html[data-theme="dark"] .directory-empty,
+html[data-theme="dark"] .directory-modal,
+html[data-theme="dark"] .fo-toolbar,
+html[data-theme="dark"] .fo-filter-tabs button,
+html[data-theme="dark"] .fo-quick-filters button,
+html[data-theme="dark"] .fo-card,
+html[data-theme="dark"] .fo-empty,
+html[data-theme="dark"] .fo-modal,
+html[data-theme="dark"] .fo-contact-row{
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .directory-btn,
+html[data-theme="dark"] .directory-admin,
+html[data-theme="dark"] .directory-search,
+html[data-theme="dark"] .directory-modal input,
+html[data-theme="dark"] .directory-modal select,
+html[data-theme="dark"] .directory-modal textarea,
+html[data-theme="dark"] .fo-search,
+html[data-theme="dark"] .fo-modal input,
+html[data-theme="dark"] .fo-modal select,
+html[data-theme="dark"] .fo-modal textarea{
+  background:var(--bg-base)!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .directory-record,
+html[data-theme="dark"] .directory-table-head{border-color:var(--apml-border)!important}
+html[data-theme="dark"] .directory-person,
+html[data-theme="dark"] .directory-location,
+html[data-theme="dark"] .directory-phone,
+html[data-theme="dark"] .directory-address,
+html[data-theme="dark"] .directory-panel-title,
+html[data-theme="dark"] .fo-title,
+html[data-theme="dark"] .fo-results-heading h2,
+html[data-theme="dark"] .fo-card-person strong,
+html[data-theme="dark"] .fo-card-details strong{color:var(--apml-ink)!important}
+html[data-theme="dark"] .fo-card.deleted,
+html[data-theme="dark"] .fo-contact-row.deleted{background:#211c22!important;border-color:#4c3038!important}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-main strong,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-branch strong,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-phone .fo-copy-phone{color:#e5dce0!important}
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-main span,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-branch>span,
+html[data-theme="dark"] .fo-contact-row.deleted .fo-contact-phone>span{color:#aa9da4!important}
+html[data-theme="dark"] .fo-card-actions a,
+html[data-theme="dark"] .fo-card-actions button{background:var(--apml-surface-soft)!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .fo-card-actions .fo-contact-action{background:#1c352c!important;color:#8bd6ad!important;border-color:#285b47!important}
+html[data-theme="dark"] .fo-filter-tabs button.selected,
+html[data-theme="dark"] .fo-quick-filters button.selected{background:#a83f49!important;color:#fff!important}
+html[data-theme="dark"] .directory-modal-backdrop,
+html[data-theme="dark"] .fo-modal-backdrop{background:rgba(0,0,0,.78)!important}
+
+/* Rate calculators, Lite, health, quality monitor and policy pages */
+html[data-theme="dark"] .local-page,
+html[data-theme="dark"] .car-page,
+html[data-theme="dark"] .lite-page,
+html[data-theme="dark"] .health-page,
+html[data-theme="dark"] .qm-page,
+html[data-theme="dark"] .policy-page{color:var(--apml-ink)!important}
+html[data-theme="dark"] .local-hero p,
+html[data-theme="dark"] .local-breakdown span,
+html[data-theme="dark"] .local-total small,
+html[data-theme="dark"] .local-note,
+html[data-theme="dark"] .car-hero p,
+html[data-theme="dark"] .car-price-row>span,
+html[data-theme="dark"] .car-price-row small,
+html[data-theme="dark"] .car-note,
+html[data-theme="dark"] .lite-page header p,
+html[data-theme="dark"] .lite-row span,
+html[data-theme="dark"] .lite-matrix-head span,
+html[data-theme="dark"] .health-heading p,
+html[data-theme="dark"] .health-controls,
+html[data-theme="dark"] .health-overall-copy span,
+html[data-theme="dark"] .health-panel small,
+html[data-theme="dark"] .health-bars span,
+html[data-theme="dark"] .health-disclaimer,
+html[data-theme="dark"] .qm-heading p,
+html[data-theme="dark"] .qm-panel-heading p,
+html[data-theme="dark"] .qm-summary article span,
+html[data-theme="dark"] .qm-summary article small,
+html[data-theme="dark"] .qm-meta,
+html[data-theme="dark"] .qm-disclaimer,
+html[data-theme="dark"] .qm-muted,
+html[data-theme="dark"] .policy-card p,
+html[data-theme="dark"] .policy-card header small{color:var(--apml-muted)!important}
+html[data-theme="dark"] .local-card,
+html[data-theme="dark"] .local-extra,
+html[data-theme="dark"] .local-total,
+html[data-theme="dark"] .car-card,
+html[data-theme="dark"] .car-total,
+html[data-theme="dark"] .car-suggestions,
+html[data-theme="dark"] .lite-card,
+html[data-theme="dark"] .lite-static,
+html[data-theme="dark"] .health-overall,
+html[data-theme="dark"] .health-service,
+html[data-theme="dark"] .health-panel,
+html[data-theme="dark"] .qm-summary article,
+html[data-theme="dark"] .qm-panel,
+html[data-theme="dark"] .qm-error,
+html[data-theme="dark"] .qm-note,
+html[data-theme="dark"] .policy-card{
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .local-page input,
+html[data-theme="dark"] .local-page select,
+html[data-theme="dark"] .car-field input,
+html[data-theme="dark"] .car-field select,
+html[data-theme="dark"] .lite-card input,
+html[data-theme="dark"] .lite-card select,
+html[data-theme="dark"] .bug-card input,
+html[data-theme="dark"] .bug-card textarea{
+  background:var(--bg-base)!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .local-extra.active,
+html[data-theme="dark"] .local-table-scroll tr.chosen,
+html[data-theme="dark"] .car-table-wrap tr.selected,
+html[data-theme="dark"] .lite-table-wrap tr.active{
+  background:#38252b!important;color:#f5dfe1!important;
+}
+html[data-theme="dark"] .local-table-scroll th,
+html[data-theme="dark"] .car-table-wrap th{background:#2a222b!important;color:#ffb4b8!important}
+html[data-theme="dark"] .local-table-scroll td,
+html[data-theme="dark"] .car-table-wrap td,
+html[data-theme="dark"] .lite-table-wrap td{color:var(--apml-ink)!important}
+html[data-theme="dark"] .lite-alert{background:#202f43!important;color:#a9ccff!important}
+html[data-theme="dark"] .lite-error,
+html[data-theme="dark"] .bug-error{background:#3a2428!important;color:#ffb4b8!important}
+html[data-theme="dark"] .bug-success{background:#1c352c!important;color:#9ce0ba!important}
+html[data-theme="dark"] .health-overall-icon{background:#1c352c!important;color:#8bd6ad!important}
+html[data-theme="dark"] .health-overall.degraded .health-overall-icon{background:#382f20!important;color:#f2c477!important}
+html[data-theme="dark"] .health-overall.offline .health-overall-icon{background:#38252b!important;color:#ff9ba1!important}
+html[data-theme="dark"] .qm-status{background:#29313b!important;color:#c4ccd6!important}
+html[data-theme="dark"] .qm-status.success{background:#1c352c!important;color:#8bd6ad!important}
+html[data-theme="dark"] .qm-status.failure{background:#38252b!important;color:#ff9ba1!important}
+html[data-theme="dark"] .qm-status.running{background:#382f20!important;color:#f2c477!important}
+
+/* Admin gate, About, Bug Report, 404, overlays and app-level dialogs */
+html[data-theme="dark"] .admin-gate-card,
+html[data-theme="dark"] .admin-tool-card,
+html[data-theme="dark"] .bug-card,
+html[data-theme="dark"] .about-hero,
+html[data-theme="dark"] .about-card,
+html[data-theme="dark"] .about-repo-card,
+html[data-theme="dark"] .about-project-card,
+html[data-theme="dark"] .about-repo-shell,
+html[data-theme="dark"] .about-repo-root,
+html[data-theme="dark"] .about-gitdiagram-shell,
+html[data-theme="dark"] .about-redirect,
+html[data-theme="dark"] .about-map-card{
+  background:var(--apml-surface)!important;color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .about-project-copy img{background:var(--apml-surface-soft)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .about-bottom{background:#222936!important;color:var(--apml-ink)!important}
+html[data-theme="dark"] .about-bottom p{color:var(--apml-muted)!important}
+html[data-theme="dark"] .about-github-tooltip{background:#222936!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .about-redirect-backdrop{background:rgba(0,0,0,.8)!important}
+html[data-theme="dark"] .admin-gate h1,
+html[data-theme="dark"] .admin-top h1,
+html[data-theme="dark"] .admin-tool-copy b{color:var(--apml-ink)!important}
+html[data-theme="dark"] .admin-gate p,
+html[data-theme="dark"] .admin-top p,
+html[data-theme="dark"] .admin-session,
+html[data-theme="dark"] .admin-tool-copy small{color:var(--apml-muted)!important}
+html[data-theme="dark"] .admin-session button{border-color:var(--apml-border)!important;color:var(--apml-ink)!important}
+html[data-theme="dark"] .not-found-page{background:var(--apml-canvas)!important;color:var(--apml-ink)!important}
+html[data-theme="dark"] .not-found-content h1,
+html[data-theme="dark"] .not-found-description{color:var(--apml-ink)!important}
+html[data-theme="dark"] .not-found-description{color:var(--apml-muted)!important}
+html[data-theme="dark"] .swal2-popup,
+html[data-theme="dark"] .swal2-modal{background:var(--apml-surface)!important;color:var(--apml-ink)!important}
+html[data-theme="dark"] .swal2-title,
+html[data-theme="dark"] .swal2-html-container{color:var(--apml-ink)!important}
+html[data-theme="dark"] .swal2-input,
+html[data-theme="dark"] .swal2-textarea,
+html[data-theme="dark"] .swal2-select{background:var(--bg-base)!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .install-prompt{background:var(--apml-surface)!important;color:var(--apml-ink)!important;border-color:var(--apml-border)!important}
+html[data-theme="dark"] .install-prompt strong{color:var(--apml-ink)!important}
+html[data-theme="dark"] .install-prompt span{color:var(--apml-muted)!important}
+
+/* Generic safety net for remaining shared semantic surfaces and form controls. */
+html[data-theme="dark"] .portal-page-content :where(
+  [class*="-card"],[class*="-panel"],[class*="-toolbar"],[class*="-modal"],
+  [class*="-empty"],[class*="-total"],[class*="-suggestions"],[class*="-table-wrap"]
+){
+  border-color:var(--apml-border);
+}
+html[data-theme="dark"] .portal-page-content :where(
+  input:not([type="checkbox"]):not([type="radio"]),textarea,select
+){accent-color:var(--apml-red-500)}
+html[data-theme="dark"] .portal-page-content :where(input[type="checkbox"],input[type="radio"]){accent-color:var(--apml-red-500)}
+@media(prefers-reduced-motion:reduce){
+  html[data-theme="dark"] *{scroll-behavior:auto}
+}
