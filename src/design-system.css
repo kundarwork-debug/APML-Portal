@@ -1093,9 +1093,6 @@ html,body{
   font-family:var(--apml-font-body);
   color:var(--apml-text-primary);
 }
-body{
-  line-height:var(--apml-line-height-body);
-}
 .portal-page-content :where(
   input:not([type="checkbox"]):not([type="radio"]),
   textarea,select
