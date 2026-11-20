@@ -1326,3 +1326,19 @@ html[data-theme="dark"] .apml-mascot-name-form .apml-mascot-name-cancel{border-c
 @media(max-width:600px){
  .apml-welcome-bubble{top:-10px;left:calc(100% - 4px);max-width:min(220px,66vw);padding:8px 10px}
 }
+
+
+/* Keep the mascot welcome bubble fully visible on narrow screens. */
+@media(max-width:600px){
+  .apml-welcome-bubble{
+    left:50%;
+    right:auto;
+    transform:translateX(-50%);
+    max-width:calc(100vw - 32px);
+  }
+  .apml-welcome-bubble-line{
+    white-space:normal;
+    flex-wrap:wrap;
+    overflow-wrap:anywhere;
+  }
+}
