@@ -185,11 +185,11 @@ function OperationalTelemetry(){
 
  return <section className="legacy-telemetry" ref={sectionRef}>
   <div>
-   <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Operational telemetry &amp; impact</h2><p>Live enterprise statistics across Western Central Regional Office &amp; nationwide hubs.</p></div><span><i/> All operational systems monitored</span></div>
+   <div className="legacy-telemetry-head"><div><h2><Activity size={21}/> Portal activity</h2><p>A live snapshot of usage across APML Portal tools and services.</p></div><span><i/> All operational systems monitored</span></div>
    <div className="legacy-telemetry-stats">
     <div><small>Live Active Sessions</small><strong ref={element=>{countRefs.current.users=element}}>0</strong><em>Concurrent field officers &amp; HODs · Online</em></div>
-    <div><small>PDF Quotations Drafted</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Exact Container &amp; Maxcare</em></div>
-    <div><small>Cloud Files &amp; Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Drive &amp; gallery archives</em></div>
+    <div><small>PDF Generated</small><strong ref={element=>{countRefs.current.pdf=element}}>0</strong><em>Quotation documents created</em></div>
+    <div><small>Media Downloads</small><strong ref={element=>{countRefs.current.media=element}}>0</strong><em>Downloads from Drive and Gallery</em></div>
    </div>
   </div>
  </section>
