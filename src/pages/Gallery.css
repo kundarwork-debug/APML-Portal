@@ -83,3 +83,21 @@
 .gallery-page .gallery-card-name,
 .gallery-page .gallery-lightbox-content>div>strong{display:none!important}
 .gallery-page .gallery-lightbox-content>div{justify-content:center}
+
+
+/* APML Midnight: keep Gallery action buttons readable without changing their shape. */
+html[data-theme="dark"] .gallery-page .gallery-action:not(.gallery-action-primary){
+  background:#222936;
+  border-color:#303947;
+  color:#f1f3f5;
+}
+html[data-theme="dark"] .gallery-page .gallery-action:not(.gallery-action-primary):hover:not(:disabled){
+  background:#38272d;
+  border-color:#e56b72;
+  color:#f0787e;
+}
+html[data-theme="dark"] .gallery-page .gallery-action:disabled{
+  background:#222936;
+  border-color:#303947;
+  color:#a7b0bd;
+}
