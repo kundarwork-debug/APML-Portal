@@ -42,3 +42,8 @@
  .drive-file-footer{padding:0 7px 8px}
 }
 @media(max-width:360px){.drive-files-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.drive-file-preview{height:105px}}
+
+/* APML-themed illustration for empty folders */
+.drive-empty-state .apml-empty-illustration{display:block;width:min(100%,250px);height:170px;object-fit:contain;margin:0 auto 2px}
+html[data-theme="dark"] .drive-empty-state{background:#171e29;border-color:#354050;color:#b8c2d0}
+html[data-theme="dark"] .drive-empty-state strong{color:#f1f3f5}
