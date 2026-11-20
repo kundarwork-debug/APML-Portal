@@ -732,3 +732,165 @@ html[data-theme="dark"] .portal-page-content :where(input[type="checkbox"],input
 @media(prefers-reduced-motion:reduce){
   html[data-theme="dark"] *{scroll-behavior:auto}
 }
+
+
+/* APML Midnight — final page-level contrast corrections.
+   Screen-only quotation preview styles deliberately do not touch the PDF export clone,
+   which is rendered outside .editor-preview and retains the original light document CSS. */
+html[data-theme="dark"] .portal-page-content .editor-preview .preview-paper{
+  background:#191e26!important;border-color:#303947!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.38)!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document{
+  background:#191e26!important;color:#f1f3f5!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-letterhead{
+  background:#222936!important;color:#f1f3f5!important;border-bottom-color:#a7b0bd!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-company,
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-cin,
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-sub,
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-body,
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-body :where(p,span,b,strong,li,div){
+  color:#f1f3f5!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-table th{
+  background:#303947!important;color:#f1f3f5!important;border-color:#596575!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-table td{
+  background:#191e26!important;color:#e7ebf0!important;border-color:#596575!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-table .total-row{
+  background:#222936!important;color:#f1f3f5!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document .doc-table .grand-row{
+  background:#30272c!important;color:#fff!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document.maxcare .doc-letterhead{
+  background:#302d24!important;border-bottom-color:#8ea6ef!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document.maxcare .doc-company,
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document.maxcare .doc-quotation{
+  color:#a9bdff!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document.maxcare .doc-table th{
+  background:#293d75!important;color:#fff!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-preview .quote-document.maxcare .doc-table .grand-row{
+  background:#51491f!important;color:#fff4b0!important;
+}
+html[data-theme="dark"] .portal-page-content .editor-download{
+  background:linear-gradient(0deg,var(--apml-surface) 78%,rgba(25,30,38,.84))!important;
+}
+html[data-theme="dark"] .portal-page-content .preview-caption,
+html[data-theme="dark"] .portal-page-content .preview-caption span{color:var(--apml-muted)!important}
+
+/* Field Officer directory — every contact, toolbar, filter and edit surface. */
+html[data-theme="dark"] .portal-page-content .fo-page{color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .fo-eyebrow,.fo-subtitle,.fo-live-status,.fo-status-count,
+  .fo-results-heading>span,.fo-contact-main span,.fo-contact-branch>span,
+  .fo-contact-phone>span,.fo-contact-phone em,.fo-modal-head small
+){color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .fo-title,.fo-action-intro strong,.fo-results-heading h2,
+  .fo-contact-main strong,.fo-contact-branch strong,
+  .fo-contact-phone .fo-copy-phone,.fo-modal-head b
+){color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .fo-stats>span,.fo-action-bar,.fo-toolbar,.fo-contact-list,
+  .fo-contact-row,.fo-modal
+){
+  background:var(--apml-surface)!important;
+  border-color:var(--apml-border)!important;
+  color:var(--apml-ink)!important;
+  box-shadow:var(--apml-shadow-card)!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-row{
+  border-bottom:1px solid var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-row:hover{
+  background:#222936!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-row.deleted,
+html[data-theme="dark"] .portal-page-content .fo-contact-row.deleted:hover{
+  background:#24272d!important;border-color:#414955!important;color:#e8ebef!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-row.deleted :where(
+  .fo-contact-main strong,.fo-contact-branch strong,.fo-contact-phone .fo-copy-phone,
+  .fo-contact-actions button
+){color:#e8ebef!important}
+html[data-theme="dark"] .portal-page-content .fo-contact-row.deleted :where(
+  .fo-contact-main span,.fo-contact-branch>span,.fo-contact-phone>span
+){color:#a7b0bd!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .fo-search,.fo-search input,.fo-form-grid input,.fo-form-grid select
+){
+  background:var(--apml-surface-soft)!important;
+  color:var(--apml-ink)!important;border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-search input::placeholder{color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .fo-filter-tabs button,.fo-quick-filters button,.fo-action,
+  .fo-modal-actions button,.fo-contact-actions button
+){
+  background:var(--apml-surface-soft)!important;
+  color:var(--apml-ink)!important;border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .fo-filter-tabs button.selected,.fo-action-primary,.fo-action-primary:hover,
+  .fo-modal-actions .fo-save
+){
+  background:#a9434b!important;color:#fff!important;border-color:#c75b63!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-action-icon{
+  background:#38252b!important;color:#ff9ba1!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-avatar{
+  background:#38252b!important;color:#ffb5ba!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-status{
+  background:#1d3a2d!important;color:#9ce0b8!important;border-color:#315b45!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-status.leave,
+html[data-theme="dark"] .portal-page-content .fo-contact-status.assco{
+  background:#40331f!important;color:#f2c477!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-contact-status.left,
+html[data-theme="dark"] .portal-page-content .fo-contact-status.deleted{
+  background:#38252b!important;color:#ff9ba1!important;border-color:#63343b!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-modal-backdrop{background:rgba(0,0,0,.76)!important}
+html[data-theme="dark"] .portal-page-content .fo-modal-head button{color:var(--apml-ink)!important}
+html[data-theme="dark"] .portal-page-content .fo-contact-actions :where(button:hover,.fo-danger:hover){
+  background:#38252b!important;border-color:#63343b!important;color:#ffb4b8!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-google-admin{
+  background:#222936!important;border-color:#46515f!important;
+}
+html[data-theme="dark"] .portal-page-content .fo-google-admin:hover{background:#303947!important}
+html[data-theme="dark"] .portal-page-content .fo-fallback-toast{
+  background:#222936!important;color:#f1f3f5!important;border:1px solid #46515f!important;
+}
+
+/* Ensure page-specific cards and controls inherit the same dark surfaces. */
+html[data-theme="dark"] .portal-page-content :where(
+  .editor-panel,.editor-totals,.quick-pricing,.drive-action-bar,.drive-search,
+  .drive-folder-card,.drive-file-card,.gallery-toolbar,.gallery-folder-card,
+  .gallery-media-card,.directory-search,.directory-table-wrap,
+  .rate-card,.calculator-card,.admin-tool-card,.bug-card,
+  .system-health-card,.quality-card,.policy-card
+){
+  background-color:var(--apml-surface)!important;
+  color:var(--apml-ink)!important;
+  border-color:var(--apml-border)!important;
+}
+html[data-theme="dark"] .portal-page-content :where(
+  .drive-file-card,.drive-folder-card,.gallery-media-card,.gallery-folder-card
+) :where(h1,h2,h3,h4,strong,p,small,span){color:inherit}
+html[data-theme="dark"] .portal-page-content :where(
+  .drive-file-card,.drive-folder-card,.gallery-media-card,.gallery-folder-card
+) :where(p,small,.meta,.date){color:var(--apml-muted)!important}
+html[data-theme="dark"] .portal-page-content :where(
+  .directory-search input,.drive-search input,.gallery-search input
+){background:transparent!important;color:var(--apml-ink)!important}
