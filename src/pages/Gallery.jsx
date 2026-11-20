@@ -312,58 +312,54 @@ export default function Gallery() {
   async function downloadMedia(item) {
     if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
-    await metric(item, 'downloadsCount')
-    try {
-      await incrementApmlMediaDownload()
-    } catch (error) { console.warn('Gallery download counter unavailable', error) }
-    try {
-      window.APMNotify?.send?.({
-        type: 'gallery',
-        title: item.isVideo ? 'Gallery video downloaded' : 'Gallery photo downloaded',
-        file: name, link: item.url,
-        details: {
-          Folder: folders.find(folder => folder.id === item.folder)?.label || item.folder || '',
-          Stored_on: fileSource(item.url).label,
-          Size: item.size ? formatBytes(item.size) : ''
-        }
-      })
-    } catch {}
+    let fallbackTab = null
     try {
       if (window.ApmNativeDownload?.start) {
         window.ApmNativeDownload.start(item.url, name)
-      } else {
-        let blob
-        try {
-          const response = await fetch(item.url)
-          if (!response.ok) throw new Error(`HTTP ${response.status}`)
-          blob = await response.blob()
-        } catch (error) {
-          if (!item.url.includes('catbox.moe')) throw error
-          const response = await fetch(`${DRIVE_API_URL}/dl?url=${encodeURIComponent(item.url)}`)
-          if (!response.ok) throw error
-          blob = await response.blob()
-        }
-        const blobUrl = URL.createObjectURL(blob)
-        const anchor = document.createElement('a')
-        anchor.href = blobUrl
-        anchor.download = name
-        document.body.append(anchor)
-        anchor.click()
-        anchor.remove()
-        window.setTimeout(() => URL.revokeObjectURL(blobUrl), 4000)
+        void metric(item, 'downloadsCount')
+        void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
+        window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
+        await driveToast('Download started')
+        return
       }
-      window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
-    } catch (error) {
+
+      // Reserve a tab during the click gesture for browsers that block cross-origin downloads.
+      fallbackTab = window.open('about:blank', '_blank')
+      let response
+      try {
+        response = await fetch(item.url)
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      } catch (error) {
+        if (!item.url.includes('catbox.moe')) throw error
+        response = await fetch(`${DRIVE_API_URL}/dl?url=${encodeURIComponent(item.url)}`)
+        if (!response.ok) throw new Error(`Download proxy returned HTTP ${response.status}`)
+      }
+
+      const blob = await response.blob()
+      if (!blob.size) throw new Error('The downloaded file is empty.')
+      const blobUrl = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
-      anchor.href = item.url
+      anchor.href = blobUrl
       anchor.download = name
-      anchor.target = '_blank'
-      anchor.rel = 'noopener'
+      anchor.style.display = 'none'
       document.body.append(anchor)
       anchor.click()
       anchor.remove()
-      window.logDailyActivity?.('media')
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
+      if (fallbackTab && !fallbackTab.closed) fallbackTab.close()
+
+      void metric(item, 'downloadsCount')
+      void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
+      window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
+      await driveToast('Download started')
+    } catch (error) {
       console.warn('Gallery download fallback:', error)
+      if (fallbackTab && !fallbackTab.closed) {
+        fallbackTab.location.href = item.url
+        await driveToast('Opening media in a new tab')
+      } else {
+        await driveAlert('Download could not start', 'Your browser blocked the download. Open the media preview and use the browser’s save option.', 'warning')
+      }
     }
   }
   async function move(item, folder) {
