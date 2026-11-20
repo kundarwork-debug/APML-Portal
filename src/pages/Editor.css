@@ -86,3 +86,143 @@ html[data-theme="dark"] .editor-page .editor-reset:focus-visible{
   outline:2px solid var(--apml-red-500,#f0787e);
   outline-offset:2px;
 }
+
+
+/* APML Midnight — full quotation editor dark-surface treatment.
+   The generated quotation itself intentionally remains white for print/PDF fidelity. */
+html[data-theme="dark"] .editor-page{
+  color:var(--apml-ink);
+}
+html[data-theme="dark"] .editor-page .editor-panel{
+  background:var(--apml-surface);
+  border-color:var(--apml-border);
+  box-shadow:var(--apml-shadow-card);
+}
+html[data-theme="dark"] .editor-page .company-tabs{
+  background:#202630;
+  border-color:var(--apml-border);
+}
+html[data-theme="dark"] .editor-page .company-tabs button{
+  color:var(--apml-muted);
+}
+html[data-theme="dark"] .editor-page .company-tabs button.active.exact,
+html[data-theme="dark"] .editor-page .company-tabs button.active.maxcare{
+  background:#303744;
+  color:#ffb4b8;
+  box-shadow:0 2px 9px rgba(0,0,0,.2);
+}
+html[data-theme="dark"] .editor-page .editor-group h2,
+html[data-theme="dark"] .editor-page .editor-group h2 span,
+html[data-theme="dark"] .editor-page .editor-field>span,
+html[data-theme="dark"] .editor-page .preview-caption,
+html[data-theme="dark"] .editor-page .preview-caption span{
+  color:var(--apml-muted);
+}
+html[data-theme="dark"] .editor-page .editor-group h2:after{
+  background:var(--apml-border);
+}
+html[data-theme="dark"] .editor-page .shared-group{
+  background:linear-gradient(135deg,#2b2025,#202630);
+  border-color:#684047;
+}
+html[data-theme="dark"] .editor-page .shared-group h2{
+  color:#ff9da4;
+}
+html[data-theme="dark"] .editor-page .quick-pricing{
+  background:linear-gradient(135deg,#2b2025,#202630);
+  border-color:#684047;
+}
+html[data-theme="dark"] .editor-page .quick-label{
+  color:#ff9da4;
+}
+html[data-theme="dark"] .editor-page .editor-field input,
+html[data-theme="dark"] .editor-page .editor-field textarea,
+html[data-theme="dark"] .editor-page .editor-dynamic-row input,
+html[data-theme="dark"] .editor-page .editor-dynamic-row textarea,
+html[data-theme="dark"] .editor-page .apply-total input{
+  background:var(--apml-surface-soft);
+  color:var(--apml-ink);
+  border-color:var(--apml-border);
+}
+html[data-theme="dark"] .editor-page .editor-field input::placeholder,
+html[data-theme="dark"] .editor-page .editor-field textarea::placeholder,
+html[data-theme="dark"] .editor-page .editor-dynamic-row input::placeholder,
+html[data-theme="dark"] .editor-page .editor-dynamic-row textarea::placeholder,
+html[data-theme="dark"] .editor-page .apply-total input::placeholder{
+  color:#8792a1;
+}
+html[data-theme="dark"] .editor-page .editor-field input:focus,
+html[data-theme="dark"] .editor-page .editor-field textarea:focus,
+html[data-theme="dark"] .editor-page .editor-dynamic-row input:focus,
+html[data-theme="dark"] .editor-page .editor-dynamic-row textarea:focus,
+html[data-theme="dark"] .editor-page .apply-total input:focus{
+  border-color:var(--apml-red-500);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--apml-red-500) 18%,transparent);
+}
+html[data-theme="dark"] .editor-page .editor-totals{
+  background:var(--apml-surface-soft);
+  border-color:var(--apml-border);
+}
+html[data-theme="dark"] .editor-page .editor-totals>div{
+  color:var(--apml-muted);
+}
+html[data-theme="dark"] .editor-page .editor-totals strong{
+  color:var(--apml-ink);
+}
+html[data-theme="dark"] .editor-page .editor-totals .grand{
+  color:#ff9da4;
+  border-color:var(--apml-border);
+}
+html[data-theme="dark"] .editor-page .editor-totals .grand strong{
+  color:#ff9da4;
+}
+html[data-theme="dark"] .editor-page .editor-reset{
+  color:var(--apml-muted)!important;
+}
+html[data-theme="dark"] .editor-page .editor-download{
+  background:linear-gradient(0deg,var(--apml-surface) 78%,rgba(25,30,38,.82));
+}
+html[data-theme="dark"] .editor-page .editor-download p{
+  color:var(--apml-muted);
+}
+html[data-theme="dark"] .editor-page .apply-total button{
+  background:var(--apml-red-600);
+  color:#fff;
+}
+html[data-theme="dark"] .editor-page .editor-download>button{
+  background:var(--apml-red-600);
+  color:#fff;
+}
+html[data-theme="dark"] .editor-page .editor-preview{
+  color:var(--apml-ink);
+}
+html[data-theme="dark"] .editor-page .preview-paper{
+  background:#fff;
+  border-color:#343b46;
+  box-shadow:0 12px 34px rgba(0,0,0,.35);
+}
+html[data-theme="dark"] .quote-generating-overlay{
+  background:rgba(12,15,20,.82);
+}
+html[data-theme="dark"] .quote-generating-overlay .spinnerContainer{
+  background:var(--apml-surface);
+  border-color:var(--apml-border);
+  box-shadow:0 16px 44px rgba(0,0,0,.38);
+}
+html[data-theme="dark"] .quote-generating-overlay .loader{
+  color:var(--apml-ink);
+}
+html[data-theme="dark"] .quote-generating-caption{
+  color:var(--apml-muted);
+}
+html[data-theme="dark"] .editor-page :where(button):focus-visible{
+  outline-color:var(--apml-red-500);
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-theme="dark"] .quote-generating-overlay .spinner,
+  html[data-theme="dark"] .quote-generating-overlay .spinner:before,
+  html[data-theme="dark"] .quote-generating-overlay .spinner:after,
+  html[data-theme="dark"] .quote-generating-overlay .word{
+    animation:none!important;
+  }
+}
