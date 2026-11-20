@@ -312,6 +312,18 @@ export default function Gallery() {
   async function downloadMedia(item) {
     if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
+    try {
+      window.APMNotify?.send?.({
+        type: 'gallery',
+        title: item.isVideo ? 'Gallery video downloaded' : 'Gallery photo downloaded',
+        file: name, link: item.url,
+        details: {
+          Folder: folders.find(folder => folder.id === item.folder)?.label || item.folder || '',
+          Stored_on: fileSource(item.url).label,
+          Size: item.size ? formatBytes(item.size) : ''
+        }
+      })
+    } catch {}
     let fallbackTab = null
     try {
       if (window.ApmNativeDownload?.start) {
