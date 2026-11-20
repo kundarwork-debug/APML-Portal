@@ -47,7 +47,7 @@ function Heatmap({rows}){
   xaxis:{type:'category',labels:{show:false},axisBorder:{show:false},axisTicks:{show:false}},
   yaxis:{labels:{style:{fontSize:'10px'}}},
   grid:{show:false,padding:{left:4,right:4,top:-8,bottom:0}},
-  tooltip:{custom:({seriesIndex,dataPointIndex,w})=>{const point=w.config.series[seriesIndex].data[dataPointIndex];return '<div class="apex-tooltip-custom"><b>'+weekdays[seriesIndex]+'</b> · '+point.meta+'<br/>'+number(point.y)+' unique visitors</div>'}},
+  tooltip:{custom:({seriesIndex,dataPointIndex,w})=>{const point=w.config.series[seriesIndex].data[dataPointIndex];return '<div class="apex-tooltip-custom"><b>'+weekdays[seriesIndex]+'</b> · '+point.meta+'<br/>'+number(point.y)+' recorded visits</div>'}},
   legend:{show:false}
  }
  return <div className="an-heat-apex"><Chart type="heatmap" height={190} options={options} series={series}/><div className="an-heat-legend"><span>Less</span><i className="low"/><i className="mid"/><i className="high"/><span>More</span></div></div>
