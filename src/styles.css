@@ -695,15 +695,13 @@ html:has(.not-found-page) .apml-floating-mascot{display:none!important}
 }
 
 
-/* APML download button — original dimensions retained, text slides to the download icon on hover */
-.apml-download-btn{position:relative;isolation:isolate;overflow:hidden!important;padding-top:0!important;padding-bottom:0!important;transition:background .25s ease,box-shadow .25s ease,transform .25s ease}
-.apml-download-btn .button-content{display:flex;flex-direction:column;width:100%;height:200%;flex:1 1 auto;transform:translateY(-50%);transition:transform 250ms ease-in-out}
-.apml-download-btn .svg-container,.apml-download-btn .text-container{display:flex;flex:0 0 50%;width:100%;height:50%;align-items:center;justify-content:center}
-.apml-download-btn .text-container .text{color:#fff;font-size:inherit;font-weight:inherit;line-height:1.2;opacity:1;transition:opacity 250ms ease-in-out;white-space:nowrap}
-.apml-download-btn .download-icon{display:block;width:24px;height:24px;fill:#fff;opacity:0;transition:opacity 250ms ease-in-out}
-.apml-download-btn:hover:not(:disabled) .button-content,.apml-download-btn:focus-visible .button-content{transform:translateY(0)}
-.apml-download-btn:hover:not(:disabled) .text,.apml-download-btn:focus-visible .text{opacity:0}
-.apml-download-btn:hover:not(:disabled) .download-icon,.apml-download-btn:focus-visible .download-icon{opacity:1}
+/* APML download button — one label at rest, download icon slides in on hover */
+.apml-download-btn{position:relative;isolation:isolate;overflow:hidden!important;transition:background .25s ease,box-shadow .25s ease,transform .25s ease}
+.apml-download-btn .button-content{position:absolute;inset:0 auto auto 0;display:flex;flex-direction:column;width:100%;height:200%;transform:translateY(0);transition:transform 250ms ease-in-out;pointer-events:none}
+.apml-download-btn .text-container,.apml-download-btn .svg-container{display:flex;flex:0 0 50%;width:100%;height:50%;align-items:center;justify-content:center}
+.apml-download-btn .text-container .text{display:block;color:inherit;font:inherit;line-height:1.2;white-space:nowrap}
+.apml-download-btn .download-icon{display:block;width:24px;height:24px;fill:currentColor}
+.apml-download-btn:hover:not(:disabled) .button-content,.apml-download-btn:focus-visible .button-content{transform:translateY(-50%)}
 .apml-download-btn:focus .download-icon,.apml-download-btn:focus-visible .download-icon{animation:apml-download-heartbeat 1.5s ease-in-out infinite both}
 .apml-download-btn:active:not(:disabled){transform:scale(.98)}
 .apml-download-btn:focus-visible{outline:2px solid #b4232c;outline-offset:3px}
