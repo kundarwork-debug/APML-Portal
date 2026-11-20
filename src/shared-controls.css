@@ -1,0 +1,25 @@
+/* Phase 2 — shared control feedback. Intentionally preserves each page's geometry and shape. */
+.portal-page-content :where(button,input,textarea,select,[role="button"]){
+  transition:color var(--apml-motion-fast) var(--apml-ease),
+    background-color var(--apml-motion-fast) var(--apml-ease),
+    border-color var(--apml-motion-fast) var(--apml-ease),
+    box-shadow var(--apml-motion-fast) var(--apml-ease),
+    opacity var(--apml-motion-fast) var(--apml-ease);
+}
+.portal-page-content :where(input[type="checkbox"],input[type="radio"]){
+  accent-color:var(--apml-red-600);
+}
+.portal-page-content :where(button,[role="button"]):focus-visible{
+  outline:2px solid var(--apml-red-500);
+  outline-offset:3px;
+}
+.portal-page-content :where(button,[role="button"]):disabled,
+.portal-page-content :where(input,textarea,select):disabled{
+  cursor:not-allowed;
+}
+.portal-page-content :where(input,textarea,select):focus-visible{
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--apml-red-500) 14%,transparent);
+}
+@media(prefers-reduced-motion:reduce){
+  .portal-page-content :where(button,input,textarea,select,[role="button"]){transition:none!important}
+}
