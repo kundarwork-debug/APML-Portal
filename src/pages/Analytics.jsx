@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { AlertTriangle, BarChart3, Download, RefreshCw } from 'lucide-react'
+import { Activity, AlertTriangle, BarChart3, Download, RefreshCw } from 'lucide-react'
+import { getApmlDatabase } from '../lib/firebase'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { Line } from 'react-chartjs-2'
 import {
  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip
@@ -51,6 +53,9 @@ export default function Analytics(){
  const [busy,setBusy]=useState(true)
  const [error,setError]=useState('')
  const [updated,setUpdated]=useState(null)
+ const [activity,setActivity]=useState([])
+ const [activityFilter,setActivityFilter]=useState('All')
+ const {admin}=useApmlAdminAuth()
  const load=useCallback(async()=>{
   setBusy(true);setError('')
   try{
@@ -63,6 +68,9 @@ export default function Analytics(){
   finally{setBusy(false)}
  },[])
  useEffect(()=>{load();const timer=setInterval(load,300000);return()=>clearInterval(timer)},[load])
+ useEffect(()=>{if(!admin)return;let ref,handler,live=true;(async()=>{try{const db=await getApmlDatabase();if(!live)return;ref=db.ref('Analytics page/recent_actions');handler=ref.orderByChild('timestamp').limitToLast(50).on('value',snapshot=>{if(!live)return;const rows=Object.entries(snapshot.val()||{}).map(([id,value])=>({id,...value})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));setActivity(rows)},error=>console.warn('Activity log listener:',error.message))}catch(error){console.warn('Activity log unavailable:',error.message)}})();return()=>{live=false;if(ref&&handler)ref.off('value',handler)}},[admin])
+ const filteredActivity=activityFilter==='All'?activity:activity.filter(row=>row.module===activityFilter)
+ const activityModules=['All',...new Set(activity.map(row=>row.module).filter(Boolean).sort())
  const rows=data?.daily||[]
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
@@ -76,6 +84,11 @@ export default function Analytics(){
     <Metric icon={Download} label="Media downloads" value={number(data.totals?.totalMediaLifetime ?? totalMedia)} note="Lifetime total · daily trend below" series={rows.map(row=>row.media)}/>
    </section>
    <p className="an-footnote">Daily trends use the last 7 days of recorded events. Lifetime totals are read from the portal-wide Firebase counters.</p>
+   {admin&&<section className="an-panel an-activity-panel">
+    <div className="an-panel-head"><div><span className="an-section-label">PORTAL AUDIT TRAIL</span><h2><Activity size={17} style={{verticalAlign:'-3px',marginRight:7}}/>Recent Activity</h2><p>Latest 50 successful actions recorded across APML Portal.</p></div><span className="an-period">{activity.length} / 50 events</span></div>
+    <div className="an-activity-toolbar"><label htmlFor="an-activity-filter">Filter module</label><select id="an-activity-filter" value={activityFilter} onChange={event=>setActivityFilter(event.target.value)}>{activityModules.map(module=><option key={module} value={module}>{module}</option>)}</select></div>
+    {filteredActivity.length?<div className="an-activity-list">{filteredActivity.map(row=><article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15}/></span><div className="an-activity-copy"><strong>{row.action||'Activity recorded'}</strong><span>{[row.module,row.item,row.details].filter(Boolean).join(' · ')}</span><small>{row.user||'Guest'}</small></div><time dateTime={new Date(row.timestamp||0).toISOString()}>{row.timestamp?new Date(row.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</time></article>)}</div>:<div className="an-activity-empty">No activity has been recorded yet. New successful actions will appear here.</div>}
+   </section>}
   </>}
  </div>
 }
