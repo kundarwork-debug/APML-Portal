@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, CheckCircle2, Cloud, Download, ExternalLink, FileSearch, Image, RefreshCw, Search, ShieldCheck, Video } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Cloud, Download, ExternalLink, FileSearch, RefreshCw, Search, ShieldCheck } from 'lucide-react'
 import { getApmlAuth } from '../lib/firebase'
 import './StorageManager.css'
 
@@ -12,13 +12,15 @@ const formatBytes=value=>{
  return (bytes/Math.pow(1024,index)).toFixed(index?1:0)+' '+units[index]
 }
 const formatDate=value=>value?new Date(value).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}):'—'
+const statusLabels={visible:'Visible in Portal',trash:'In Trash',deleted:'Deleted from Portal'}
 
 export default function StorageManager(){
  const [report,setReport]=useState(null)
  const [busy,setBusy]=useState(false)
  const [error,setError]=useState('')
  const [query,setQuery]=useState('')
- const [filter,setFilter]=useState('all')
+ const [statusFilter,setStatusFilter]=useState('all')
+ const [typeFilter,setTypeFilter]=useState('all')
  const [updated,setUpdated]=useState(null)
 
  const scan=async()=>{
@@ -37,49 +39,60 @@ export default function StorageManager(){
  }
 
  const rows=useMemo(()=>{
-  const items=report?.unmatched||[]
+  const items=report?.assets||[]
   const term=query.trim().toLowerCase()
-  return items.filter(item=>(filter==='all'||item.resourceType===filter)&&(!term||[item.publicId,item.url,item.format].some(value=>String(value||'').toLowerCase().includes(term))))
- },[report,query,filter])
+  return items.filter(item=>(statusFilter==='all'||item.status===statusFilter)&&(typeFilter==='all'||item.resourceType===typeFilter)&&(!term||[item.fileName,item.publicId,item.url,...(item.locations||[]).flatMap(loc=>[loc.section,loc.name,loc.folder])].some(value=>String(value||'').toLowerCase().includes(term))))
+ },[report,query,statusFilter,typeFilter])
 
  const exportCsv=()=>{
   if(!report)return
-  const columns=['publicId','resourceType','format','createdAt','bytes','url']
+  const columns=['fileName','publicId','status','resourceType','format','createdAt','bytes','portalLocations','url']
   const quote=value=>'"'+String(value??'').replace(/"/g,'""')+'"'
-  const csv=[columns.join(','),...rows.map(item=>columns.map(key=>quote(item[key])).join(','))].join('\r\n')
+  const csv=[columns.join(','),...rows.map(item=>columns.map(key=>{
+   const value=key==='portalLocations'?(item.locations||[]).map(loc=>[loc.section,loc.folder,loc.status].filter(Boolean).join(' / ')).join(' | '):item[key]
+   return quote(value)
+  }).join(','))].join('\r\n')
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'})
   const url=URL.createObjectURL(blob)
   const link=document.createElement('a')
-  link.href=url;link.download='apml-cloudinary-unmatched-assets-'+new Date().toISOString().slice(0,10)+'.csv'
+  link.href=url;link.download='apml-cloudinary-storage-audit-'+new Date().toISOString().slice(0,10)+'.csv'
   document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url)
  }
 
  const totals=report?.totals
  return <div className="sm-page">
-  <header className="sm-heading"><div><span className="sm-kicker"><ShieldCheck size={14}/> ADMIN · STORAGE MANAGEMENT</span><h1>Cloudinary storage audit</h1><p>Find Cloudinary assets that no longer have a matching reference in APML Portal.</p></div><button className="sm-scan" onClick={scan} disabled={busy}><RefreshCw size={16} className={busy?'sm-spin':''}/>{busy?'Scanning assets…':report?'Run new scan':'Scan Cloudinary'}</button></header>
+  <header className="sm-heading"><div><span className="sm-kicker"><ShieldCheck size={14}/> ADMIN · STORAGE MANAGEMENT</span><h1>Cloudinary storage audit</h1><p>See whether every Cloudinary file is active in APML Portal, in Trash, or no longer referenced.</p></div><button className="sm-scan" onClick={scan} disabled={busy}><RefreshCw size={16} className={busy?'sm-spin':''}/>{busy?'Scanning assets…':report?'Run new scan':'Scan Cloudinary'}</button></header>
 
-  <section className="sm-safety"><ShieldCheck size={18}/><p><b>Read-only audit.</b> This scan compares Cloudinary inventory against readable Firebase portal records. It does not delete, move, or modify any files.</p></section>
-
+  <section className="sm-safety"><ShieldCheck size={18}/><p><b>Read-only audit.</b> The scan compares Cloudinary assets with APML Drive and Gallery records in Firebase. It does not delete, move, or modify any files.</p></section>
   {error&&<section className="sm-error"><AlertTriangle size={18}/><div><b>Could not complete the scan</b><p>{error}</p></div></section>}
 
   {report&&<><section className="sm-summary">
    <article><span>Total Cloudinary assets</span><strong>{Number(totals.assets||0).toLocaleString('en-IN')}</strong><small>{totals.images} images · {totals.videos} videos · {totals.raw} raw files</small></article>
-   <article><span>Portal-linked assets</span><strong className="sm-good">{Number(totals.matched||0).toLocaleString('en-IN')}</strong><small>Found in Firebase portal records</small></article>
-   <article><span>Unmatched assets</span><strong className="sm-warn">{Number(totals.unmatched||0).toLocaleString('en-IN')}</strong><small>Require review before any action</small></article>
-   <article><span>Unmatched storage</span><strong>{formatBytes(totals.unmatchedBytes)}</strong><small>Total Cloudinary storage: {formatBytes(totals.storageBytes)}</small></article>
+   <article><span>Visible in Portal</span><strong className="sm-good">{Number(totals.visible||0).toLocaleString('en-IN')}</strong><small>{formatBytes(totals.visibleBytes)} storage</small></article>
+   <article><span>In Trash Archive</span><strong className="sm-warn">{Number(totals.trash||0).toLocaleString('en-IN')}</strong><small>{formatBytes(totals.trashBytes)} storage</small></article>
+   <article><span>Deleted from Portal</span><strong className="sm-danger">{Number(totals.deleted||0).toLocaleString('en-IN')}</strong><small>{formatBytes(totals.deletedBytes)} still in Cloudinary</small></article>
   </section>
 
   <section className="sm-panel">
-   <div className="sm-panel-head"><div><span className="sm-section-label">AUDIT RESULTS</span><h2>Assets without a portal reference</h2><p>{report.complete?'Cloudinary inventory scan completed.':'Partial inventory: the scan reached its per-type page limit. Unmatched results are not yet exhaustive.'} {updated?'Last scanned '+updated.toLocaleString('en-IN'):''}</p></div><button className="sm-export" onClick={exportCsv} disabled={!rows.length}><Download size={15}/> Export CSV</button></div>
-   {!report.complete&&<div className="sm-partial"><AlertTriangle size={16}/> Partial scan only. Do not treat this list as a complete orphan-file report.</div>}
-   <div className="sm-controls"><label className="sm-search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search public ID, format or URL"/></label><select value={filter} onChange={e=>setFilter(e.target.value)} aria-label="Filter resource type"><option value="all">All types</option><option value="image">Images</option><option value="video">Videos</option><option value="raw">Raw / PDF</option></select></div>
-   {rows.length?<div className="sm-table-wrap"><table className="sm-table"><thead><tr><th>Cloudinary asset</th><th>Type</th><th>Uploaded</th><th>Size</th><th>Open</th></tr></thead><tbody>{rows.map((item,index)=><tr key={item.resourceType+'/'+item.publicId+'/'+index}><td><b>{item.publicId}</b><small>{item.format||'Unknown format'}</small></td><td><span className="sm-type">{item.resourceType}</span></td><td>{formatDate(item.createdAt)}</td><td>{formatBytes(item.bytes)}</td><td>{item.url?<a href={item.url} target="_blank" rel="noreferrer" aria-label="Open Cloudinary asset"><ExternalLink size={15}/></a>:'—'}</td></tr>)}</tbody></table></div>:<div className="sm-empty"><CheckCircle2 size={25}/><b>{totals.unmatched?'No results match this filter':'No unmatched assets found'}</b><span>{totals.unmatched?'Try a different search or resource type.':'All scanned Cloudinary assets currently have a matching portal reference.'}</span></div>}
-   <div className="sm-table-foot">Showing {rows.length.toLocaleString('en-IN')} of {Number(totals.unmatched||0).toLocaleString('en-IN')} unmatched assets</div>
+   <div className="sm-panel-head"><div><span className="sm-section-label">CLOUDINARY INVENTORY</span><h2>File status and locations</h2><p>{report.complete?'Inventory scan completed.':'Partial inventory: the scan reached its per-type page limit; results are not exhaustive.'} {updated?'Last scanned '+updated.toLocaleString('en-IN'):''}</p></div><button className="sm-export" onClick={exportCsv} disabled={!rows.length}><Download size={15}/> Export filtered CSV</button></div>
+   {!report.complete&&<div className="sm-partial"><AlertTriangle size={16}/> Partial scan only. Run another scan after reviewing the inventory limit before treating the totals as complete.</div>}
+   <div className="sm-controls">
+    <label className="sm-search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search file name, folder or public ID"/></label>
+    <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} aria-label="Filter file status"><option value="all">All statuses</option><option value="visible">Visible in Portal</option><option value="trash">In Trash</option><option value="deleted">Deleted from Portal</option></select>
+    <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} aria-label="Filter file type"><option value="all">All file types</option><option value="image">Images</option><option value="video">Videos</option><option value="raw">Raw / PDF</option></select>
+   </div>
+   {rows.length?<div className="sm-table-wrap"><table className="sm-table"><thead><tr><th>File</th><th>Portal status</th><th>Portal location</th><th>Cloudinary type</th><th>Uploaded</th><th>Size</th><th>Open</th></tr></thead><tbody>{rows.map((item,index)=><tr key={item.resourceType+'/'+item.publicId+'/'+index}>
+    <td><b>{item.fileName||item.publicId}</b><small>{item.publicId}</small><small>{item.format||'Unknown format'}</small></td>
+    <td><span className={'sm-status sm-status-'+item.status}>{statusLabels[item.status]||item.status}</span></td>
+    <td>{item.locations?.length?item.locations.map((loc,i)=><div className="sm-location" key={i}><b>{loc.section}</b><small>{loc.folder||'—'}{loc.status==='trash'?' · Trash':''}</small></div>):<span className="sm-muted">No portal record found</span>}</td>
+    <td><span className="sm-type">{item.resourceType}</span></td><td>{formatDate(item.createdAt)}</td><td>{formatBytes(item.bytes)}</td><td>{item.url?<a href={item.url} target="_blank" rel="noreferrer" aria-label="Open Cloudinary asset"><ExternalLink size={15}/></a>:'—'}</td>
+   </tr>)}</tbody></table></div>:<div className="sm-empty"><CheckCircle2 size={25}/><b>No files match these filters</b><span>Try changing the status, file type or search phrase.</span></div>}
+   <div className="sm-table-foot">Showing {rows.length.toLocaleString('en-IN')} of {Number(totals.assets||0).toLocaleString('en-IN')} Cloudinary assets</div>
   </section>
-  <section className="sm-note"><FileSearch size={17}/><p><b>How matching works:</b> the audit extracts Cloudinary public IDs from URLs stored anywhere in the readable Firebase portal database, then compares them with Cloudinary image, video and raw uploads. A missing reference does not automatically mean a file is safe to delete; old links, backups or other integrations may still depend on it.</p></section>
+  <section className="sm-note"><FileSearch size={17}/><p><b>How statuses are assigned:</b> an asset is Visible if at least one active Drive or Gallery record references it. It is In Trash if it has no active record but has a trashed record, including files inside a trashed Drive folder. It is Deleted from Portal only when neither Drive nor Gallery has a matching record. These classifications do not prove that an asset is safe to delete; review it before taking any action.</p></section>
  </>}
 
- {!report&&!busy&&!error&&<section className="sm-empty sm-first"><span className="sm-empty-icon"><Cloud size={26}/></span><b>No audit has been run yet</b><span>Run a read-only scan to compare your Cloudinary assets with APML Portal records.</span><button className="sm-scan" onClick={scan}><FileSearch size={16}/> Start first scan</button></section>}
+ {!report&&!busy&&!error&&<section className="sm-empty sm-first"><span className="sm-empty-icon"><Cloud size={26}/></span><b>No audit has been run yet</b><span>Run a read-only scan to classify all Cloudinary files by their APML Portal status.</span><button className="sm-scan" onClick={scan}><FileSearch size={16}/> Start first scan</button></section>}
  {busy&&<section className="sm-loading"><RefreshCw className="sm-spin" size={22}/><b>Scanning Cloudinary and portal references…</b><span>This may take a little while if the account contains many assets.</span></section>}
  </div>
 }
