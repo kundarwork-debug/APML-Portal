@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Search, MapPin, Phone, Copy, Pencil, Trash2, RotateCcw, Plus, Upload, LogOut, Users, MapPinned, LoaderCircle, X, ExternalLink } from 'lucide-react'
 import { driveAlert, driveConfirm, driveToast, getSwal } from '../lib/sweetalert'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Directory.css'
 
 const firebaseConfig = {
