@@ -92,7 +92,6 @@ export default function Directory(){
     catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}
   }
   async function permanentlyDelete(id){
-    if(!authorized())return notify('Admin access required')
     if(!(await driveConfirm('Delete permanently?','This contact will be permanently removed. This cannot be undone.','Delete permanently','error')))return
     try{setBusy(true);await db.child(id).remove();notify('Contact permanently deleted')}
     catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}
@@ -100,7 +99,7 @@ export default function Directory(){
   async function importExcel(event){
     const file=event.target.files?.[0];if(!file)return
     try{
-      if(!authorized())throw new Error('Please sign in with an authorized admin account first.')
+
       if(!window.XLSX) await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=resolve;s.onerror=()=>reject(new Error('Excel reader unavailable'));document.head.appendChild(s)})
       const workbook=window.XLSX.read(await file.arrayBuffer(),{type:'array',cellText:true,cellDates:false})
       const sheet=workbook.Sheets[workbook.SheetNames[0]];if(!sheet)throw new Error('No readable worksheet found.')
@@ -124,7 +123,7 @@ export default function Directory(){
       if(!unique.length){await Swal.fire({icon:'info',title:'Nothing to import',html:preview});return}
       const confirm=await Swal.fire({icon:'question',title:'Review Excel import',html:preview,showCancelButton:true,confirmButtonText:'Import '+unique.length+' contacts',cancelButtonText:'Cancel',width:680})
       if(!confirm.isConfirmed)return
-      if(!authorized())throw new Error('Admin session expired. Please sign in again.')
+
       for(let i=0;i<unique.length;i+=200){
         const batch={};unique.slice(i,i+200).forEach(x=>{batch[db.push().key]=x.record})
         await db.update(batch)
@@ -171,7 +170,7 @@ export default function Directory(){
       <div className="directory-toolbar">
         <div className="directory-panel-title"><Users size={19}/> Search all hubs &amp; branches</div>
         <div className="directory-actions">
-          <button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button>}
+          <button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button>
           <input id="directory-excel" hidden type="file" accept=".xlsx,.xls,.csv" onChange={importExcel}/>
           <button className="directory-btn create" onClick={()=>setEdit({...EMPTY})}><Plus size={16}/> Create contact</button>
         </div>
