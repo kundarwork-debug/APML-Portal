@@ -6,6 +6,10 @@ import { getApmlDatabase, ensureApmlAnalyticsStructure } from '../lib/firebase'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Analytics.css'
 
+// DATA CONTRACT: every metric rendered here must be backed by a writer under
+// Firebase → "Analytics page". Keep the schema, migration and counter writers
+// in src/lib/firebase.js aligned; see docs/ANALYTICS-DATA-AUDIT.md before adding metrics.
+
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
 const TZ = 'Asia/Kolkata'
