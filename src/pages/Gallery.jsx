@@ -153,13 +153,13 @@ export default function Gallery() {
   const photos = activeItems.filter(item => !item.isVideo).length
   const videos = activeItems.filter(item => item.isVideo).length
   const visible = useMemo(() => items
-    .filter(item => activeFolder === 'deleted'
+    .filter(item => admin && activeFolder === 'deleted'
       ? item.folder === 'deleted'
       : activeFolder === ''
         ? item.folder !== 'deleted' && item.folder !== 'others'
-        : item.folder === activeFolder)
+        : item.folder === activeFolder && item.folder !== 'deleted')
     .sort((a, b) => (Number(b.downloadsCount) * 2 + Number(b.viewsCount)) - (Number(a.downloadsCount) * 2 + Number(a.viewsCount)) || (b.timestamp || 0) - (a.timestamp || 0)),
-  [items, activeFolder])
+  [items, activeFolder, admin])
   const pageCount = Math.max(1, Math.ceil(visible.length / pageSize))
   const currentPage = Math.min(page, pageCount)
   const pageItems = visible.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -171,6 +171,7 @@ export default function Gallery() {
     try { localStorage.setItem(FOLDER_STORAGE_KEY, JSON.stringify(next)) } catch {}
   }
   function selectFolder(id) {
+    if (id === 'deleted' && !admin) return
     setActiveFolder(id)
     setPage(1)
     if (id && id !== 'deleted') setUploadFolder(id)
@@ -440,7 +441,7 @@ export default function Gallery() {
           <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
           {!PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
         </span>)}
-        <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>
+        {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
       </div>
     </section>
 
