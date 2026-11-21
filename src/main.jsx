@@ -5,6 +5,7 @@ import App from './App.jsx'
 import './styles.css'
 import './design-system.css'
 import './shared-controls.css'
+import './light-theme-depth.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
