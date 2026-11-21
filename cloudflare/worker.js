@@ -2232,6 +2232,20 @@ export default {
 
   async scheduled(event, env, ctx) {
 
+    // Daily quotation cleanup at 00:30 IST (19:00 UTC).
+    if (event.cron === '30 19 * * *') {
+      ctx.waitUntil((async () => {
+        try {
+          const result = await trimQuotations(env);
+          console.log('Daily quotation cleanup:', JSON.stringify(result));
+        } catch (error) {
+          console.error('Daily quotation cleanup failed:', error);
+        }
+      })());
+      return;
+    }
+
+    // Existing hourly analytics summary.
     ctx.waitUntil(sendHourlyAnalyticsSummary(env));
 
   },
