@@ -49,7 +49,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  const trashFolders=folders.filter(x=>x.parentId==='deleted');
  const trashFiles=files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
  const visibleFolders=trash?trashFolders:hereFolders;
- const displayFolders=(!trash&&parent==='root'&&admin)?[...visibleFolders,{key:'deleted',name:'Trash Archive',isVirtualTrash:true}]:visibleFolders;
+ const displayFolders=(!trash&&parent==='root')?[...visibleFolders,{key:'deleted',name:'Trash Archive',isVirtualTrash:true}]:visibleFolders;
  const activeFileCount=files.filter(x=>x.parentId!=='deleted').length;
  const activeFolderCount=folders.filter(x=>x.parentId!=='deleted').length;
  const folderBytes=files.filter(x=>x.parentId!=='deleted').reduce((n,x)=>n+(Number(x.size)||0),0);
