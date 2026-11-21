@@ -127,8 +127,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
     {trash&&<span className="drive-crumb-part"><span className="drive-crumb-separator">/</span><b>Trash Archive</b></span>}
    </nav>
    <div className="drive-action-buttons">
-    {searchOpen&&<label className="drive-search"><Search size={15}/><input autoFocus value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search files and folders…"/><button type="button" aria-label="Close search" onClick={()=>{setSearch('');setSearchOpen(false)}}><X size={15}/></button></label>}
-    <button className="drive-action" onClick={()=>setSearchOpen(v=>!v)} title="Search Drive"><Search size={15}/> Search</button>
+    <label className="drive-search"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search files and folders…" aria-label="Search files and folders"/>{search&&<button type="button" aria-label="Clear search" onClick={()=>{setSearch('');setPage(1)}}><X size={15}/></button>}</label>
     <button className="drive-action" onClick={()=>{setParent('root');setSearch('');setPage(1)}}><HardDrive size={15}/> My Drive</button>
     <button className="drive-action" onClick={createFolder}><FolderPlus size={15}/> New Folder</button>
     <button className="drive-action" onClick={addLink}><Link2 size={15}/> Catbox Link</button>
