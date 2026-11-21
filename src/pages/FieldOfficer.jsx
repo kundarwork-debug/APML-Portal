@@ -20,7 +20,8 @@ export default function FieldOfficer(){
  const branchCount=new Set(activeRecords.map(x=>(x.branch||'').trim().toUpperCase()).filter(Boolean)).size
  const leaveCount=activeRecords.filter(x=>['leave','assco'].includes(String(x.status||'').toLowerCase())).length
  const availableBranches=[...new Set(activeRecords.map(x=>String(x.branch||'').trim().toUpperCase()).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
- const filtered=useMemo(()=>records.filter(x=>true).filter(x=>statusFilter==='All'||(statusFilter==='Deleted'?isDeleted(x):!isDeleted(x)&&String(x.status||'Active').toLowerCase()===statusFilter.toLowerCase())).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))||String(a.name||'').localeCompare(String(b.name||''))),[records,query,admin,statusFilter])
+ const filtered=useMemo(()=>records.filter(x=>admin||!isDeleted(x)).filter(x=>statusFilter==='All'||(statusFilter==='Deleted'?admin&&isDeleted(x):!isDeleted(x)&&String(x.status||'Active').toLowerCase()===statusFilter.toLowerCase())).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))||String(a.name||'').localeCompare(String(b.name||''))),[records,query,admin,statusFilter])
+ useEffect(()=>{if(!admin&&statusFilter==='Deleted')setStatusFilter('All')},[admin,statusFilter])
  const notify=m=>{driveToast(m).catch(()=>{setToast(m);window.setTimeout(()=>setToast(''),2800)})}
  async function copyNumber(number){
   try{
@@ -74,10 +75,10 @@ export default function FieldOfficer(){
     <><button className="fo-action fo-action-primary" onClick={()=>setEdit({...empty})}><Plus size={15}/> Create officer</button><label className="fo-action fo-action-primary fo-import-label"><Upload size={15}/>{importing?'Importing…':'Import Excel'}<input type="file" accept=".xlsx,.xls,.csv" disabled={importing||busy} onChange={e=>{const f=e.target.files?.[0];e.target.value='';importExcel(f)}} hidden/></label></>
    </div>
   </section>
-  <div className="fo-toolbar"><div className="fo-filter-tabs">{['All','Active','Assco','Leave','Left','Deleted'].map(x=><button key={x} className={statusFilter===x?'selected':''} onClick={()=>setStatusFilter(x)}>{x==='All'?'All officers':x}</button>)}</div>
+  <div className="fo-toolbar"><div className="fo-filter-tabs">{['All','Active','Assco','Leave','Left',...(admin?['Deleted']:[])].map(x=><button key={x} className={statusFilter===x?'selected':''} onClick={()=>setStatusFilter(x)}>{x==='All'?'All officers':x}</button>)}</div>
    <div className="fo-quick-filters">{availableBranches.map(branch=><button key={branch} className={query.trim().toUpperCase()===branch?'selected':''} onClick={()=>setQuery(query.trim().toUpperCase()===branch?'':branch)}>{branch}</button>)}{(query||statusFilter!=='All')&&<button onClick={()=>{setQuery('');setStatusFilter('All')}}><RefreshCw size={12}/> Clear</button>}</div>
   </div>
-  <div className="fo-live-status"><span className="fo-live-dot"/>{status}<span className="fo-status-count">Showing {filtered.length.toLocaleString('en-IN')} of {records.length.toLocaleString('en-IN')} records</span></div>
+  <div className="fo-live-status"><span className="fo-live-dot"/>{status}<span className="fo-status-count">Showing {filtered.length.toLocaleString('en-IN')} of {(admin?records.length:records.filter(x=>!isDeleted(x)).length).toLocaleString('en-IN')} records</span></div>
   <section className="fo-results"><div className="fo-results-heading"><h2><Users size={17}/> Field officers</h2><span>Everyone can manage officer records</span></div>
    <div className="fo-contact-list">
     {filtered.map(x=><article className={'fo-contact-row '+(isDeleted(x)?'deleted':'')} key={x.id}>
