@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useState} from 'react'
 import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw,LoaderCircle} from 'lucide-react'
 import {getApmlDatabase} from '../lib/firebase'
+import { logApmlAction } from '../lib/apmlActivity'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import {driveAlert,driveConfirm,driveToast} from '../lib/sweetalert'
 import './FieldOfficer.css'
@@ -34,8 +35,8 @@ export default function FieldOfficer(){
   }catch{notify('Could not copy number. Please select and copy it manually.')}
  }
  async function toggleAdmin(){setBusy(true);try{if(admin){await signOut();notify('Admin view closed');return}await signIn()}catch(e){try{await driveAlert('Admin sign-in failed',e.message||'Please try again.','error')}catch{notify(e.message||'Admin sign-in failed')}}finally{setBusy(false)}}
- async function save(){if(!ref)return notify('Directory is not connected');const value={...edit,name:edit.name.trim(),branch:edit.branch.trim().toUpperCase(),apmCode:edit.apmCode.trim()||'N/A',mobile:edit.mobile.trim(),role:'BFO'};if(!value.name||!value.branch||!value.mobile)return notify('Name, branch and mobile are required.');setBusy(true);try{if(edit.id)await ref.child(edit.id).update(value);else await ref.push({...value,isDeleted:false});setEdit(null);notify(edit.id?'Officer details updated':'New field officer created')}catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}}
- async function update(id,patch){if(!ref)return;if(patch.isDeleted===true){const ok=await driveConfirm('Hide this officer?','The contact will disappear from the public directory. It can be restored or permanently deleted from the directory.','Hide contact');if(!ok)return}setBusy(true);try{await ref.child(id).update(patch);notify(patch.isDeleted?'Contact hidden from public directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
+ async function save(){if(!ref)return notify('Directory is not connected');const value={...edit,name:edit.name.trim(),branch:edit.branch.trim().toUpperCase(),apmCode:edit.apmCode.trim()||'N/A',mobile:edit.mobile.trim(),role:'BFO'};if(!value.name||!value.branch||!value.mobile)return notify('Name, branch and mobile are required.');setBusy(true);try{if(edit.id)await ref.child(edit.id).update(value);else await ref.push({...value,isDeleted:false});void logApmlAction({action:edit.id?'Officer updated':'Officer created',module:'Field Officer',item:value.name,details:value.branch});setEdit(null);notify(edit.id?'Officer details updated':'New field officer created')}catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}}
+ async function update(id,patch){if(!ref)return;if(patch.isDeleted===true){const ok=await driveConfirm('Hide this officer?','The contact will disappear from the public directory. It can be restored or permanently deleted from the directory.','Hide contact');if(!ok)return}setBusy(true);try{await ref.child(id).update(patch);void logApmlAction({action:patch.isDeleted?'Officer hidden':'Officer restored',module:'Field Officer',item:records.find(row=>row.id===id)?.name||'Officer'});notify(patch.isDeleted?'Contact hidden from public directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
  async function importExcel(file){
   if(!ref)return notify('Directory is not connected');
   if(!file)return;
@@ -62,10 +63,11 @@ export default function FieldOfficer(){
    }
    if(!imported.length)throw new Error('No valid new officers found. Required columns: Name, Branch and Mobile.');
    for(let i=0;i<imported.length;i+=25){const updates={};imported.slice(i,i+25).forEach(v=>{updates[ref.push().key]=v});await ref.update(updates)}
+   void logApmlAction({action:'Excel import completed',module:'Field Officer',item:imported.length+' officers'})
    notify('Imported '+imported.length+' officers'+(skipped.length?' · skipped '+skipped.length+' invalid/duplicate rows':''));
   }catch(e){notify('Excel import failed: '+e.message)}finally{setImporting(false)}
  }
- async function permanentlyDelete(id){if(!ref)return;const ok=await driveConfirm('Delete officer permanently?','This removes the record from Firebase and cannot be undone.','Delete forever');if(!ok)return;setBusy(true);try{await ref.child(id).remove();notify('Officer permanently deleted')}catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}}
+ async function permanentlyDelete(id){if(!ref)return;const ok=await driveConfirm('Delete officer permanently?','This removes the record from Firebase and cannot be undone.','Delete forever');if(!ok)return;setBusy(true);try{await ref.child(id).remove();void logApmlAction({action:'Officer permanently deleted',module:'Field Officer',item:records.find(row=>row.id===id)?.name||'Officer'});notify('Officer permanently deleted')}catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}}
  return <main className="fo-page">
   <header className="fo-head"><div className="fo-heading-copy"><div className="fo-eyebrow"><Users size={14}/> PEOPLE DIRECTORY</div><h1 className="fo-title">Field Officer <span>Directory</span></h1><p className="fo-subtitle">Find branch officers, contact details and current status.</p>
    <div className="fo-stats"><span><Users size={14}/><strong>{activeCount.toLocaleString('en-IN')}</strong> Active officers</span><span><MapPin size={14}/><strong>{branchCount.toLocaleString('en-IN')}</strong> Branches</span><span><Clock3 size={14}/><strong>{leaveCount.toLocaleString('en-IN')}</strong> On leave / associate</span></div>
