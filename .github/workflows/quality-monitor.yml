@@ -92,8 +92,20 @@ jobs:
             './**/*.md'
             'https://apmlportal.vercel.app/'
             'https://apmlportal.vercel.app/editor'
+            'https://apmlportal.vercel.app/analytics'
             'https://apmlportal.vercel.app/system-health'
             'https://apmlportal.vercel.app/local-rate'
+            'https://apmlportal.vercel.app/car-rate'
+            'https://apmlportal.vercel.app/apml-lite'
+            'https://apmlportal.vercel.app/directory'
+            'https://apmlportal.vercel.app/field-officer'
+            'https://apmlportal.vercel.app/drive'
+            'https://apmlportal.vercel.app/gallery'
+            'https://apmlportal.vercel.app/admin'
+            'https://apmlportal.vercel.app/bug-report'
+            'https://apmlportal.vercel.app/privacy'
+            'https://apmlportal.vercel.app/terms'
+            'https://apmlportal.vercel.app/cookies'
             'https://apmlportal.vercel.app/about'
           output: ./lychee-report.md
           format: markdown
@@ -106,7 +118,15 @@ jobs:
           urls: |
             https://apmlportal.vercel.app/
             https://apmlportal.vercel.app/editor
+            https://apmlportal.vercel.app/analytics
             https://apmlportal.vercel.app/system-health
+            https://apmlportal.vercel.app/local-rate
+            https://apmlportal.vercel.app/car-rate
+            https://apmlportal.vercel.app/apml-lite
+            https://apmlportal.vercel.app/directory
+            https://apmlportal.vercel.app/field-officer
+            https://apmlportal.vercel.app/drive
+            https://apmlportal.vercel.app/gallery
             https://apmlportal.vercel.app/about
           runs: 1
           uploadArtifacts: true
