@@ -2068,26 +2068,6 @@ async function handleStorageAudit(request, env) {
   }
 
   const auth = 'Basic ' + btoa(`${env.CLOUDINARY_API_KEY}:${env.CLOUDINARY_API_SECRET}`);
-  const referenced = new Set();
-  const referenceCounts = new Map();
-  const walk = (value) => {
-    if (!value || typeof value !== 'object') return;
-    if (Array.isArray(value)) {
-      for (const item of value) walk(item);
-      return;
-    }
-    for (const [key, item] of Object.entries(value)) {
-      if (typeof item === 'string' && item.includes('res.cloudinary.com')) {
-        const parsed = parseCloudinaryUrl(item);
-        if (parsed) {
-          const id = parsed.resourceType + '/' + parsed.publicId;
-          referenced.add(id);
-          referenceCounts.set(id, (referenceCounts.get(id) || 0) + 1);
-        }
-      } else if (item && typeof item === 'object') walk(item);
-    }
-  };
-
   let firebaseResponse;
   try {
     firebaseResponse = await fetch(CONFIG.FIREBASE_DB_URL + '/.json');
@@ -2098,12 +2078,72 @@ async function handleStorageAudit(request, env) {
   let firebaseData;
   try { firebaseData = await firebaseResponse.json(); }
   catch { return json({ ok: false, error: 'Firebase returned an unreadable response.' }, 502); }
-  walk(firebaseData);
+
+  const driveFiles = firebaseData?.catbox_gdrive_files || {};
+  const driveFolders = firebaseData?.catbox_gdrive_folders || {};
+  const galleryItems = firebaseData?.apml_ranked_gallery || {};
+  const folderById = new Map(Object.entries(driveFolders).map(([id, folder]) => [id, folder || {}]));
+  const references = new Map();
+  const addReference = (url, entry) => {
+    if (typeof url !== 'string' || !url.includes('res.cloudinary.com')) return;
+    const parsed = parseCloudinaryUrl(url);
+    if (!parsed) return;
+    const key = parsed.resourceType + '/' + parsed.publicId;
+    if (!references.has(key)) references.set(key, []);
+    references.get(key).push(entry);
+  };
+
+  const driveFolderPath = (folderId) => {
+    if (!folderId || folderId === 'root' || folderId === 'deleted') return folderId === 'deleted' ? 'Trash Archive' : 'My Drive';
+    const names = [];
+    const seen = new Set();
+    let id = folderId;
+    let trashed = false;
+    while (id && id !== 'root' && id !== 'deleted' && !seen.has(id)) {
+      seen.add(id);
+      const folder = folderById.get(id);
+      if (!folder) { names.unshift('Unknown folder'); break; }
+      names.unshift(String(folder.name || 'Untitled folder'));
+      if (folder.parentId === 'deleted') trashed = true;
+      id = folder.parentId || 'root';
+    }
+    if (id === 'deleted') trashed = true;
+    return { path: names.join(' / ') || 'My Drive', trashed };
+  };
+
+  for (const [id, file] of Object.entries(driveFiles)) {
+    if (!file || typeof file !== 'object') continue;
+    const parentId = file.parentId || 'root';
+    const folderInfo = driveFolderPath(parentId);
+    const inTrash = parentId === 'deleted' || Boolean(folderInfo?.trashed);
+    addReference(file.fileId || file.url || file.secure_url, {
+      section: 'APML Drive',
+      name: file.name || file.fileName || file.public_id || 'Unnamed file',
+      folder: typeof folderInfo === 'string' ? folderInfo : folderInfo.path,
+      status: inTrash ? 'trash' : 'visible',
+      recordId: id
+    });
+  }
+
+  for (const [id, item] of Object.entries(galleryItems)) {
+    if (!item || typeof item !== 'object') continue;
+    const inTrash = item.folder === 'deleted';
+    addReference(item.url || item.fileUrl || item.secure_url, {
+      section: 'Gallery',
+      name: item.name || item.fileName || 'Untitled media',
+      folder: inTrash ? 'Trash Archive' : (item.folder || 'Gallery'),
+      status: inTrash ? 'trash' : 'visible',
+      recordId: id
+    });
+  }
 
   const assets = [];
   const counts = { image: 0, video: 0, raw: 0 };
+  const statusCounts = { visible: 0, trash: 0, deleted: 0 };
+  const statusBytes = { visible: 0, trash: 0, deleted: 0 };
   let totalBytes = 0;
   let complete = true;
+
   for (const type of ['image', 'video', 'raw']) {
     let cursor = '';
     let pages = 0;
@@ -2123,18 +2163,25 @@ async function handleStorageAudit(request, env) {
       const rows = Array.isArray(body.resources) ? body.resources : [];
       for (const asset of rows) {
         const key = type + '/' + asset.public_id;
-        const isReferenced = referenced.has(key);
+        const refs = references.get(key) || [];
+        const activeRefs = refs.filter(ref => ref.status === 'visible');
+        const trashRefs = refs.filter(ref => ref.status === 'trash');
+        const status = activeRefs.length ? 'visible' : trashRefs.length ? 'trash' : 'deleted';
         const bytes = Math.max(0, Number(asset.bytes) || 0);
         counts[type]++;
         totalBytes += bytes;
-        if (!isReferenced) assets.push({
+        statusCounts[status]++;
+        statusBytes[status] += bytes;
+        assets.push({
           publicId: asset.public_id,
           resourceType: type,
           url: asset.secure_url || '',
           format: asset.format || '',
           createdAt: asset.created_at || '',
           bytes,
-          referenceCount: referenceCounts.get(key) || 0
+          status,
+          fileName: refs[0]?.name || asset.public_id.split('/').pop(),
+          locations: refs.map(({ section, name, folder, status: refStatus }) => ({ section, name, folder, status: refStatus }))
         });
       }
       cursor = body.next_cursor || '';
@@ -2143,26 +2190,28 @@ async function handleStorageAudit(request, env) {
     } while (cursor && pages < 20);
   }
 
-  const orphanBytes = assets.reduce((sum, asset) => sum + asset.bytes, 0);
+  const totals = {
+    assets: counts.image + counts.video + counts.raw,
+    images: counts.image,
+    videos: counts.video,
+    raw: counts.raw,
+    visible: statusCounts.visible,
+    trash: statusCounts.trash,
+    deleted: statusCounts.deleted,
+    storageBytes: totalBytes,
+    visibleBytes: statusBytes.visible,
+    trashBytes: statusBytes.trash,
+    deletedBytes: statusBytes.deleted
+  };
   return json({
     ok: true,
     generatedAt: new Date().toISOString(),
-    scope: 'Cloudinary assets in the APML Portal cloud compared against all readable Firebase portal records',
+    scope: 'Cloudinary inventory matched against APML Drive and Gallery Firebase records',
     complete,
-    totals: {
-      assets: counts.image + counts.video + counts.raw,
-      images: counts.image,
-      videos: counts.video,
-      raw: counts.raw,
-      matched: counts.image + counts.video + counts.raw - assets.length,
-      unmatched: assets.length,
-      storageBytes: totalBytes,
-      unmatchedBytes: orphanBytes
-    },
-    unmatched: assets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+    totals,
+    assets: assets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
   });
 }
-
 export default {
 
   async fetch(request, env, ctx) {
