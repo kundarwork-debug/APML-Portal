@@ -79,20 +79,34 @@ export async function getApmlPresenceServices() {
 
   return { database: firebase.database(app), user }
 }
+function istDateKey() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date())
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]))
+  return values.year + '-' + values.month + '-' + values.day
+}
+
+async function incrementAnalyticsCounter(database, lifetimePath, dailyField, label) {
+  const day = istDateKey()
+  const [lifetime, daily] = await Promise.allSettled([
+    database.ref(lifetimePath).transaction(value => (Number(value) || 0) + 1),
+    database.ref('analytics/daily_logs/' + day + '/' + dailyField).transaction(value => (Number(value) || 0) + 1)
+  ])
+  if (lifetime.status !== 'fulfilled' || !lifetime.value.committed ||
+      daily.status !== 'fulfilled' || !daily.value.committed) {
+    const reasons = [lifetime, daily].filter(result => result.status === 'rejected').map(result => result.reason?.message || String(result.reason))
+    throw new Error(label + ' counter update incomplete' + (reasons.length ? ': ' + reasons.join('; ') : '.'))
+  }
+  return lifetime.value.snapshot.val()
+}
+
 export async function incrementApmlMediaDownload() {
   const { database } = await getApmlPresenceServices()
-  const result = await database.ref('analytics/totalMediaDownloads').transaction(
-    value => (Number(value) || 0) + 1
-  )
-  if (!result.committed) throw new Error('Firebase did not commit the media download count.')
-  return result.snapshot.val()
+  return incrementAnalyticsCounter(database, 'analytics/totalMediaDownloads', 'media', 'Media download')
 }
 
 export async function incrementApmlPdfGenerated() {
   const { database } = await getApmlPresenceServices()
-  const result = await database.ref('analytics/totalPdfDownloads').transaction(
-    value => (Number(value) || 0) + 1
-  )
-  if (!result.committed) throw new Error('Firebase did not commit the generated PDF count.')
-  return result.snapshot.val()
+  return incrementAnalyticsCounter(database, 'analytics/totalPdfDownloads', 'pdf', 'Generated PDF')
 }
