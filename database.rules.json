@@ -1,0 +1,24 @@
+{
+  "rules": {
+    "catbox_gdrive_folders": {
+      ".read": true,
+      ".write": true
+    },
+    "catbox_gdrive_files": {
+      ".read": true,
+      ".write": true
+    },
+    "apml_ranked_gallery": {
+      ".read": true,
+      ".write": true
+    },
+    "directory": {
+      ".read": true,
+      ".write": true
+    },
+    "field_officers": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
