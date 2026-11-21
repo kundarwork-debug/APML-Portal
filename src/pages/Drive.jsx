@@ -2,7 +2,7 @@ import {useEffect,useMemo,useRef,useState} from 'react'
 import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, File, Download, ExternalLink, Pencil, Trash2, RotateCcw, ChevronLeft, ChevronRight, Upload, Plus, HardDrive, ShieldCheck, FolderPlus, Link2 } from 'lucide-react'
 import './Drive.css'
 import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
 import { EmptyState } from '../components/ui/StateViews'
 const cfg={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
