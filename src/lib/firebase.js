@@ -87,26 +87,77 @@ function istDateKey() {
   return values.year + '-' + values.month + '-' + values.day
 }
 
-async function incrementAnalyticsCounter(database, lifetimePath, dailyField, label) {
-  const day = istDateKey()
-  const [lifetime, daily] = await Promise.allSettled([
-    database.ref(lifetimePath).transaction(value => (Number(value) || 0) + 1),
-    database.ref('analytics/daily_logs/' + day + '/' + dailyField).transaction(value => (Number(value) || 0) + 1)
+// ANALYTICS DATA CONTRACT
+// The Analytics page's source of truth is the Firebase node "Analytics page".
+// Every metric rendered by src/pages/Analytics.jsx must have a real writer here
+// (or in a documented event logger) and be stored under that node.
+// The lowercase "analytics" paths are compatibility mirrors for the existing
+// homepage and Cloudflare Worker. Do not build new dashboard cards from them.
+export async function ensureApmlAnalyticsStructure(database) {
+  const root = database.ref('Analytics page')
+  const [meta, legacyDaily, legacyPdf, legacyMedia] = await Promise.all([
+    root.child('_meta').once('value'),
+    database.ref('analytics/daily_logs').once('value'),
+    database.ref('analytics/totalPdfDownloads').once('value'),
+    database.ref('analytics/totalMediaDownloads').once('value')
   ])
-  if (lifetime.status !== 'fulfilled' || !lifetime.value.committed ||
-      daily.status !== 'fulfilled' || !daily.value.committed) {
-    const reasons = [lifetime, daily].filter(result => result.status === 'rejected').map(result => result.reason?.message || String(result.reason))
-    throw new Error(label + ' counter update incomplete' + (reasons.length ? ': ' + reasons.join('; ') : '.'))
+  if (Number(meta.val()?.schemaVersion) >= 1) return
+
+  const days = legacyDaily.val() || {}
+  await Promise.all(Object.entries(days).map(([day, value]) => {
+    const clean = { pdf: Number(value?.pdf) || 0, media: Number(value?.media) || 0 }
+    return root.child('daily_logs/' + day).transaction(current => current == null ? clean : current)
+  }))
+  await Promise.all([
+    ['pdfGenerated', legacyPdf.val()],
+    ['mediaDownloads', legacyMedia.val()]
+  ].map(([key, value]) => root.child('lifetime_totals/' + key)
+    .transaction(current => current == null ? (Number(value) || 0) : current)))
+
+  await root.child('_meta').update({
+    schemaVersion: 1,
+    timezone: 'Asia/Kolkata',
+    createdAt: Date.now(),
+    description: 'Source of truth for all metrics displayed on the APML Analytics page.'
+  })
+}
+
+async function incrementAnalyticsCounter(database, lifetimeKey, legacyLifetimePath, dailyField, label) {
+  const day = istDateKey()
+  const canonicalLifetime = database.ref('Analytics page/lifetime_totals/' + lifetimeKey)
+  const canonicalDaily = database.ref('Analytics page/daily_logs/' + day + '/' + dailyField)
+  const legacyLifetime = database.ref(legacyLifetimePath)
+  const legacyDaily = database.ref('analytics/daily_logs/' + day + '/' + dailyField)
+
+  const canonical = await Promise.allSettled([
+    canonicalLifetime.transaction(value => (Number(value) || 0) + 1),
+    canonicalDaily.transaction(value => (Number(value) || 0) + 1)
+  ])
+  if (canonical.some(result => result.status !== 'fulfilled' || !result.value.committed)) {
+    const reasons = canonical.filter(result => result.status === 'rejected')
+      .map(result => result.reason?.message || String(result.reason))
+    throw new Error(label + ' analytics update failed' + (reasons.length ? ': ' + reasons.join('; ') : '.'))
   }
-  return lifetime.value.snapshot.val()
+
+  // Keep the legacy mirrors in sync for the homepage and Worker report endpoint.
+  const legacy = await Promise.allSettled([
+    legacyLifetime.transaction(value => (Number(value) || 0) + 1),
+    legacyDaily.transaction(value => (Number(value) || 0) + 1)
+  ])
+  if (legacy.some(result => result.status !== 'fulfilled' || !result.value.committed)) {
+    console.warn(label + ' legacy analytics mirror update incomplete; canonical Analytics page data was saved.')
+  }
+  return canonical[0].value.snapshot.val()
 }
 
 export async function incrementApmlMediaDownload() {
   const { database } = await getApmlPresenceServices()
-  return incrementAnalyticsCounter(database, 'analytics/totalMediaDownloads', 'media', 'Media download')
+  await ensureApmlAnalyticsStructure(database)
+  return incrementAnalyticsCounter(database, 'mediaDownloads', 'analytics/totalMediaDownloads', 'media', 'Media download')
 }
 
 export async function incrementApmlPdfGenerated() {
   const { database } = await getApmlPresenceServices()
-  return incrementAnalyticsCounter(database, 'analytics/totalPdfDownloads', 'pdf', 'Generated PDF')
+  await ensureApmlAnalyticsStructure(database)
+  return incrementAnalyticsCounter(database, 'pdfGenerated', 'analytics/totalPdfDownloads', 'pdf', 'Generated PDF')
 }
