@@ -77,7 +77,7 @@ export default function FieldOfficer(){
   <div className="fo-toolbar"><div className="fo-filter-tabs">{['All','Active','Assco','Leave','Left','Deleted'].map(x=><button key={x} className={statusFilter===x?'selected':''} onClick={()=>setStatusFilter(x)}>{x==='All'?'All officers':x}</button>)}</div>
    <div className="fo-quick-filters">{availableBranches.map(branch=><button key={branch} className={query.trim().toUpperCase()===branch?'selected':''} onClick={()=>setQuery(query.trim().toUpperCase()===branch?'':branch)}>{branch}</button>)}{(query||statusFilter!=='All')&&<button onClick={()=>{setQuery('');setStatusFilter('All')}}><RefreshCw size={12}/> Clear</button>}</div>
   </div>
-  <div className="fo-live-status"><span className="fo-live-dot"/>{status}<span className="fo-status-count">Showing {filtered.length.toLocaleString('en-IN')} of {(admin?records.length:activeCount).toLocaleString('en-IN')} records</span></div>
+  <div className="fo-live-status"><span className="fo-live-dot"/>{status}<span className="fo-status-count">Showing {filtered.length.toLocaleString('en-IN')} of {records.length.toLocaleString('en-IN')} records</span></div>
   <section className="fo-results"><div className="fo-results-heading"><h2><Users size={17}/> Field officers</h2><span>Everyone can manage officer records</span></div>
    <div className="fo-contact-list">
     {filtered.map(x=><article className={'fo-contact-row '+(isDeleted(x)?'deleted':'')} key={x.id}>
