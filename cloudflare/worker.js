@@ -2059,6 +2059,110 @@ async function handleNovaAnalytics(request, env) {
   });
 }
 
+
+async function handleStorageAudit(request, env) {
+  const admin = await getFirebaseAdminEmail(request);
+  if (!admin) return json({ ok: false, error: 'Admin login required' }, 401);
+  if (!env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
+    return json({ ok: false, error: 'Cloudinary Admin API credentials are not configured on the Worker.' }, 503);
+  }
+
+  const auth = 'Basic ' + btoa(`${env.CLOUDINARY_API_KEY}:${env.CLOUDINARY_API_SECRET}`);
+  const referenced = new Set();
+  const referenceCounts = new Map();
+  const walk = (value) => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      for (const item of value) walk(item);
+      return;
+    }
+    for (const [key, item] of Object.entries(value)) {
+      if (typeof item === 'string' && item.includes('res.cloudinary.com')) {
+        const parsed = parseCloudinaryUrl(item);
+        if (parsed) {
+          const id = parsed.resourceType + '/' + parsed.publicId;
+          referenced.add(id);
+          referenceCounts.set(id, (referenceCounts.get(id) || 0) + 1);
+        }
+      } else if (item && typeof item === 'object') walk(item);
+    }
+  };
+
+  let firebaseResponse;
+  try {
+    firebaseResponse = await fetch(CONFIG.FIREBASE_DB_URL + '/.json');
+  } catch {
+    return json({ ok: false, error: 'Could not read portal file references from Firebase.' }, 502);
+  }
+  if (!firebaseResponse.ok) return json({ ok: false, error: 'Firebase reference scan failed with HTTP ' + firebaseResponse.status + '.' }, 502);
+  let firebaseData;
+  try { firebaseData = await firebaseResponse.json(); }
+  catch { return json({ ok: false, error: 'Firebase returned an unreadable response.' }, 502); }
+  walk(firebaseData);
+
+  const assets = [];
+  const counts = { image: 0, video: 0, raw: 0 };
+  let totalBytes = 0;
+  let complete = true;
+  for (const type of ['image', 'video', 'raw']) {
+    let cursor = '';
+    let pages = 0;
+    do {
+      const params = new URLSearchParams({ max_results: '500' });
+      if (cursor) params.set('next_cursor', cursor);
+      let response;
+      try {
+        response = await fetch(`https://api.cloudinary.com/v1_1/${CONFIG.CLOUD_NAME}/resources/${type}/upload?${params}`, {
+          headers: { Authorization: auth }
+        });
+      } catch {
+        return json({ ok: false, error: 'Cloudinary inventory request failed for ' + type + ' assets.' }, 502);
+      }
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) return json({ ok: false, error: body.error?.message || 'Cloudinary returned HTTP ' + response.status + ' while listing ' + type + ' assets.' }, 502);
+      const rows = Array.isArray(body.resources) ? body.resources : [];
+      for (const asset of rows) {
+        const key = type + '/' + asset.public_id;
+        const isReferenced = referenced.has(key);
+        const bytes = Math.max(0, Number(asset.bytes) || 0);
+        counts[type]++;
+        totalBytes += bytes;
+        if (!isReferenced) assets.push({
+          publicId: asset.public_id,
+          resourceType: type,
+          url: asset.secure_url || '',
+          format: asset.format || '',
+          createdAt: asset.created_at || '',
+          bytes,
+          referenceCount: referenceCounts.get(key) || 0
+        });
+      }
+      cursor = body.next_cursor || '';
+      pages++;
+      if (cursor && pages >= 20) complete = false;
+    } while (cursor && pages < 20);
+  }
+
+  const orphanBytes = assets.reduce((sum, asset) => sum + asset.bytes, 0);
+  return json({
+    ok: true,
+    generatedAt: new Date().toISOString(),
+    scope: 'Cloudinary assets in the APML Portal cloud compared against all readable Firebase portal records',
+    complete,
+    totals: {
+      assets: counts.image + counts.video + counts.raw,
+      images: counts.image,
+      videos: counts.video,
+      raw: counts.raw,
+      matched: counts.image + counts.video + counts.raw - assets.length,
+      unmatched: assets.length,
+      storageBytes: totalBytes,
+      unmatchedBytes: orphanBytes
+    },
+    unmatched: assets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  });
+}
+
 export default {
 
   async fetch(request, env, ctx) {
@@ -2131,6 +2235,8 @@ export default {
         timestamp: new Date().toISOString()
       });
     }
+
+    if (request.method === 'GET' && path === '/storage-audit') return await handleStorageAudit(request, env);
 
     if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
 
