@@ -85,10 +85,10 @@ export default function Analytics(){
    </section>
    <p className="an-footnote">Daily trends use the last 7 days of recorded events. Lifetime totals are read from the portal-wide Firebase counters.</p>
   </>}
-  {admin&&{admin&&<section className="an-panel an-activity-panel">
+  {admin&&<section className="an-panel an-activity-panel">
     <div className="an-panel-head"><div><span className="an-section-label">PORTAL AUDIT TRAIL</span><h2><Activity size={17} style={{verticalAlign:'-3px',marginRight:7}}/>Recent Activity</h2><p>Latest 50 successful actions recorded across APML Portal.</p></div><span className="an-period">{activity.length} / 50 events</span></div>
     <div className="an-activity-toolbar"><label htmlFor="an-activity-filter">Filter module</label><select id="an-activity-filter" value={activityFilter} onChange={event=>setActivityFilter(event.target.value)}>{activityModules.map(module=><option key={module} value={module}>{module}</option>)}</select></div>
     {filteredActivity.length?<div className="an-activity-list">{filteredActivity.map(row=><article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15}/></span><div className="an-activity-copy"><strong>{row.action||'Activity recorded'}</strong><span>{[row.module,row.item,row.details].filter(Boolean).join(' · ')}</span><small>{row.user||'Guest'}</small></div><time dateTime={new Date(row.timestamp||0).toISOString()}>{row.timestamp?new Date(row.timestamp).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</time></article>)}</div>:<div className="an-activity-empty">No activity has been recorded yet. New successful actions will appear here.</div>}
-   </section>}}
+   </section>}
  </div>
 }
