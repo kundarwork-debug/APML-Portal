@@ -170,8 +170,8 @@ export default function Directory(){
       <div className="directory-toolbar">
         <div className="directory-panel-title"><Users size={19}/> Search all hubs &amp; branches</div>
         <div className="directory-actions">
-          <button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button>
-          <input id="directory-excel" hidden type="file" accept=".xlsx,.xls,.csv" onChange={importExcel}/>
+          {admin&&userEmail&&<><button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button>
+          <input id="directory-excel" hidden type="file" accept=".xlsx,.xls,.csv" onChange={importExcel}/></>}
           <button className="directory-btn create" onClick={()=>setEdit({...EMPTY})}><Plus size={16}/> Create contact</button>
         </div>
       </div>
