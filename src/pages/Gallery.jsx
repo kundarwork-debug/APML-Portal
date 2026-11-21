@@ -311,20 +311,9 @@ export default function Gallery() {
     if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     try {
-      window.APMNotify?.send?.({
-        type: 'gallery',
-        title: item.isVideo ? 'Gallery video downloaded' : 'Gallery photo downloaded',
-        file: name, link: item.url,
-        details: {
-          Folder: folders.find(folder => folder.id === item.folder)?.label || item.folder || '',
-          Stored_on: fileSource(item.url).label,
-          Size: item.size ? formatBytes(item.size) : ''
-        }
-      })
-    } catch {}
-    try {
       if (window.ApmNativeDownload?.start) {
         window.ApmNativeDownload.start(item.url, name)
+        window.APMNotify?.send?.({type:'gallery',title:item.isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery'})
         void metric(item, 'downloadsCount')
         void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
         window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
@@ -352,6 +341,7 @@ export default function Gallery() {
       document.body.append(anchor)
       anchor.click()
       anchor.remove()
+      window.APMNotify?.send?.({type:'gallery',title:item.isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery'})
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
 
       void metric(item, 'downloadsCount')
