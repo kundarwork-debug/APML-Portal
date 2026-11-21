@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
 import './Gallery.css'
 import { EmptyState } from '../components/ui/StateViews'
