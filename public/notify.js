@@ -180,6 +180,21 @@
     } catch (e) { return false; }
   }
 
+  function startVisit() {
+    if (!ENABLED.visit || muted() || looksLikeBot()) return;
+    var key = 'apml_visit_alert_at';
+    var now = Date.now();
+    try {
+      var last = Number(localStorage.getItem(key) || 0);
+      if (last && now - last < VISIT.cooldownHours * 60 * 60 * 1000) return;
+      localStorage.setItem(key, String(now));
+    } catch (e) {}
+    setTimeout(function () {
+      if (document.visibilityState === 'hidden' || looksLikeBot()) return;
+      send({ type: 'visit', title: 'New portal visit', file: pageName(), folder: deviceText() });
+    }, VISIT.delayMs);
+  }
+
   // ---------------- announcements ----------------
   var annNow = null, annPinned = '', annLastPoll = 0, annTries = 0;
 
