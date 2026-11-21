@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Search, MapPin, Phone, Copy, Pencil, Trash2, RotateCcw, Plus, Upload, LogOut, Users, MapPinned, LoaderCircle, X, ExternalLink } from 'lucide-react'
 import { driveAlert, driveConfirm, driveToast, getSwal } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
+import { logApmlAction } from '../lib/apmlActivity'
 import './Directory.css'
 
 const firebaseConfig = {
@@ -82,18 +83,19 @@ export default function Directory(){
       setBusy(true)
       if(record.id) await db.child(record.id).set({...record,isDeleted:deleted(record)})
       else await db.push({...record,isDeleted:false})
+      void logApmlAction({action:record.id?'Contact updated':'Contact created',module:'Directory',item:record.name,details:record.location})
       setEdit(null);notify(record.id?'Contact updated':'Contact created')
     }catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}
   }
   async function updateFlag(id,patch){
     if(patch.isDeleted===true && !(await driveConfirm('Hide this contact?','It will move to deleted records and remain recoverable by admins.','Hide contact')))return
     if(patch.isDeleted===false && !(await driveConfirm('Restore this contact?','It will become visible in the public directory again.','Restore contact','question')))return
-    try{setBusy(true);await db.child(id).update(patch);notify(patch.isDeleted?'Contact moved to deleted records':patch.isDeleted===false?'Contact restored':'Contact updated')}
+    try{setBusy(true);await db.child(id).update(patch);void logApmlAction({action:patch.isDeleted===true?'Contact moved to deleted records':patch.isDeleted===false?'Contact restored':'Contact updated',module:'Directory',item:rows.find(row=>row.id===id)?.name||'Contact'});notify(patch.isDeleted?'Contact moved to deleted records':patch.isDeleted===false?'Contact restored':'Contact updated')}
     catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}
   }
   async function permanentlyDelete(id){
     if(!(await driveConfirm('Delete permanently?','This contact will be permanently removed. This cannot be undone.','Delete permanently','error')))return
-    try{setBusy(true);await db.child(id).remove();notify('Contact permanently deleted')}
+    try{setBusy(true);await db.child(id).remove();void logApmlAction({action:'Contact permanently deleted',module:'Directory',item:rows.find(row=>row.id===id)?.name||'Contact'});notify('Contact permanently deleted')}
     catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}
   }
   async function importExcel(event){
@@ -127,6 +129,7 @@ export default function Directory(){
       for(let i=0;i<unique.length;i+=200){
         const batch={};unique.slice(i,i+200).forEach(x=>{batch[db.push().key]=x.record})
         await db.update(batch)
+      void logApmlAction({action:'Excel import completed',module:'Directory',item:unique.length+' contacts'})
       }
       await Swal.fire({icon:'success',title:'Import complete',text:unique.length+' contacts added. Duplicates skipped: '+duplicates.length+'. Invalid rows: '+invalid.length+'.'})
     }catch(e){await driveAlert('Import failed',e.message,'error').catch(()=>notify(e.message))}
