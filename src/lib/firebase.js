@@ -106,7 +106,7 @@ export async function ensureApmlAnalyticsStructure(database) {
   const days = legacyDaily.val() || {}
   await Promise.all(Object.entries(days).map(([day, value]) => {
     const clean = { pdf: Number(value?.pdf) || 0, media: Number(value?.media) || 0 }
-    return root.child('daily_logs/' + day).transaction(current => current == null ? clean : current)
+    return root.child('daily_logs/' + day).transaction(current => ({ ...clean, ...(current || {}) }))
   }))
   await Promise.all([
     ['pdfGenerated', legacyPdf.val()],
