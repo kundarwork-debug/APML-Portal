@@ -2169,37 +2169,43 @@ export default {
       if (path === '/admin-notifications') return await handleAdminNotifications(request, env);
 
       if (path === '/delete') {
-
         const admin = await getFirebaseAdminEmail(request);
-
         if (!admin) return json({ error: 'Admin login required' }, 401);
 
-        const { urls } = await request.json();
+        let body;
+        try { body = await request.json(); } catch { return json({ error: 'Invalid JSON' }, 400); }
+        const list = Array.isArray(body && body.urls) ? body.urls.slice(0, 50) : [];
+        if (!list.length) return json({ error: 'No file URLs supplied' }, 400);
 
-        const list = Array.isArray(urls) ? urls : [];
-
-        const parsed = list.map(parseCloudinaryUrl).filter(Boolean);
+        const parsed = [];
+        const invalidCloudinary = [];
+        for (const value of list) {
+          const url = String(value || '');
+          const item = parseCloudinaryUrl(url);
+          if (item) parsed.push(item);
+          else {
+            try {
+              if (new URL(url).hostname === 'res.cloudinary.com') invalidCloudinary.push(url);
+            } catch {}
+          }
+        }
+        if (invalidCloudinary.length) {
+          return json({ ok: false, error: 'A Cloudinary URL could not be parsed safely; no records were deleted.' }, 400);
+        }
+        if (parsed.length && (!env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET)) {
+          return json({ ok: false, error: 'Cloudinary Admin API credentials are missing on the Worker; no records were deleted.' }, 503);
+        }
 
         const results = parsed.length ? await cloudinaryDelete(env, parsed) : [];
-
-        const failed = results.filter((r) => !r.ok);
-
+        const failed = results.filter((result) => !result.ok);
         return json({
-
           requested: list.length,
-
-          deleted: results.reduce((n, r) => n + r.deleted.length, 0),
-
-          notFound: results.flatMap((r) => r.notFound),
-
+          deleted: results.reduce((count, result) => count + result.deleted.length, 0),
+          notFound: results.flatMap((result) => result.notFound),
           skipped: list.length - parsed.length,
-
           ok: failed.length === 0,
-
-          error: failed.length ? failed[0].error || `HTTP ${failed[0].status}` : undefined,
-
-        });
-
+          error: failed.length ? failed[0].error || `HTTP ${failed[0].status}` : undefined
+        }, failed.length ? 502 : 200);
       }
 
       if (path === '/notify') {
