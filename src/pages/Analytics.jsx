@@ -79,7 +79,7 @@ export default function Analytics(){
 
  const selected=useMemo(()=>{
   if(!logs)return []
-  const end=dateKey(new Date())
+  const end=range==='custom'?(customEnd||dateKey(new Date())):dateKey(new Date())
   let start
   if(range==='custom')start=customStart
   else {const days=periods.find(item=>item.id===range)?.days||7;start=shiftKey(end,-(days-1))}
