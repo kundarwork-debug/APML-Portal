@@ -1,5 +1,5 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
-import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, File, Download, ExternalLink, Pencil, Trash2, RotateCcw, ChevronLeft, ChevronRight, Upload, Plus, HardDrive, ShieldCheck, FolderPlus, Link2 } from 'lucide-react'
+import { Folder, FileText, FileSpreadsheet, FileImage, FileVideo, FileArchive, File, Download, ExternalLink, Pencil, Trash2, RotateCcw, ChevronLeft, ChevronRight, Upload, Plus, HardDrive, ShieldCheck, FolderPlus, Link2, Search, X } from 'lucide-react'
 import './Drive.css'
 import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
@@ -10,7 +10,7 @@ const cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-w
 const isProtectedFolderName=name=>['prasad','quotation'].includes(String(name||'').trim().toLowerCase());
 const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
 function script(src){return new Promise((ok,no)=>{let s=[...document.scripts].find(x=>x.src===src);const ready=()=>src.includes('firebase-auth')?!!window.firebase?.auth:src.includes('firebase-database')?!!window.firebase?.database:src.includes('firebase-app')?!!window.firebase?.apps:!!s?.dataset.loaded;if(ready()){ok();return}if(s){s.addEventListener('load',ok,{once:true});s.addEventListener('error',no,{once:true});return}s=document.createElement('script');s.src=src;s.onload=()=>{s.dataset.loaded='1';ok()};s.onerror=no;document.head.append(s)})}
-export default function Drive(){const [folders,setFolders]=useState([]),[files,setFiles]=useState([]),[parent,setParent]=useState('root'),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[status,setStatus]=useState('Connecting to cloud drive…'),[page,setPage]=useState(1);const input=useRef();const {admin,signIn,signOut}=useApmlAdminAuth()
+export default function Drive(){const [folders,setFolders]=useState([]),[files,setFiles]=useState([]),[parent,setParent]=useState('root'),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[status,setStatus]=useState('Connecting to cloud drive…'),[page,setPage]=useState(1),[searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('');const input=useRef();const {admin,signIn,signOut}=useApmlAdminAuth()
  const isQuotationFolder=(folder)=>{if(!folder)return false;let current=folder,seen=new Set();while(current&&current.key&&!seen.has(current.key)){if(isProtectedFolderName(current.name))return true;seen.add(current.key);current=folders.find(f=>f.key===(current.parentId||'root'))}return false};
  const isQuotationFile=(file)=>{if(!file)return false;let id=file.parentId||file.prevParentId||'root';if(id==='deleted')id=file.prevParentId||'root';let seen=new Set();while(id&&id!=='root'&&id!=='deleted'&&!seen.has(id)){seen.add(id);const folder=folders.find(f=>f.key===id);if(!folder)return false;if(isProtectedFolderName(folder.name))return true;id=folder.parentId||'root'}return false};
  useEffect(()=>{let fref,iref,fh,ih,live=true;(async()=>{try{await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');if(!window.firebase.apps.length)window.firebase.initializeApp(cfg);const db=window.firebase.database();fref=db.ref('catbox_gdrive_folders');iref=db.ref('catbox_gdrive_files');let received=0;const markReady=()=>{received+=1;if(received>=2&&live)setLoading(false)};fh=fref.on('value',s=>{if(!live)return;const d=s.val()||{};const rows=Object.entries(d).map(([key,v])=>({key,...v}));setFolders(rows);try{localStorage.setItem('apml_catbox_link_folders_v1',JSON.stringify(rows))}catch{}setStatus('Live sync connected');markReady()},e=>{if(live){setStatus('Folder sync error: '+e.message);setLoading(false)}});ih=iref.on('value',s=>{if(!live)return;const d=s.val()||{};const rows=Object.entries(d).map(([key,v])=>({key,...v}));setFiles(rows);try{localStorage.setItem('apml_catbox_link_files_v1',JSON.stringify(rows))}catch{}markReady()},e=>{if(live){setStatus('File sync error: '+e.message);setLoading(false)}})}catch(e){setStatus('Cloud drive unavailable: '+e.message);setLoading(false)}})();try{const cachedFolders=JSON.parse(localStorage.getItem('apml_catbox_link_folders_v1')||'[]');const cachedFiles=JSON.parse(localStorage.getItem('apml_catbox_link_files_v1')||'[]');setFolders(cachedFolders);setFiles(cachedFiles);if(cachedFolders.length||cachedFiles.length)setLoading(false)}catch{}return()=>{live=false;if(fref&&fh)fref.off('value',fh);if(iref&&ih)iref.off('value',ih)}},[])
@@ -18,7 +18,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  useEffect(()=>{if(!admin&&parent==='deleted')setParent('root')},[admin,parent]);
  const hereFolders=useMemo(()=>folders.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted'),[folders,parent])
  const hereFiles=useMemo(()=>files.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)),[files,parent])
- const trash=admin&&parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
+ const trash=admin&&parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):searchFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(parent==='deleted')setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
@@ -89,7 +89,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  const crumbs=[];let p=parent;while(p&&p!=='root'&&p!=='deleted'){const f=folders.find(x=>x.key===p);if(!f)break;crumbs.unshift(f);p=f.parentId||'root'}
  const trashFolders=folders.filter(x=>x.parentId==='deleted');
  const trashFiles=files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
- const visibleFolders=trash?trashFolders:hereFolders;
+ const visibleFolders=trash?trashFolders:searchFolders;
  const displayFolders=(!trash&&parent==='root')?(admin?[...visibleFolders,{key:'deleted',name:'Trash Archive',isVirtualTrash:true}]:visibleFolders):visibleFolders;
  const activeFileCount=files.filter(x=>x.parentId!=='deleted').length;
  const activeFolderCount=folders.filter(x=>x.parentId!=='deleted').length;
@@ -124,8 +124,9 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
     {trash&&<span className="drive-crumb-part"><span className="drive-crumb-separator">/</span><b>Trash Archive</b></span>}
    </nav>
    <div className="drive-action-buttons">
-
-    <button className="drive-action" onClick={()=>{setParent('root');setPage(1)}}><HardDrive size={15}/> My Drive</button>
+    {searchOpen&&<label className="drive-search"><Search size={15}/><input autoFocus value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}} placeholder="Search files and folders…"/><button type="button" aria-label="Close search" onClick={()=>{setSearch('');setSearchOpen(false)}}><X size={15}/></button></label>}
+    <button className="drive-action" onClick={()=>setSearchOpen(v=>!v)} title="Search Drive"><Search size={15}/> Search</button>
+    <button className="drive-action" onClick={()=>{setParent('root');setSearch('');setPage(1)}}><HardDrive size={15}/> My Drive</button>
     <button className="drive-action" onClick={createFolder}><FolderPlus size={15}/> New Folder</button>
     <button className="drive-action" onClick={addLink}><Link2 size={15}/> Catbox Link</button>
     <button className="drive-action drive-action-primary" onClick={()=>input.current?.click()} disabled={busy}><Upload size={15}/> Upload File</button>
