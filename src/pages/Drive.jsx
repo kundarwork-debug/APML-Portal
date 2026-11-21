@@ -27,6 +27,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    if(window.ApmNativeDownload?.start){
     window.ApmNativeDownload.start(item.fileId,name);
     try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
+    window.APMNotify?.send?.({type:'drive',title:'Drive file downloaded',file:name,folder:folders.find(folder=>folder.key===(item.parentId||'root'))?.name||'APML Drive'});
     await driveToast('Download started');
     return;
    }
@@ -38,6 +39,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    a.href=url;a.download=name;a.style.display='none';document.body.append(a);a.click();a.remove();
    setTimeout(()=>URL.revokeObjectURL(url),10000);
    try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
+   window.APMNotify?.send?.({type:'drive',title:'Drive file downloaded',file:name,folder:folders.find(folder=>folder.key===(item.parentId||'root'))?.name||'APML Drive'});
    await driveToast('Download started');
   }catch(e){
    console.warn('Drive download fallback',e);
