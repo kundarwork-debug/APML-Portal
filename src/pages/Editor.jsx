@@ -90,7 +90,7 @@ const download=async()=>{
   void (async()=>{
    let countError=null,driveError=null;
    try{await incrementApmlPdfGenerated()}catch(error){countError=error;console.warn('APML quotation analytics failed:',error)}
-   void logApmlAction({action:'PDF generated',module:'Editor',item:name,details:d.companyName})
+   void logApmlAction({action:'PDF generated',module:'Editor',item:'Quotation PDF',details:d.companyName})
    setStatus('PDF downloaded. Saving a copy to Drive/Quotation in the background…');
    try{await saveQuotationToDrive(file,name)}catch(error){driveError=error;console.warn('Quotation Drive save failed:',error)}
    const countStatus=countError?`PDF count update failed: ${countError.message||countError}`:'PDF generated count updated';
