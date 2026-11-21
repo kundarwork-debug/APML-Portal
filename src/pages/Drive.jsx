@@ -5,6 +5,7 @@ import { driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetal
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
 import { EmptyState } from '../components/ui/StateViews'
+import WheelPagination from '../components/ui/WheelPagination'
 const cfg={apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',authDomain:'apml-portal.firebaseapp.com',databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',projectId:'apml-portal',storageBucket:'apml-portal.firebasestorage.app',messagingSenderId:'479017159240',appId:'1:479017159240:web:0853422718e6195b74a67d'}
 const cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-work.workers.dev';
 const isProtectedFolderName=name=>['prasad','quotation'].includes(String(name||'').trim().toLowerCase());
@@ -157,7 +158,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
     </article>)}
     {!displayFolders.length&&!pagedFiles.length&&<EmptyState className="drive-empty-state" illustration="/illustrations/apml-empty-folder.svg" title="This folder is empty" description="Create a folder or upload a file to get started."/>}
    </div>
-   {pageCount>1&&<nav className="drive-pagination" aria-label="Drive file pages"><button disabled={page<=1} onClick={()=>setPage(p=>Math.max(1,p-1))}><ChevronLeft size={17}/> Previous</button><span>Page <b>{Math.min(page,pageCount)}</b> of {pageCount}</span><button disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))}>Next <ChevronRight size={17}/></button></nav>}
+   <WheelPagination totalPages={pageCount} currentPage={Math.min(page,pageCount)} visibleCount={5} summary={`${pageFiles.length} files`} onChange={setPage}/>
   </section>}
   {trash&&<div className="drive-trash-note">Trash Archive · {trashFolders.length+trashFiles.length} items</div>}
  </main>
