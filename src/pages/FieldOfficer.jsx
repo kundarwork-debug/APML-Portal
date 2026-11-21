@@ -20,7 +20,7 @@ export default function FieldOfficer(){
  const branchCount=new Set(activeRecords.map(x=>(x.branch||'').trim().toUpperCase()).filter(Boolean)).size
  const leaveCount=activeRecords.filter(x=>['leave','assco'].includes(String(x.status||'').toLowerCase())).length
  const availableBranches=[...new Set(activeRecords.map(x=>String(x.branch||'').trim().toUpperCase()).filter(Boolean))].sort((a,b)=>a.localeCompare(b))
- const filtered=useMemo(()=>records.filter(x=>admin||!isDeleted(x)).filter(x=>statusFilter==='All'||(statusFilter==='Deleted'?isDeleted(x):!isDeleted(x)&&String(x.status||'Active').toLowerCase()===statusFilter.toLowerCase())).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))||String(a.name||'').localeCompare(String(b.name||''))),[records,query,admin,statusFilter])
+ const filtered=useMemo(()=>records.filter(x=>true).filter(x=>statusFilter==='All'||(statusFilter==='Deleted'?isDeleted(x):!isDeleted(x)&&String(x.status||'Active').toLowerCase()===statusFilter.toLowerCase())).filter(x=>[x.name,x.branch,x.apmCode,x.designation,x.role,x.mobile,x.status].join(' ').toLowerCase().includes(query.toLowerCase().trim())).sort((a,b)=>Number(isDeleted(a))-Number(isDeleted(b))||String(a.name||'').localeCompare(String(b.name||''))),[records,query,admin,statusFilter])
  const notify=m=>{driveToast(m).catch(()=>{setToast(m);window.setTimeout(()=>setToast(''),2800)})}
  async function copyNumber(number){
   try{
@@ -34,7 +34,7 @@ export default function FieldOfficer(){
  }
  async function toggleAdmin(){setBusy(true);try{if(admin){await signOut();notify('Admin view closed');return}await signIn()}catch(e){try{await driveAlert('Admin sign-in failed',e.message||'Please try again.','error')}catch{notify(e.message||'Admin sign-in failed')}}finally{setBusy(false)}}
  async function save(){if(!ref)return notify('Directory is not connected');const value={...edit,name:edit.name.trim(),branch:edit.branch.trim().toUpperCase(),apmCode:edit.apmCode.trim()||'N/A',mobile:edit.mobile.trim(),role:'BFO'};if(!value.name||!value.branch||!value.mobile)return notify('Name, branch and mobile are required.');setBusy(true);try{if(edit.id)await ref.child(edit.id).update(value);else await ref.push({...value,isDeleted:false});setEdit(null);notify(edit.id?'Officer details updated':'New field officer created')}catch(e){notify('Save failed: '+e.message)}finally{setBusy(false)}}
- async function update(id,patch){if(!ref)return;if(patch.isDeleted===false&&!admin)return notify('Admin access required to restore officers');if(patch.isDeleted===true){const ok=await driveConfirm('Hide this officer?','The contact will disappear from the public directory. Only an admin can restore or permanently delete it.','Hide contact');if(!ok)return}setBusy(true);try{await ref.child(id).update(patch);notify(patch.isDeleted?'Contact hidden from public directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
+ async function update(id,patch){if(!ref)return;if(patch.isDeleted===true){const ok=await driveConfirm('Hide this officer?','The contact will disappear from the public directory. It can be restored or permanently deleted from the directory.','Hide contact');if(!ok)return}setBusy(true);try{await ref.child(id).update(patch);notify(patch.isDeleted?'Contact hidden from public directory':'Officer restored')}catch(e){notify('Update failed: '+e.message)}finally{setBusy(false)}}
  async function importExcel(file){
   if(!ref)return notify('Directory is not connected');
   if(!file)return;
@@ -64,7 +64,7 @@ export default function FieldOfficer(){
    notify('Imported '+imported.length+' officers'+(skipped.length?' · skipped '+skipped.length+' invalid/duplicate rows':''));
   }catch(e){notify('Excel import failed: '+e.message)}finally{setImporting(false)}
  }
- async function permanentlyDelete(id){if(!admin||!ref)return;const ok=await driveConfirm('Delete officer permanently?','This removes the record from Firebase and cannot be undone.','Delete forever');if(!ok)return;setBusy(true);try{await ref.child(id).remove();notify('Officer permanently deleted')}catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}}
+ async function permanentlyDelete(id){if(!ref)return;const ok=await driveConfirm('Delete officer permanently?','This removes the record from Firebase and cannot be undone.','Delete forever');if(!ok)return;setBusy(true);try{await ref.child(id).remove();notify('Officer permanently deleted')}catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}}
  return <main className="fo-page">
   <header className="fo-head"><div className="fo-heading-copy"><div className="fo-eyebrow"><Users size={14}/> PEOPLE DIRECTORY</div><h1 className="fo-title">Field Officer <span>Directory</span></h1><p className="fo-subtitle">Find branch officers, contact details and current status.</p>
    <div className="fo-stats"><span><Users size={14}/><strong>{activeCount.toLocaleString('en-IN')}</strong> Active officers</span><span><MapPin size={14}/><strong>{branchCount.toLocaleString('en-IN')}</strong> Branches</span><span><Clock3 size={14}/><strong>{leaveCount.toLocaleString('en-IN')}</strong> On leave / associate</span></div>
