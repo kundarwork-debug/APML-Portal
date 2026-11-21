@@ -104,7 +104,7 @@ function parseCloudinaryUrl(url) {
 
     let publicId = decodeURIComponent(rest.join('/'));
 
-    if (resourceType !== 'raw') publicId = publicId.replace(/\\.[^/.]+$/, '');
+    if (resourceType !== 'raw') publicId = publicId.replace(/\.[^/.]+$/, '');
 
     return publicId ? { resourceType, publicId } : null;
 
