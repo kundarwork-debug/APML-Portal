@@ -70,7 +70,7 @@ export default function Analytics(){
  useEffect(()=>{load();const timer=setInterval(load,300000);return()=>clearInterval(timer)},[load])
  useEffect(()=>{if(!admin)return;let ref,handler,live=true;(async()=>{try{const db=await getApmlDatabase();if(!live)return;ref=db.ref('Analytics page/recent_actions');handler=ref.orderByChild('timestamp').limitToLast(50).on('value',snapshot=>{if(!live)return;const rows=Object.entries(snapshot.val()||{}).map(([id,value])=>({id,...value})).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));setActivity(rows)},error=>console.warn('Activity log listener:',error.message))}catch(error){console.warn('Activity log unavailable:',error.message)}})();return()=>{live=false;if(ref&&handler)ref.off('value',handler)}},[admin])
  const filteredActivity=activityFilter==='All'?activity:activity.filter(row=>row.module===activityFilter)
- const activityModules=['All',...new Set(activity.map(row=>row.module).filter(Boolean).sort())
+ const activityModules=['All',...new Set(activity.map(row=>row.module).filter(Boolean).sort())]
  const rows=data?.daily||[]
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
