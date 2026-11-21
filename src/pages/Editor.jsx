@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
 import {Plus,Trash2,Download,RotateCcw,FileText,Calculator} from 'lucide-react'
 import './Editor.css'
-import { getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
+import { getApmlAuth, getApmlDatabase, getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
 import { apmlDialog } from '../lib/sweetalert'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
 const sharedDefault=()=>({date:dateNow(),custName:'',custCompany:'Unregistered',custGst:'GST Exempted',fromCity:'',toCity:''})
@@ -17,8 +17,8 @@ async function editorAlert(options){return apmlDialog(options)}
 async function editorDatabase(){const {database}=await getApmlPresenceServices();return database}
 async function saveQuotationToDrive(blob,fileName){
  if(!blob||blob.size>10*1024*1024)throw Error('Quotation PDF exceeds the 10 MB Drive limit.')
- const {database:db,user}=await getApmlPresenceServices(),form=new FormData()
- if(!user?.uid)throw Error('Sign in anonymously before saving the quotation.')
+ const [db,auth]=await Promise.all([getApmlDatabase(),getApmlAuth()]),user=auth.currentUser,form=new FormData()
+ if(!user?.uid||!user.emailVerified)throw Error('Sign in with a verified Google account from APML Drive or Gallery before saving quotations to Drive.')
  form.append('file',blob,fileName)
  form.append('upload_preset','apml_drive')
  form.append('folder','apml-drive')

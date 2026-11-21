@@ -1,0 +1,57 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
+    "directory": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
+      "$recordKey": {
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com' || (newData.exists() && ((!data.exists() && newData.child('isDeleted').val() != true && newData.child('isDeleted').val() != 'true' && newData.child('isDeleted').val() != 1) || (data.exists() && data.child('isDeleted').val() != true && data.child('isDeleted').val() != 'true' && data.child('isDeleted').val() != 1))))"
+      }
+    },
+    "field_officers": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
+      "$recordKey": {
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com' || (newData.exists() && ((!data.exists() && newData.child('isDeleted').val() != true && newData.child('isDeleted').val() != 'true' && newData.child('isDeleted').val() != 1) || (data.exists() && data.child('isDeleted').val() != true && data.child('isDeleted').val() != 'true' && data.child('isDeleted').val() != 1))))"
+      }
+    },
+    "arcade_scores": { ".indexOn": ["score"] },
+    "analytics": {
+      "totalMediaDownloads": { ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1" },
+      "totalPdfDownloads": { ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1" },
+      "daily_logs": {
+        "$date": {
+          "$counter": {
+            ".write": "auth != null && ((($counter == 'visitors' || $counter == 'pdf' || $counter == 'media') && auth.token.firebase.sign_in_provider == 'anonymous') || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+            ".validate": "newData.isNumber() && (data.exists() ? newData.val() == data.val() + 1 : newData.val() == 1)"
+          }
+        }
+      },
+      "visitor_sessions": {
+        "$sessionKey": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && ((data.exists() && data.child('uid').val() == auth.uid && (!newData.exists() || newData.child('uid').val() == auth.uid)) || (!data.exists() && newData.child('uid').val() == auth.uid))",
+          ".validate": "newData.hasChildren(['uid', 'visitorId', 'startedAt', 'lastSeen', 'device', 'os', 'browser', 'pageViews', 'totalSeconds', 'pages', 'journey']) && newData.child('pageViews').isNumber() && newData.child('pageViews').val() <= 10000 && newData.child('totalSeconds').isNumber() && newData.child('totalSeconds').val() <= 86400"
+        }
+      }
+    },
+    "presence": {
+      "$uid": { ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && auth.uid == $uid" }
+    },
+    "catbox_gdrive_files": {
+      "$fileKey": {
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com' || (newData.exists() && ((!data.exists() && newData.child('parentId').val() != 'deleted') || (data.exists() && data.child('parentId').val() != 'deleted'))))"
+      }
+    },
+    "catbox_gdrive_folders": {
+      "$folderKey": {
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com' || (newData.exists() && ((!data.exists() && newData.child('parentId').val() != 'deleted') || (data.exists() && data.child('parentId').val() != 'deleted'))))"
+      }
+    },
+    "apml_ranked_gallery": {
+      "$mediaKey": {
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com' || (newData.exists() && ((!data.exists() && newData.child('folder').val() != 'deleted') || (data.exists() && data.child('folder').val() != 'deleted'))))"
+      }
+    }
+  }
+}

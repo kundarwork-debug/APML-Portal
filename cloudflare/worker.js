@@ -16,10 +16,6 @@ const CONFIG = {
 
   FIREBASE_API_KEY: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
 
-  SUPABASE_URL: 'https://jethunntsnnjlwnwsjrh.supabase.co',
-
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpldGh1bm50c25uamx3bndzanJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MTM1MTMsImV4cCI6MjEwMzI4OTUxM30.LscEvNwTob22YmaCqeYQn58eYWJremA5lm6LvQboJN0',
-
   ADMIN_EMAILS: ['kundar.work@gmail.com', 'kundar701@gmail.com'],
 
   QUOTATION_CAP: 200,
@@ -176,31 +172,7 @@ async function cloudinaryDelete(env, items) {
 
 }
 
-async function getAdminEmail(request, env = {}) {
-
-  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-
-  if (!token) return null;
-
-  const supabaseUrl = String(env.APML_SUPABASE_URL || CONFIG.SUPABASE_URL).replace(/\/$/, '');
-  const supabaseKey = env.APML_SUPABASE_ANON_KEY || CONFIG.SUPABASE_ANON_KEY;
-  const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-
-    headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` },
-
-  });
-
-  if (!res.ok) return null;
-
-  const user = await res.json();
-
-  const email = String(user.email || '').trim().toLowerCase();
-
-  return CONFIG.ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(email) ? email : null;
-
-}
-
-async function getFirebaseAdminEmail(request) {
+async function getFirebaseUser(request) {
   const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
   if (!token) return null;
 
@@ -216,11 +188,15 @@ async function getFirebaseAdminEmail(request) {
     const user = Array.isArray(data.users) ? data.users[0] : null;
     if (!user || user.emailVerified !== true) return null;
 
-    const email = String(user.email || '').trim().toLowerCase();
-    return CONFIG.ADMIN_EMAILS.map((item) => item.toLowerCase()).includes(email) ? email : null;
+    return { email: String(user.email || '').trim().toLowerCase(), localId: user.localId };
   } catch {
     return null;
   }
+}
+
+async function getFirebaseAdminEmail(request) {
+  const user = await getFirebaseUser(request);
+  return user && CONFIG.ADMIN_EMAILS.map((item) => item.toLowerCase()).includes(user.email) ? user.email : null;
 }
 
 async function trimQuotations(env) {
@@ -618,7 +594,7 @@ async function storeAdminNotification(env, input) {
 
 async function handleAdminNotifications(request, env) {
 
-  const admin = await getAdminEmail(request);
+  const admin = await getFirebaseAdminEmail(request);
 
   if (!admin) return json({ ok: false, error: 'Admin login required' }, 401);
 
@@ -2151,7 +2127,6 @@ export default {
         },
         configuration: {
           firebase: !!CONFIG.FIREBASE_DB_URL,
-          supabase: !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY),
           cloudinary: !!(env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET),
           telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
           telegramWebhookSecret: !!env.TELEGRAM_WEBHOOK_SECRET,
@@ -2199,7 +2174,7 @@ export default {
 
       if (path === '/delete') {
 
-        const admin = await getAdminEmail(request);
+        const admin = await getFirebaseAdminEmail(request);
 
         if (!admin) return json({ error: 'Admin login required' }, 401);
 
