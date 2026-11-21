@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Activity, BarChart3, LockKeyhole, LogIn, ShieldCheck, ArrowLeft, RefreshCw } from 'lucide-react'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Admin.css'
 
 export default function Admin(){
