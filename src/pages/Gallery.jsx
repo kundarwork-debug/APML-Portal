@@ -4,6 +4,7 @@ import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
 import './Gallery.css'
 import { EmptyState } from '../components/ui/StateViews'
+import WheelPagination from '../components/ui/WheelPagination'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
@@ -389,17 +390,7 @@ export default function Gallery() {
     if (item && item.folder !== folderId) move(item, folderId)
   }
   function renderPagination() {
-    if (pageCount <= 1) return null
-    const start = Math.max(1, Math.min(currentPage - 1, pageCount - 2))
-    const end = Math.min(pageCount, Math.max(currentPage + 1, 3))
-    const pages = []
-    for (let value = start; value <= end; value++) pages.push(value)
-    return <nav className="gallery-pagination" aria-label="Gallery pages">
-      <button disabled={currentPage <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}><MaterialIcon name="chevron_left" style={{ fontSize: 16 }}/> Previous</button>
-      <span>Page <b>{currentPage}</b> of {pageCount} · {visible.length} items</span>
-      <button disabled={currentPage >= pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))}>Next <MaterialIcon name="chevron_right" style={{ fontSize: 16 }}/></button>
-      {pageCount > 3 && <label className="gallery-page-jump">Go to <input type="number" min="1" max={pageCount} aria-label="Page number" onKeyDown={event => { if (event.key === 'Enter') { const value = Number(event.currentTarget.value); if (value >= 1 && value <= pageCount) setPage(value); else driveAlert('Invalid page', `Enter a page from 1 to ${pageCount}.`, 'warning') } }}/> <button onClick={event => { const input = event.currentTarget.parentElement.querySelector('input'); const value = Number(input.value); if (value >= 1 && value <= pageCount) setPage(value); else driveAlert('Invalid page', `Enter a page from 1 to ${pageCount}.`, 'warning') }}>Go</button></label>}
-    </nav>
+    return <WheelPagination totalPages={pageCount} currentPage={currentPage} visibleCount={5} summary={`${visible.length} items`} onChange={setPage}/>
   }
 
   return <main className="gallery-page">
