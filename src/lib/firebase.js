@@ -95,14 +95,14 @@ function istDateKey() {
 // homepage and Cloudflare Worker. Do not build new dashboard cards from them.
 export async function ensureApmlAnalyticsStructure(database) {
   const root = database.ref('Analytics page')
-  const [meta, legacyDaily, legacyPdf, legacyMedia] = await Promise.all([
-    root.child('_meta').once('value'),
+  const meta = await root.child('_meta').once('value')
+  if (Number(meta.val()?.schemaVersion) >= 1) return
+
+  const [legacyDaily, legacyPdf, legacyMedia] = await Promise.all([
     database.ref('analytics/daily_logs').once('value'),
     database.ref('analytics/totalPdfDownloads').once('value'),
     database.ref('analytics/totalMediaDownloads').once('value')
   ])
-  if (Number(meta.val()?.schemaVersion) >= 1) return
-
   const days = legacyDaily.val() || {}
   await Promise.all(Object.entries(days).map(([day, value]) => {
     const clean = { pdf: Number(value?.pdf) || 0, media: Number(value?.media) || 0 }
