@@ -18,6 +18,9 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  useEffect(()=>{if(!admin&&parent==='deleted')setParent('root')},[admin,parent]);
  const hereFolders=useMemo(()=>folders.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted'),[folders,parent])
  const hereFiles=useMemo(()=>files.filter(x=>(x.parentId||'root')===parent&&x.parentId!=='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)),[files,parent])
+ const normalizedSearch=search.trim().toLowerCase();
+ const searchFolders=useMemo(()=>normalizedSearch?folders.filter(x=>x.parentId!=='deleted'&&String(x.name||'').toLowerCase().includes(normalizedSearch)):hereFolders,[folders,normalizedSearch,hereFolders]);
+ const searchFiles=useMemo(()=>normalizedSearch?files.filter(x=>x.parentId!=='deleted'&&String(x.name||'').toLowerCase().includes(normalizedSearch)).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):hereFiles,[files,normalizedSearch,hereFiles]);
  const trash=admin&&parent==='deleted';const pageSize=12;const pageFiles=trash?files.filter(x=>x.parentId==='deleted').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)):searchFiles;const pageCount=Math.max(1,Math.ceil(pageFiles.length/pageSize));const pagedFiles=pageFiles.slice((Math.min(page,pageCount)-1)*pageSize,Math.min(page,pageCount)*pageSize);const total=folders.filter(x=>x.parentId!=='deleted').length+files.filter(x=>x.parentId!=='deleted').length
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(parent==='deleted')setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function downloadFile(item){
