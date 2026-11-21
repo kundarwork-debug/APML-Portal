@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import { incrementApmlMediaDownload } from '../lib/firebase'
+import { logApmlAction } from '../lib/apmlActivity'
 import './Gallery.css'
 import { EmptyState } from '../components/ui/StateViews'
 import WheelPagination from '../components/ui/WheelPagination'
@@ -250,6 +251,7 @@ export default function Gallery() {
             url: data.secure_url, folder, name: file.name, size: file.size, isVideo,
             viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
           })
+          void logApmlAction({action:'Media uploaded',module:'Gallery',item:file.name,details:folder})
           successes++
         } catch (error) { failures.push(`${file.name}: ${error.message}`) }
       }
@@ -296,6 +298,7 @@ export default function Gallery() {
         url: info.url, folder, name, size: 0, isVideo: info.isVideo,
         viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
       })
+      void logApmlAction({action:'Media link added',module:'Gallery',item:name,details:folder})
       await driveToast('Catbox media added')
     } catch (error) { await driveAlert('Could not add Catbox link', error.message, 'error') }
   }
@@ -317,6 +320,7 @@ export default function Gallery() {
         window.APMNotify?.send?.({type:'gallery',title:item.isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery'})
         void metric(item, 'downloadsCount')
         void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
+        void logApmlAction({action:'Media downloaded',module:'Gallery',item:name})
         window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
         await driveToast('Download started')
         return
@@ -347,6 +351,7 @@ export default function Gallery() {
 
       void metric(item, 'downloadsCount')
       void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
+      void logApmlAction({action:'Media downloaded',module:'Gallery',item:name})
       window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
       await driveToast('Download started')
     } catch (error) {
@@ -357,6 +362,7 @@ export default function Gallery() {
   async function move(item, folder) {
     try {
       await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
+      void logApmlAction({action:folder==='deleted'?'Media moved to trash':'Media moved',module:'Gallery',item:item.name||'Media',details:folder})
       await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
   }
@@ -377,6 +383,7 @@ export default function Gallery() {
         if (!response.ok || result.ok !== true) throw new Error(result.error || 'Cloudinary could not delete this media. The Gallery record was kept.')
       }
       await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).remove()
+      void logApmlAction({action:'Permanently deleted',module:'Gallery',item:item.name||'Media',details:'Cloudinary asset and Gallery record'})
       await driveToast('Media permanently deleted from Gallery and cloud storage')
     } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
   }
