@@ -38,43 +38,6 @@ function createLineData(labels,values,{spark=false}={}){
   },fill:!spark,tension:.38,borderWidth:spark?2:2.5,pointRadius:spark?0:3,pointHoverRadius:spark?3:5,pointBackgroundColor:'#b91c1c',pointBorderColor:'#fff',pointBorderWidth:spark?0:1.5,spanGaps:true}]}
 }
 
-function TrendChart({rows,label='Daily unique visitors'}){
- const labels=rows.map(row=>new Date(row.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}))
- const values=rows.map(row=>Number(row.visitors)||0)
- return <div className="an-chart"><Line data={createLineData(labels,values)} options={chartOptions()}/></div>
-}
-
-function Heatmap({rows}){
- const byDate=new Map(rows.map(row=>[row.date,Number(row.visitors)||0]))
- const end=new Date((rows[rows.length-1]?.date||new Date().toLocaleDateString('en-CA'))+'T00:00:00')
- end.setHours(0,0,0,0)
- const start=new Date(end);start.setDate(start.getDate()-364)
- const first=new Date(start);first.setDate(first.getDate()-first.getDay()
- )
- const weeks=[]
- for(let cursor=new Date(first);cursor<=end;){
-  const week=[]
-  for(let day=0;day<7;day++){
-   const current=new Date(cursor);current.setDate(cursor.getDate()+day)
-   const key=current.toLocaleDateString('en-CA')
-   const value=current<start||current>end?0:(byDate.get(key)||0)
-   week.push({date:current,x:current.toLocaleDateString('en-IN',{day:'numeric',month:'short'}),y:value,outside:current<start||current>end})
-  }
-  weeks.push(week);cursor.setDate(cursor.getDate()+7)
- }
- const max=Math.max(1,...Array.from(byDate.values()))
- const level=value=>value===0?0:value/max>.75?4:value/max>.45?3:value/max>.2?2:1
- return <div className="an-heat-scroll">
-  <div className="an-heat-months" style={{gridTemplateColumns:`repeat(${weeks.length},12px)`}}>
-   {weeks.map((week,i)=>{const month=week.find(day=>day.date.getDate()<=7&&day.date>=start);return <span key={i}>{month?month.date.toLocaleDateString('en-IN',{month:'short'}):''}</span>})}
-  </div>
-  <div className="an-heat-grid" style={{gridTemplateColumns:`repeat(${weeks.length},12px)`}}>
-   {weeks.map((week,wi)=>week.map((day,di)=><span key={wi+'-'+di} className={'an-heat-cell'+(day.outside?' outside':'')} style={{'--level':level(day.y)}} title={day.date.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+': '+day.y+' recorded visits'}/>))}
-  </div>
-  <div className="an-heat-legend"><span>Less</span><i style={{'--level':.08}}/><i style={{'--level':.28}}/><i style={{'--level':.55}}/><i style={{'--level':.85}}/><span>More</span></div>
- </div>
-}
-
 function Metric({icon:Icon,label,value,note,series=[]}){
  const values=series.map(point=>Number(point)||0)
  return <article className="an-metric">
@@ -104,9 +67,9 @@ export default function Analytics(){
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
  return <div className="an-page">
-  <header className="an-heading"><div><span className="an-kicker"><BarChart3 size={14}/> APML PORTAL · INSIGHTS</span><h1>Analytics</h1><p>A clear view of portal traffic, usage and performance.</p></div><div className="an-heading-actions"><span className="an-updated">{updated?'Updated '+updated.toLocaleTimeString('en-IN'):'Waiting for data'}</span><span className="an-live-status"><i/> Live analytics</span><button onClick={load} disabled={busy}><RefreshCw size={15} className={busy?'an-spin':''}/>{busy?'Refreshing…':'Refresh'}</button></div></header>
+  <header className="an-heading"><div><span className="an-kicker"><BarChart3 size={14}/> APML PORTAL · INSIGHTS</span><h1>Analytics</h1><p>A focused view of PDF generation and media download activity.</p></div><div className="an-heading-actions"><span className="an-updated">{updated?'Updated '+updated.toLocaleTimeString('en-IN'):'Waiting for data'}</span><span className="an-live-status"><i/> Live analytics</span><button onClick={load} disabled={busy}><RefreshCw size={15} className={busy?'an-spin':''}/>{busy?'Refreshing…':'Refresh'}</button></div></header>
   {error&&<section className="an-error"><AlertTriangle size={19}/><div><b>Analytics data could not be loaded</b><p>{error}</p><button onClick={load}>Try again</button></div></section>}
-  {busy&&!data?<section className="an-loading"><span/><span/><span/><span/></section>:null}
+  {busy&&!data?<section className="an-loading"><span/><span/></section>:null}
   {data&&<>
    <section className="an-metrics">
     <Metric icon={Download} label="PDF generated" value={number(data.totals?.totalPdfsLifetime ?? totalPdf)} note="Lifetime total · daily trend below" series={rows.map(row=>row.pdf)}/>
