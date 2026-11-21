@@ -1,0 +1,17 @@
+.apml-wheel-pagination{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;width:fit-content;max-width:100%;margin:24px auto 0;padding:10px 14px;border:1px solid var(--apml-border,#e5e1d9);border-radius:16px;background:var(--apml-surface,#fff);color:var(--apml-ink,#303236);box-shadow:0 3px 12px #20212408;user-select:none}
+.apml-wheel-pages{display:flex;align-items:center;justify-content:center;gap:7px}
+.apml-wheel-page,.apml-wheel-arrow{display:grid;place-items:center;flex:none;width:38px;height:38px;padding:0;border:0;border-radius:50%;background:var(--apml-pagination-muted,#f1f1f1);color:var(--apml-ink,#303236);font:700 12px/1 inherit;cursor:pointer;transition:transform .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease}
+.apml-wheel-page:hover:not(.is-active){background:#f8e9e9;color:#b4232c;transform:scale(1.06)}
+.apml-wheel-page.is-active{background:#b4232c;color:#fff;box-shadow:0 3px 10px #b4232c35;transform:scale(1.13)}
+.apml-wheel-arrow{background:transparent;color:#b4232c}
+.apml-wheel-arrow:hover:not(:disabled){background:#f8e9e9}
+.apml-wheel-arrow:disabled{opacity:.3;cursor:not-allowed}
+.apml-wheel-page:focus-visible,.apml-wheel-arrow:focus-visible{outline:2px solid #b4232c;outline-offset:3px}
+.apml-wheel-summary{margin-left:5px;color:var(--apml-muted,#777);font-size:10px;font-weight:650;white-space:nowrap}
+.apml-wheel-summary strong{color:#b4232c}
+html[data-theme="dark"] .apml-wheel-pagination{background:#202630;border-color:#394554;color:#e8edf3;box-shadow:0 2px 8px #0003}
+html[data-theme="dark"] .apml-wheel-page:not(.is-active){background:#303a48;color:#dce4ee}
+html[data-theme="dark"] .apml-wheel-page:hover:not(.is-active),html[data-theme="dark"] .apml-wheel-arrow:hover:not(:disabled){background:#493039;color:#ff9aa0}
+html[data-theme="dark"] .apml-wheel-summary{color:#a8b5c7}
+@media(max-width:520px){.apml-wheel-pagination{gap:5px;padding:8px 9px;border-radius:13px}.apml-wheel-pages{gap:4px}.apml-wheel-page,.apml-wheel-arrow{width:33px;height:33px;font-size:11px}.apml-wheel-summary{flex-basis:100%;margin:1px 0 0;text-align:center;font-size:9px}}
+@media(prefers-reduced-motion:reduce){.apml-wheel-page,.apml-wheel-arrow{transition:none}}
