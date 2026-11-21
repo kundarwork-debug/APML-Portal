@@ -3,6 +3,7 @@ import {Plus,Trash2,Download,RotateCcw,FileText,Calculator} from 'lucide-react'
 import './Editor.css'
 import { getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
 import { apmlDialog } from '../lib/sweetalert'
+import { logApmlAction } from '../lib/apmlActivity'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
 const sharedDefault=()=>({date:dateNow(),custName:'',custCompany:'Unregistered',custGst:'GST Exempted',fromCity:'',toCity:''})
 const mk=(items)=>items.map(([label,amount=0])=>({label,amount}))
@@ -89,6 +90,7 @@ const download=async()=>{
   void (async()=>{
    let countError=null,driveError=null;
    try{await incrementApmlPdfGenerated()}catch(error){countError=error;console.warn('APML quotation analytics failed:',error)}
+   void logApmlAction({action:'PDF generated',module:'Editor',item:name,details:d.companyName})
    setStatus('PDF downloaded. Saving a copy to Drive/Quotation in the background…');
    try{await saveQuotationToDrive(file,name)}catch(error){driveError=error;console.warn('Quotation Drive save failed:',error)}
    const countStatus=countError?`PDF count update failed: ${countError.message||countError}`:'PDF generated count updated';
