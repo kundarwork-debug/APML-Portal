@@ -108,3 +108,20 @@ html[data-theme="dark"] .apml-skeleton-preview,
 html[data-theme="dark"] .apml-skeleton-line{background:linear-gradient(90deg,#293341 25%,#354252 45%,#293341 65%);background-size:200% 100%}
 html[data-theme="dark"] .drive-trash-note{color:#a8b5c7}
 @media(prefers-reduced-motion:reduce){.drive-folder-card,.drive-file-card,.drive-action{transition:none!important}}
+
+
+/* Drive toolbar: persistent search with balanced alignment */
+.drive-action-bar{flex-direction:row;align-items:center;justify-content:space-between;gap:16px}
+.drive-breadcrumb{flex:0 1 auto}
+.drive-action-buttons{flex:1 1 auto;width:auto;min-width:0;justify-content:flex-end;align-items:center}
+.drive-search{flex:0 1 280px;width:280px;min-width:180px;height:40px}
+@media(max-width:980px){
+ .drive-action-bar{flex-direction:column;align-items:stretch;gap:10px}
+ .drive-action-buttons{width:100%;flex:1 1 auto;justify-content:flex-end}
+ .drive-search{flex:1 1 220px;width:auto}
+}
+@media(max-width:760px){
+ .drive-action-bar{flex-direction:column;align-items:stretch}
+ .drive-action-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;justify-content:stretch}
+ .drive-search{grid-column:1/-1;width:auto;min-width:0;flex:none}
+}
