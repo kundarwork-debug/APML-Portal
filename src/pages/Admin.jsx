@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Activity, BarChart3, LockKeyhole, LogIn, ShieldCheck, ArrowLeft, RefreshCw } from 'lucide-react'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
+import { useApmlAuth } from '../lib/apmlAuth'
 import './Admin.css'
 
 export default function Admin(){
- const {admin,userEmail,loading,signIn,signOut}=useApmlAdminAuth()
+ const {admin,userEmail,loading,signIn,signOut}=useApmlAuth()
  const [busy,setBusy]=useState(false)
  const [error,setError]=useState('')
  const location=useLocation()

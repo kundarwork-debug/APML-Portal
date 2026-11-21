@@ -1,19 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getSwal, driveAlert, driveConfirm, driveInput, driveToast } from '../lib/sweetalert'
-import { useApmlAdminAuth } from '../lib/supabaseAuth'
-import { incrementApmlMediaDownload } from '../lib/firebase'
+import { useApmlAuth } from '../lib/apmlAuth'
+import { getApmlAuth, getApmlDatabase, incrementApmlMediaDownload } from '../lib/firebase'
 import './Gallery.css'
 import { EmptyState } from '../components/ui/StateViews'
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
-  authDomain: 'apml-portal.firebaseapp.com',
-  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
-  projectId: 'apml-portal',
-  storageBucket: 'apml-portal.firebasestorage.app',
-  messagingSenderId: '479017159240',
-  appId: '1:479017159240:web:0853422718e6195b74a67d'
-}
 const CLOUDINARY_UPLOAD = 'https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload'
 const DRIVE_API_URL = 'https://apml-drive-api.kundar-work.workers.dev'
 const FOLDER_STORAGE_KEY = 'apml_unlimited_gallery_folders_v7'
@@ -35,25 +26,6 @@ const PROTECTED_FOLDERS = DEFAULT_FOLDERS.map(folder => folder.id)
 
 function MaterialIcon({ name, className = '', style = {}, title }) { return <span className={`material-symbols-rounded ${className}`} style={style} aria-hidden="true" title={title}>{name}</span> }
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const existing = [...document.scripts].find(script => script.src === src)
-    if (existing) {
-      const ready = src.includes('firebase-auth') ? !!window.firebase?.auth
-        : src.includes('firebase-database') ? !!window.firebase?.database
-          : src.includes('firebase-app') ? !!window.firebase : existing.dataset.loaded === '1'
-      if (ready || existing.dataset.loaded === '1') return resolve()
-      existing.addEventListener('load', resolve, { once: true })
-      existing.addEventListener('error', reject, { once: true })
-      return
-    }
-    const script = document.createElement('script')
-    script.src = src
-    script.onload = () => { script.dataset.loaded = '1'; resolve() }
-    script.onerror = reject
-    document.head.appendChild(script)
-  })
-}
 function optimizedUrl(url, width = 420) {
   if (!url || !url.includes('cloudinary.com')) return url
   return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width},c_limit/`)
@@ -94,7 +66,7 @@ export default function Gallery() {
   const [folders, setFolders] = useState(DEFAULT_FOLDERS)
   const [activeFolder, setActiveFolder] = useState('')
   const [uploadFolder, setUploadFolder] = useState('')
-  const { admin, signIn, signOut } = useApmlAdminAuth()
+  const { signedIn, admin, signIn, signOut } = useApmlAuth()
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('Connecting to gallery…')
   const [lightbox, setLightbox] = useState(null)
@@ -119,10 +91,8 @@ export default function Gallery() {
     let handler
     ;(async () => {
       try {
-        await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
-        await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
-        if (!window.firebase.apps.length) window.firebase.initializeApp(firebaseConfig)
-        ref = window.firebase.database().ref('apml_ranked_gallery')
+        const database = await getApmlDatabase()
+        ref = database.ref('apml_ranked_gallery')
         dbRef.current = ref
         handler = ref.on('value', snapshot => {
           if (!live) return
@@ -178,7 +148,7 @@ export default function Gallery() {
   async function toggleAdmin() {
     setBusy(true)
     try {
-      if (admin) {
+      if (signedIn) {
         await signOut()
         if (activeFolder === 'deleted') setActiveFolder('')
         await driveToast('Admin mode closed')
@@ -200,14 +170,14 @@ export default function Gallery() {
     await driveToast('Folder created')
   }
   async function editFolder(folder) {
-    if (!admin) return
+    if (!signedIn) return
     const label = await driveInput('Rename folder', { value: folder.label, placeholder: 'Folder name' })
     if (!label || label === folder.label) return
     saveFolders(folders.map(item => item.id === folder.id ? { ...item, label } : item))
     await driveToast('Folder renamed')
   }
   async function deleteFolder(folder) {
-    if (!admin) return
+    if (!signedIn) return
     const confirmed = await driveConfirm('Delete this folder?', 'Media inside will remain in the gallery and will not be deleted.', 'Delete folder')
     if (!confirmed) return
     saveFolders(folders.filter(item => item.id !== folder.id))
@@ -225,6 +195,7 @@ export default function Gallery() {
   }
   async function upload(files) {
     if (!files?.length) return
+    if (!admin) { if (input.current) input.current.value = ''; return driveAlert('Sign-in required', 'Sign in with Google to save media to the gallery.', 'warning') }
     const folder = requireDestination()
     if (!folder) { if (input.current) input.current.value = ''; return }
     setBusy(true)
@@ -262,6 +233,7 @@ export default function Gallery() {
     if (failures.length) await driveAlert('Some files were not uploaded', failures.join('\n'), 'warning')
   }
   async function addCatboxLink() {
+    if (!admin) return driveAlert('Sign-in required', 'Sign in with Google to save media to the gallery.', 'warning')
     const folder = requireDestination()
     if (!folder) return
     const Swal = await getSwal()
@@ -365,35 +337,38 @@ export default function Gallery() {
     }
   }
   async function move(item, folder) {
-    if (!admin) return
+    if (!signedIn) return
     try {
       await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
       await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
   }
   async function permanentDelete(item) {
-    if (!admin) return
+    if (!admin) return driveAlert('Administrator access required', 'Only an admin can permanently delete gallery media.', 'warning')
     const confirmed = await driveConfirm('Delete permanently?', `“${item.name || 'This media'}” will be permanently deleted. This cannot be undone.`, 'Delete permanently', 'error')
     if (!confirmed) return
     try {
+      if (item.url && new URL(item.url).hostname === 'res.cloudinary.com') {
+        const user = getApmlAuth().currentUser
+        if (!user) throw new Error('Sign-in expired. Please sign in again.')
+        const token = await user.getIdToken()
+        const response = await fetch(`${DRIVE_API_URL}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ urls: [item.url] }) })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok || !result.ok) throw new Error(result.error || `Delete service returned HTTP ${response.status}`)
+      }
       await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).remove()
       await driveToast('Media permanently deleted')
     } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
   }
   async function trashMedia(item) {
-    if (admin) return move(item, 'deleted')
-    const confirmed = await driveConfirm('Move media to trash?', 'This media item will be moved to the Trash Archive.', 'Move to trash')
-    if (!confirmed) return
-    try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder: 'deleted' })
-      await driveToast('Media moved to trash')
-    } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
+    if (!signedIn) return driveAlert('Sign-in required', 'Sign in with Google to delete gallery media.', 'warning')
+    return move(item, 'deleted')
   }
   function handleDrop(event, folderId) {
     event.preventDefault()
     const key = event.dataTransfer.getData('text/plain')
     const item = items.find(entry => entry.key === key)
-    if (admin && item && item.folder !== folderId) move(item, folderId)
+    if (signedIn && item && item.folder !== folderId) move(item, folderId)
   }
   function renderPagination() {
     if (pageCount <= 1) return null
@@ -421,8 +396,8 @@ export default function Gallery() {
           <span><MaterialIcon name="videocam" style={{ fontSize: 14 }}/><strong>{videos}</strong> Videos</span>
         </div>
       </div>
-      <button className={admin?'gallery-admin gallery-admin-active':'gallery-admin gallery-google-admin'} onClick={toggleAdmin} disabled={busy} title={admin?'Exit admin':'Sign in with Google'} aria-label={admin?'Exit admin':'Sign in with Google'}>
-        {busy?<span className="admin-button-spinner"/>:admin?<><MaterialIcon name="verified_user" style={{ fontSize: 16 }}/> Exit admin</>:<svg className="apml-google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>}
+      <button className={signedIn?'gallery-admin gallery-admin-active':'gallery-admin gallery-google-admin'} onClick={toggleAdmin} disabled={busy} title={signedIn?'Sign out':'Sign in with Google'} aria-label={signedIn?'Sign out':'Sign in with Google'}>
+        {busy?<span className="admin-button-spinner"/>:signedIn?<><MaterialIcon name="verified_user" style={{ fontSize: 16 }}/> Sign out</>:<svg className="apml-google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 5.9 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>}
       </button>
     </header>
 
@@ -445,10 +420,10 @@ export default function Gallery() {
 
     <section className="gallery-toolbar">
       <div className="gallery-folder-tabs">
-        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
-        {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
+        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => signedIn && event.preventDefault()} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
+        {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => signedIn && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
           <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
-          {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
+        {signedIn && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
         </span>)}
         {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
       </div>
@@ -479,8 +454,8 @@ export default function Gallery() {
                   <button title="Delete permanently" onClick={() => permanentDelete(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
                 {activeFolder !== 'deleted' && <div className="gallery-admin-actions">
-                  {admin && <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
-                  <button title="Move to trash" onClick={() => trashMedia(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
+                  {signedIn && <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
+                  {signedIn&&<button title="Move to trash" onClick={() => trashMedia(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>}
                 </div>}
               </div>
             </div>
