@@ -440,7 +440,7 @@ export default function Gallery() {
           <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
           {!PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
         </span>)}
-        <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
+        <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>
       </div>
     </section>
 
