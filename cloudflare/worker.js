@@ -2032,8 +2032,8 @@ async function handleNovaAnalytics(request, env) {
     ok: true, generatedAt: now, timezone: 'Asia/Kolkata', periodDays: rangeDays, startDate: startKey, endDate: endKey,
     daily, previousDaily, heatmap,
     totals: { ...totals,
-      totalPdfsLifetime: Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).pdf : 0), 0),
-      totalMediaLifetime: mediaResult.ok && Number.isFinite(Number(mediaResult.value)) ? Number(mediaResult.value) : null },
+      totalPdfsLifetime: pdfResult.ok && Number.isFinite(Number(pdfResult.value)) ? Number(pdfResult.value) : Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).pdf : 0), 0),
+      totalMediaLifetime: mediaResult.ok && Number.isFinite(Number(mediaResult.value)) ? Number(mediaResult.value) : Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).media : 0), 0) },
     previousTotals,
     visitorIntelligence: {
       sessions: sessions.length, uniqueBrowsers, newBrowsers: Math.max(0,uniqueBrowsers-returningBrowsers), returningBrowsers,
