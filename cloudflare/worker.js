@@ -2068,20 +2068,21 @@ async function handleStorageAudit(request, env) {
   }
 
   const auth = 'Basic ' + btoa(`${env.CLOUDINARY_API_KEY}:${env.CLOUDINARY_API_SECRET}`);
-  let firebaseResponse;
+  let driveFiles = {};
+  let driveFolders = {};
+  let galleryItems = {};
   try {
-    firebaseResponse = await fetch(CONFIG.FIREBASE_DB_URL + '/.json');
+    const paths = ['catbox_gdrive_files', 'catbox_gdrive_folders', 'apml_ranked_gallery'];
+    const responses = await Promise.all(paths.map(path => fetch(CONFIG.FIREBASE_DB_URL + '/' + path + '.json')));
+    const failed = responses.find(response => !response.ok);
+    if (failed) return json({ ok: false, error: 'Firebase file-reference scan failed with HTTP ' + failed.status + '. No deleted-file classifications were generated.' }, 502);
+    const [filesData, foldersData, galleryData] = await Promise.all(responses.map(response => response.json()));
+    driveFiles = filesData || {};
+    driveFolders = foldersData || {};
+    galleryItems = galleryData || {};
   } catch {
-    return json({ ok: false, error: 'Could not read portal file references from Firebase.' }, 502);
+    return json({ ok: false, error: 'Could not read all APML Drive and Gallery references from Firebase. No deleted-file classifications were generated.' }, 502);
   }
-  if (!firebaseResponse.ok) return json({ ok: false, error: 'Firebase reference scan failed with HTTP ' + firebaseResponse.status + '.' }, 502);
-  let firebaseData;
-  try { firebaseData = await firebaseResponse.json(); }
-  catch { return json({ ok: false, error: 'Firebase returned an unreadable response.' }, 502); }
-
-  const driveFiles = firebaseData?.catbox_gdrive_files || {};
-  const driveFolders = firebaseData?.catbox_gdrive_folders || {};
-  const galleryItems = firebaseData?.apml_ranked_gallery || {};
   const folderById = new Map(Object.entries(driveFolders).map(([id, folder]) => [id, folder || {}]));
   const references = new Map();
   const addReference = (url, entry) => {
