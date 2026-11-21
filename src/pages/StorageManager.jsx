@@ -24,6 +24,7 @@ export default function StorageManager(){
  const [typeFilter,setTypeFilter]=useState('all')
  const [updated,setUpdated]=useState(null)
  const [deleting,setDeleting]=useState('')
+ const [bulkDeleting,setBulkDeleting]=useState(false)
 
  const scan=async()=>{
   setBusy(true);setError('')
@@ -65,6 +66,32 @@ export default function StorageManager(){
   finally{setDeleting('')}
  }
 
+
+ const deleteAllOrphaned=async()=>{
+  const orphaned=(report?.assets||[]).filter(item=>item.status==='deleted')
+  if(!report?.complete){window.alert('Bulk deletion is disabled because this scan is incomplete. Run a complete scan first.');return}
+  if(!orphaned.length){window.alert('No orphaned Cloudinary files were found in this completed scan.');return}
+  const typed=window.prompt('This will permanently delete '+orphaned.length+' Cloudinary assets classified as Deleted from Portal. Files in Trash and visible files are excluded. Type DELETE to confirm.')
+  if(typed!=='DELETE')return
+  setBulkDeleting(true);setError('')
+  try{
+   const auth=await getApmlAuth();const user=auth.currentUser
+   if(!user)throw new Error('Admin login required. Please sign in again.')
+   const token=await user.getIdToken(true)
+   let deleted=0;let failures=[]
+   for(let i=0;i<orphaned.length;i+=50){
+    const batch=orphaned.slice(i,i+50)
+    const response=await fetch(DELETE_API,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({urls:batch.map(item=>item.url)})})
+    const data=await response.json().catch(()=>({}))
+    deleted+=Number(data.deleted||0)
+    if(!response.ok||!data.ok||Number(data.deleted||0)!==batch.length){failures.push((data.error||'Batch failed')+' ('+(i+1)+'–'+(i+batch.length)+')')}
+   }
+   await scan()
+   window.alert('Bulk deletion finished. Cloudinary reported '+deleted+' deleted assets out of '+orphaned.length+'.'+(failures.length?'\\nSome batches failed: '+failures.join('; '):''))
+  }catch(e){setError(e.message||'Bulk Cloudinary deletion failed.')}
+  finally{setBulkDeleting(false)}
+ }
+
  const exportCsv=()=>{
   if(!report)return
   const columns=['fileName','publicId','status','resourceType','format','createdAt','bytes','portalLocations','url']
@@ -97,7 +124,7 @@ export default function StorageManager(){
   <section className="sm-panel">
    <div className="sm-panel-head"><div><span className="sm-section-label">CLOUDINARY INVENTORY</span><h2>File status and locations</h2><p>{report.complete?'Inventory scan completed.':'Partial inventory: the scan reached its per-type page limit; results are not exhaustive.'} {updated?'Last scanned '+updated.toLocaleString('en-IN'):''}</p></div><button className="sm-export" onClick={exportCsv} disabled={!rows.length}><Download size={15}/> Export filtered CSV</button></div>
    {!report.complete&&<div className="sm-partial"><AlertTriangle size={16}/> Partial scan only. Run another scan after reviewing the inventory limit before treating the totals as complete.</div>}
-   <div className="sm-controls">
+   <div className="sm-controls"><button className="sm-delete" onClick={deleteAllOrphaned} disabled={!report.complete||busy||bulkDeleting||deleting!==''||Number(totals.deleted||0)===0} title={!report.complete?'Complete the scan before bulk deletion':'Deletes only assets marked Deleted from Portal; Trash and visible assets are excluded'}><Trash2 size={15}/>{bulkDeleting?'Deleting orphaned files…':'Delete All Orphaned Files ('+Number(totals.deleted||0)+')'}</button>
     <label className="sm-search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search file name, folder or public ID"/></label>
     <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} aria-label="Filter file status"><option value="all">All statuses</option><option value="visible">Visible in Portal</option><option value="trash">In Trash</option><option value="deleted">Deleted from Portal</option></select>
     <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} aria-label="Filter file type"><option value="all">All file types</option><option value="image">Images</option><option value="video">Videos</option><option value="raw">Raw / PDF</option></select>
