@@ -40,7 +40,7 @@ export default function SystemHealth(){
   update('browser',{status:navigator.onLine?'operational':'offline',value:navigator.onLine?'Online':'Offline',message:'Browser network connectivity.'})
   let sw='Not registered',swStatus='degraded'
   if('serviceWorker' in navigator){try{const regs=await navigator.serviceWorker.getRegistrations();sw=regs.length?(navigator.serviceWorker.controller?'Active':'Registered'):'Not registered';swStatus=regs.length?'operational':'degraded'}catch(e){sw='Unavailable'}}
-  update('pwa',{status:swStatus,value:sw,message:swStatus==='operational'?'Offline shell caching is enabled for the GitHub Pages app.':'Service-worker registration is not available in this browser.'})
+  update('pwa',{status:swStatus,value:sw,message:swStatus==='operational'?'Network-only service worker is registered; this app does not currently cache pages for offline use.':'Service-worker registration is not available in this browser.'})
   const overallStatus=!navigator.onLine?'offline':!workerOk||!firebaseOk||assetFailed?'degraded':'operational'
   setOverall(overallStatus);setChecked(new Date().toLocaleTimeString('en-IN'));setBusy(false)
  },[])
