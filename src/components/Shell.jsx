@@ -189,6 +189,17 @@ export default function Shell(){
  const navigate=useNavigate()
  const paletteItems=useMemo(()=>links.filter(item=>(item.label+' '+item.to).toLowerCase().includes(paletteQuery.trim().toLowerCase())),[paletteQuery])
  useEffect(()=>{
+  if(window.APMNotify)return
+  const src=import.meta.env.BASE_URL+'notify.js?v=21.47'
+  const existing=[...document.scripts].find(script=>script.src===new URL(src,window.location.href).href)
+  if(existing)return
+  const script=document.createElement('script')
+  script.src=src
+  script.async=true
+  script.onerror=()=>console.warn('APML Telegram notification script could not be loaded')
+  document.head.appendChild(script)
+ },[])
+ useEffect(()=>{
   const onKeyDown=event=>{
    if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){event.preventDefault();setPaletteOpen(true);return}
    if(event.key==='Escape'&&paletteOpen){event.preventDefault();setPaletteOpen(false);setPaletteQuery('')}
