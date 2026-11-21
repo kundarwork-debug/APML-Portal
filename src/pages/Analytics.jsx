@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Activity, AlertTriangle, BarChart3, Download, RefreshCw, Users } from 'lucide-react'
+import { AlertTriangle, BarChart3, Download, RefreshCw } from 'lucide-react'
 import { Line } from 'react-chartjs-2'
 import {
  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip
@@ -101,33 +101,18 @@ export default function Analytics(){
  },[])
  useEffect(()=>{load();const timer=setInterval(load,300000);return()=>clearInterval(timer)},[load])
  const rows=data?.daily||[]
- const visitors=data?.visitorIntelligence||{}
- const hasDailyUniqueVisitors=Array.isArray(visitors.dailyUniqueVisitors)&&visitors.dailyUniqueVisitors.length>0
- const trendRows=hasDailyUniqueVisitors?visitors.dailyUniqueVisitors:(visitors.dailySessions||[]).map(row=>({date:row.date,visitors:row.sessions}))
- const trendLabel=hasDailyUniqueVisitors?'Daily unique visitors':'Daily sessions'
  const totalPdf=rows.reduce((sum,row)=>sum+(Number(row.pdf)||0),0)
  const totalMedia=rows.reduce((sum,row)=>sum+(Number(row.media)||0),0)
- const peak=Math.max(0,...rows.map(row=>Number(row.peak)||0))
  return <div className="an-page">
   <header className="an-heading"><div><span className="an-kicker"><BarChart3 size={14}/> APML PORTAL · INSIGHTS</span><h1>Analytics</h1><p>A clear view of portal traffic, usage and performance.</p></div><div className="an-heading-actions"><span className="an-updated">{updated?'Updated '+updated.toLocaleTimeString('en-IN'):'Waiting for data'}</span><span className="an-live-status"><i/> Live analytics</span><button onClick={load} disabled={busy}><RefreshCw size={15} className={busy?'an-spin':''}/>{busy?'Refreshing…':'Refresh'}</button></div></header>
   {error&&<section className="an-error"><AlertTriangle size={19}/><div><b>Analytics data could not be loaded</b><p>{error}</p><button onClick={load}>Try again</button></div></section>}
   {busy&&!data?<section className="an-loading"><span/><span/><span/><span/></section>:null}
   {data&&<>
    <section className="an-metrics">
-    <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct consented visitors · 7-day sample" series={trendRows.map(row=>row.visitors)}/>
     <Metric icon={Download} label="PDF generated" value={number(data.totals?.totalPdfsLifetime ?? totalPdf)} note="Lifetime total · daily trend below" series={rows.map(row=>row.pdf)}/>
     <Metric icon={Download} label="Media downloads" value={number(data.totals?.totalMediaLifetime ?? totalMedia)} note="Lifetime total · daily trend below" series={rows.map(row=>row.media)}/>
-    <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days" series={rows.map(row=>row.peak)}/>
    </section>
-   <section className="an-panel">
-    <div className="an-panel-head"><div><span className="an-section-label">TRAFFIC OVERVIEW</span><h2>{trendLabel}</h2><p>{hasDailyUniqueVisitors?'Distinct consented visitors per day.':'Session starts per day while the visitor aggregate is being updated.'}</p></div><span className="an-period">Last 7 days</span></div>
-    {trendRows.length?<TrendChart rows={trendRows} label={trendLabel}/>:<p className="an-muted">No daily traffic records are available for this period.</p>}
-   </section>
-   <section className="an-panel">
-    <div className="an-panel-head"><div><span className="an-section-label">YEAR AT A GLANCE</span><h2>Visitor activity</h2><p>Daily recorded visit activity across the last 365 days.</p></div></div>
-    <Heatmap rows={data.heatmap||[]}/>
-   </section>
-   <p className="an-footnote">{(data.dataNotes||[]).join(' ')} Visitor intelligence and performance details are limited to the latest 500 stored sessions. Daily totals are aggregated separately.</p>
+   <p className="an-footnote">Daily trends use the last 7 days of recorded events. Lifetime totals are read from the portal-wide Firebase counters.</p>
   </>}
  </div>
 }
