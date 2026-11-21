@@ -25,7 +25,7 @@
 .an-metric{position:relative;display:flex;flex-direction:column;padding:19px 18px 17px;overflow:hidden;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
 .an-metric:before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--metric-accent,#a91f2b);opacity:.9}
 .an-metric:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--metric-accent) 35%,var(--border-subtle));box-shadow:0 12px 30px rgba(28,25,23,.07)}
-.an-metric.visitors{--metric-accent:#059669}.an-metric.pdf{--metric-accent:#b91c1c}.an-metric.media{--metric-accent:#2563eb}.an-metric.downloads{--metric-accent:#d97706}
+.an-metric.active-days{--metric-accent:#059669}.an-metric.pdf{--metric-accent:#b91c1c}.an-metric.media{--metric-accent:#2563eb}.an-metric.downloads{--metric-accent:#d97706}
 .an-metric-icon{display:grid;place-items:center;width:36px;height:36px;margin-bottom:13px;border:1px solid color-mix(in srgb,var(--metric-accent) 18%,transparent);border-radius:11px;background:color-mix(in srgb,var(--metric-accent) 10%,transparent);color:var(--metric-accent)}
 .an-metric small{display:block;color:var(--text-muted);font-size:11px;font-weight:700}
 .an-metric strong{display:block;margin:6px 0 4px;font-size:clamp(24px,2.2vw,31px);font-weight:800;letter-spacing:-.045em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
