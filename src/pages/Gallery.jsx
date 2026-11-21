@@ -370,11 +370,23 @@ export default function Gallery() {
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
   }
   async function permanentDelete(item) {
-    const confirmed = await driveConfirm('Delete permanently?', `“${item.name || 'This media'}” will be permanently deleted. This cannot be undone.`, 'Delete permanently', 'error')
+    const confirmed = await driveConfirm('Delete permanently?', `“${item.name || 'This media'}” will be permanently deleted from Gallery and Cloudinary. This cannot be undone.`, 'Delete permanently', 'error')
     if (!confirmed) return
     try {
+      if (item.url) {
+        const user = window.firebase?.auth?.().currentUser
+        if (!user) throw new Error('Admin session expired. Please sign in again.')
+        const token = await user.getIdToken()
+        const response = await fetch(`${DRIVE_API_URL}/delete`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ urls: [item.url] })
+        })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok || result.ok !== true) throw new Error(result.error || 'Cloudinary could not delete this media. The Gallery record was kept.')
+      }
       await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).remove()
-      await driveToast('Media permanently deleted')
+      await driveToast('Media permanently deleted from Gallery and cloud storage')
     } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
   }
   async function trashMedia(item) {
