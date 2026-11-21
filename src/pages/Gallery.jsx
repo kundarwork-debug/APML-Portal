@@ -200,14 +200,12 @@ export default function Gallery() {
     await driveToast('Folder created')
   }
   async function editFolder(folder) {
-    if (!admin) return
     const label = await driveInput('Rename folder', { value: folder.label, placeholder: 'Folder name' })
     if (!label || label === folder.label) return
     saveFolders(folders.map(item => item.id === folder.id ? { ...item, label } : item))
     await driveToast('Folder renamed')
   }
   async function deleteFolder(folder) {
-    if (!admin) return
     const confirmed = await driveConfirm('Delete this folder?', 'Media inside will remain in the gallery and will not be deleted.', 'Delete folder')
     if (!confirmed) return
     saveFolders(folders.filter(item => item.id !== folder.id))
@@ -365,14 +363,12 @@ export default function Gallery() {
     }
   }
   async function move(item, folder) {
-    if (!admin) return
     try {
       await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
       await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
   }
   async function permanentDelete(item) {
-    if (!admin) return
     const confirmed = await driveConfirm('Delete permanently?', `“${item.name || 'This media'}” will be permanently deleted. This cannot be undone.`, 'Delete permanently', 'error')
     if (!confirmed) return
     try {
@@ -381,19 +377,13 @@ export default function Gallery() {
     } catch (error) { await driveAlert('Delete failed', error.message, 'error') }
   }
   async function trashMedia(item) {
-    if (admin) return move(item, 'deleted')
-    const confirmed = await driveConfirm('Move media to trash?', 'This media item will be moved to the Trash Archive.', 'Move to trash')
-    if (!confirmed) return
-    try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder: 'deleted' })
-      await driveToast('Media moved to trash')
-    } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
+    return move(item, 'deleted')
   }
   function handleDrop(event, folderId) {
     event.preventDefault()
     const key = event.dataTransfer.getData('text/plain')
     const item = items.find(entry => entry.key === key)
-    if (admin && item && item.folder !== folderId) move(item, folderId)
+    if (item && item.folder !== folderId) move(item, folderId)
   }
   function renderPagination() {
     if (pageCount <= 1) return null
@@ -445,12 +435,12 @@ export default function Gallery() {
 
     <section className="gallery-toolbar">
       <div className="gallery-folder-tabs">
-        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
+        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => event.preventDefault()} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
         {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => admin && event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
           <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
-          {admin && !PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
+          {!PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
         </span>)}
-        {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
+        <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
       </div>
     </section>
 
@@ -461,7 +451,7 @@ export default function Gallery() {
       <div className="gallery-grid">
         {pageItems.map(item => {
           const source = fileSource(item.url)
-          return <article className="gallery-card" key={item.key} draggable={admin} onDragStart={event => event.dataTransfer.setData('text/plain', item.key)}>
+          return <article className="gallery-card" key={item.key} draggable={true} onDragStart={event => event.dataTransfer.setData('text/plain', item.key)}>
             <button className="gallery-media-preview" type="button" onClick={() => openMedia(item)} aria-label={`Preview ${item.name || 'media'}`}>
               {item.isVideo ? <video src={item.url} muted playsInline preload="metadata"/> : <img src={optimizedUrl(item.url)} loading="lazy" decoding="async" alt={item.name || 'Gallery media'}/>}
               {item.isVideo && <span className="gallery-video-mark"><MaterialIcon name="videocam" style={{ fontSize: 13 }}/> VIDEO</span>}
@@ -474,12 +464,12 @@ export default function Gallery() {
               <div className="gallery-card-footer">
                 <button className="gallery-download apml-download-btn" onClick={() => downloadMedia(item)}><div className="button-content"><div className="text-container"><div className="text">Download</div></div><div className="svg-container"><svg className="download-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.479 10.092c-.212-3.951-3.473-7.092-7.479-7.092-4.005 0-7.267 3.141-7.479 7.092-2.57.463-4.521 2.706-4.521 5.408 0 3.037 2.463 5.5 5.5 5.5h13c3.037 0 5.5-2.463 5.5-5.5 0-2.702-1.951-4.945-4.521-5.408zm-7.479 6.908l-4-4h3v-4h2v4h3l-4 4z"></path></svg></div></div></button>
                 <a className="gallery-open-link" href={item.url} target="_blank" rel="noreferrer" aria-label={`Open ${item.name || 'media'} in new tab`}><MaterialIcon name="open_in_new" style={{ fontSize: 15 }}/></a>
-                {activeFolder === 'deleted' && admin && <div className="gallery-admin-actions">
+                {activeFolder === 'deleted' && <div className="gallery-admin-actions">
                   <button title="Restore media" onClick={() => move(item, 'others')}><MaterialIcon name="restore" style={{ fontSize: 14 }}/></button>
                   <button title="Delete permanently" onClick={() => permanentDelete(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
                 {activeFolder !== 'deleted' && <div className="gallery-admin-actions">
-                  {admin && <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
+                  <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>}
                   <button title="Move to trash" onClick={() => trashMedia(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
               </div>
