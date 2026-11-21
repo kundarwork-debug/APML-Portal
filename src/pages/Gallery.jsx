@@ -195,7 +195,7 @@ export default function Gallery() {
   }
   async function upload(files) {
     if (!files?.length) return
-    if (!admin) { if (input.current) input.current.value = ''; return driveAlert('Sign-in required', 'Sign in with Google to save media to the gallery.', 'warning') }
+    if (!signedIn) { if (input.current) input.current.value = ''; return driveAlert('Sign-in required', 'Sign in with Google to save media to the gallery.', 'warning') }
     const folder = requireDestination()
     if (!folder) { if (input.current) input.current.value = ''; return }
     setBusy(true)
@@ -233,7 +233,7 @@ export default function Gallery() {
     if (failures.length) await driveAlert('Some files were not uploaded', failures.join('\n'), 'warning')
   }
   async function addCatboxLink() {
-    if (!admin) return driveAlert('Sign-in required', 'Sign in with Google to save media to the gallery.', 'warning')
+    if (!signedIn) return driveAlert('Sign-in required', 'Sign in with Google to save media to the gallery.', 'warning')
     const folder = requireDestination()
     if (!folder) return
     const Swal = await getSwal()
@@ -475,3 +475,4 @@ export default function Gallery() {
     </div>}
   </main>
 }
+
