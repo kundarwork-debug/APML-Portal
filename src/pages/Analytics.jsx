@@ -115,8 +115,8 @@ export default function Analytics(){
   {data&&<>
    <section className="an-metrics">
     <Metric icon={Users} label="Unique visitors" value={number(visitors.uniqueBrowsers)} note="Distinct consented visitors · 7-day sample" series={trendRows.map(row=>row.visitors)}/>
-    <Metric icon={Download} label="PDF generated" value={number(totalPdf)} note="Editor · last 7 days" series={rows.map(row=>row.pdf)}/>
-    <Metric icon={Download} label="Media downloads" value={number(totalMedia)} note="Drive + Gallery · last 7 days" series={rows.map(row=>row.media)}/>
+    <Metric icon={Download} label="PDF generated" value={number(data.totals?.totalPdfsLifetime ?? totalPdf)} note="Lifetime total · daily trend below" series={rows.map(row=>row.pdf)}/>
+    <Metric icon={Download} label="Media downloads" value={number(data.totals?.totalMediaLifetime ?? totalMedia)} note="Lifetime total · daily trend below" series={rows.map(row=>row.media)}/>
     <Metric icon={Activity} label="Peak online" value={number(peak)} note="Highest concurrent presence · last 7 days" series={rows.map(row=>row.peak)}/>
    </section>
    <section className="an-panel">
