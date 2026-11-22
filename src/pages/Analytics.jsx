@@ -47,82 +47,6 @@ export default function Analytics() {
   const [customOpen, setCustomOpen] = useState(false)
   const [activity, setActivity] = useState([])
   const [activityFilter, setActivityFilter] = useState('All')
-  const [visitorStats, setVisitorStats] = useState(null)
-  const [visitorError, setVisitorError] = useState('')
-  const { admin } = useApmlAdminAuth()
-
-  const load = useCallback(async () => {
-    setBusy(true); setError('')
-    try {
-      const db = await getApmlDatabase()
-      await ensureApmlAnalyticsStructure(db)
-      const [daily, pdf, media] = await Promise.all([
-        db.ref('Analytics page/daily_logs').once('value'),
-        db.ref('Analytics page/lifetime_totals/pdfGenerated').once('value'),
-        db.ref('Analytics page/lifetime_totals/mediaDownloads').once('value')
-      ])
-      setLogs(daily.val() || {})
-      setTotals({ pdf: Number(pdf.val()) || 0, media: Number(media.val()) || 0 })
-      setUpdated(new Date())
-    } catch (e) { setError(e.message || 'Could not load analytics from Firebase.') }
-    finally { setBusy(false) }
-  }, [])
-
-  useEffect(() => {
-    let db, refs = [], live = true
-    ; (async () => {
-      try {
-        db = await getApmlDatabase()
-        await ensureApmlAnalyticsStructure(db)
-        if (!live) return
-        const subscribe = (path, callback) => {
-          const ref = db.ref(path), handler = snapshot => { if (live) callback(snapshot.val()) }
-          ref.on('value', handler, err => { if (live) setError(err.message || 'Firebase read failed.') })
-          refs.push([ref, handler])
-        }
-        subscribe('Analytics page/daily_logs', value => { setLogs(value || {}); setUpdated(new Date()); setBusy(false) })
-        subscribe('Analytics page/lifetime_totals/pdfGenerated', value => setTotals(old => ({ ...old, pdf: Number(value) || 0 })))
-        subscribe('Analytics page/lifetime_totals/mediaDownloads', value => setTotals(old => ({ ...old, media: Number(value) || 0 })))
-      } catch (e) { if (live) { setError(e.message || 'Could not connect to Firebase.'); setBusy(false) } }
-    })()
-    return () => { live = false; refs.forEach(([ref, handler]) => ref.off('value', handler)) }
-  }, [])
-
-  useEffect(() => {
-    if (!admin) return
-    let ref, handler, live = true
-    ; (async () => {
-      try {
-        const db = await getApmlDatabase()
-        if (!live) return
-        ref = db.ref('Analytics page/recent_actions')
-        handler = ref.orderByChild('timestamp').limitToLast(50).on('value', snapshot => {
-          if (!live) return
-          setActivity(Object.entries(snapshot.val() || {}).map(([id, value]) => ({ id, ...value })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)))
-        }, err => console.warn('Activity log listener:', err.message))
-      } catch (err) { console.warn('Activity log unavailable:', err.message) }
-    })()
-    return () => { live = false; if (ref && handler) ref.off('value', handler) }
-  }, [admin])
-
-  useEffect(() => {
-    let live = true
-    const refreshVisitors = async () => {
-      try {
-        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=365')
-        if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.')
-        const data = await response.json()
-        if (!data.ok || !data.visitorIntelligence) throw new Error(data.error || 'Visitor analytics are temporarily unavailable.')
-        if (live) { setVisitorStats(data.visitorIntelligence); setVisitorError('') }
-      } catch (error) {
-        if (live) setVisitorError(error.message || 'Visitor analytics are temporarily unavailable.')
-      }
-    }
-    refreshVisitors()
-    const interval = window.setInterval(refreshVisitors, 30000)
-    return () => { live = false; window.clearInterval(interval) }
-  }, [])
-
   const selected = useMemo(() => {
     if (!logs) return []
     const end = range === 'custom' ? (customEnd || dateKey(new Date())) : dateKey(new Date())
@@ -209,40 +133,18 @@ export default function Analytics() {
       </div>
     </section>
 
-    <section className="an-section-block an-intelligence-block">
-      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
-      <div className="an-visitor-layout">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Cloudflare derives approximate location and a one-way visitor identifier from the connecting IP. The raw IP is not saved in the analytics database. Obvious bots are filtered, but human classification and IP-based identity are estimates.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate network location only · no GPS · raw IP not stored · up to 500 stored sessions used for these insights.</span></div></div>
-        <div className="an-visitor-data">
-          {visitorError && <p className="an-visitor-status">{visitorError}</p>}
-          <div className="an-visitor-metrics">
-            <div><small>SESSIONS</small><b>{number(visitorStats?.sessions || 0)}</b></div>
-            <div><small>EST. UNIQUE IPs</small><b>{number(visitorStats?.uniqueBrowsers || 0)}</b></div>
-            <div><small>RETURNING IPs</small><b>{number(visitorStats?.returningBrowsers || 0)}</b></div>
-            <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
-          </div>
-          <div className="an-visitor-lists">
-            <div><b>Top locations</b>{visitorStats?.cities?.length ? visitorStats.cities.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for location data</small>}</div>
-            <div><b>Devices & browsers</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,3).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}{visitorStats?.browsers?.slice(0,2).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>)}</div>
-            <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page-view data</small>}</div>
-          </div>
-          <p className="an-visitor-footnote">Estimated human traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · up to 500 stored sessions.</p>
-        </div>
-      </div>
-    </section>
-
     <section className="an-section-block">
-      <div className="an-section-heading"><div><span>04 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
+      <div className="an-section-heading"><div><span>03 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
       <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-grid">{heatmap.map(day => <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} />)}</div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
     </section>
 
     <section className="an-section-block">
-      <div className="an-section-heading"><div><span>05 / DAILY REPORT</span><h2>Activity breakdown</h2></div><p>{range === '365d' ? 'Latest 45 days shown · export for full range' : 'Newest dates first'}</p></div>
+      <div className="an-section-heading"><div><span>04 / DAILY REPORT</span><h2>Activity breakdown</h2></div><p>{range === '365d' ? 'Latest 45 days shown · export for full range' : 'Newest dates first'}</p></div>
       <div className="an-table-card"><div className="an-table-wrap"><table className="an-table"><thead><tr><th>DATE</th><th>PDF GENERATED</th><th>DRIVE / GALLERY</th><th>TOTAL</th></tr></thead><tbody>{visibleRows.length ? visibleRows.map(row => <tr key={row.key}><td>{fullDate(row.key)}</td><td><span className="an-table-dot pdf-dot" />{number(row.pdf)}</td><td><span className="an-table-dot media-dot" />{number(row.media)}</td><td><b>{number(row.pdf + row.media)}</b></td></tr>) : <tr><td colSpan="4" className="an-empty">No data available for this period.</td></tr>}</tbody></table></div></div>
     </section>
 
     {admin && <section className="an-section-block">
-      <div className="an-section-heading"><div><span>06 / ADMIN AUDIT TRAIL</span><h2>Recent portal actions</h2></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
+      <div className="an-section-heading"><div><span>05 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
       <div className="an-audit-card"><div className="an-audit-toolbar"><span>Latest successful instrumented actions</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
         {filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.item, row.details].filter(Boolean).join(' · ')}</span><small>{row.user || 'Guest'}</small></div><time>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
       </div>
