@@ -251,7 +251,7 @@ export default function Gallery() {
             url: data.secure_url, folder, name: file.name, size: file.size, isVideo,
             viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
           })
-          void logApmlAction({action:'Media uploaded',module:'Gallery',item:file.name,details:folder})
+          void logApmlAction({action:'Media uploaded',module:'Gallery',item:file.name,details:folder,fileName:file.name,folder,fileSize:file.size,fileType:file.type})
           successes++
         } catch (error) { failures.push(`${file.name}: ${error.message}`) }
       }
@@ -298,7 +298,7 @@ export default function Gallery() {
         url: info.url, folder, name, size: 0, isVideo: info.isVideo,
         viewsCount: 0, downloadsCount: 0, timestamp: Date.now()
       })
-      void logApmlAction({action:'Media link added',module:'Gallery',item:name,details:folder})
+      void logApmlAction({action:'Media link added',module:'Gallery',item:name,details:folder,fileName:name,folder,fileType:'External link'})
       await driveToast('Catbox media added')
     } catch (error) { await driveAlert('Could not add Catbox link', error.message, 'error') }
   }
@@ -320,7 +320,7 @@ export default function Gallery() {
         void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
         window.APMNotify?.send?.({type:'gallery',title:item.isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery'})
         void metric(item, 'downloadsCount')
-        void logApmlAction({action:'Media downloaded',module:'Gallery',item:name})
+        void logApmlAction({action:'Media downloaded',module:'Gallery',item:name,fileName:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery',fileSize:item.size,fileType:item.isVideo?'Video':'Image'})
         window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
         await driveToast('Download started')
         return
