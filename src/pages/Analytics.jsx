@@ -47,6 +47,61 @@ export default function Analytics() {
   const [customOpen, setCustomOpen] = useState(false)
   const [activity, setActivity] = useState([])
   const [activityFilter, setActivityFilter] = useState('All')
+  const { admin } = useApmlAdminAuth()
+
+  const load = useCallback(async () => {
+    setBusy(true); setError('')
+    try {
+      const db = await getApmlDatabase()
+      await ensureApmlAnalyticsStructure(db)
+      const [daily, pdf, media] = await Promise.all([
+        db.ref('Analytics page/daily_logs').once('value'),
+        db.ref('Analytics page/lifetime_totals/pdfGenerated').once('value'),
+        db.ref('Analytics page/lifetime_totals/mediaDownloads').once('value')
+      ])
+      setLogs(daily.val() || {})
+      setTotals({ pdf: Number(pdf.val()) || 0, media: Number(media.val()) || 0 })
+      setUpdated(new Date())
+    } catch (e) { setError(e.message || 'Could not load analytics from Firebase.') }
+    finally { setBusy(false) }
+  }, [])
+
+  useEffect(() => {
+    let db, refs = [], live = true
+    ; (async () => {
+      try {
+        db = await getApmlDatabase()
+        await ensureApmlAnalyticsStructure(db)
+        if (!live) return
+        const subscribe = (path, callback) => {
+          const ref = db.ref(path), handler = snapshot => { if (live) callback(snapshot.val()) }
+          ref.on('value', handler, err => { if (live) setError(err.message || 'Firebase read failed.') })
+          refs.push([ref, handler])
+        }
+        subscribe('Analytics page/daily_logs', value => { setLogs(value || {}); setUpdated(new Date()); setBusy(false) })
+        subscribe('Analytics page/lifetime_totals/pdfGenerated', value => setTotals(old => ({ ...old, pdf: Number(value) || 0 })))
+        subscribe('Analytics page/lifetime_totals/mediaDownloads', value => setTotals(old => ({ ...old, media: Number(value) || 0 })))
+      } catch (e) { if (live) { setError(e.message || 'Could not connect to Firebase.'); setBusy(false) } }
+    })()
+    return () => { live = false; refs.forEach(([ref, handler]) => ref.off('value', handler)) }
+  }, [])
+
+  useEffect(() => {
+    if (!admin) return
+    let ref, handler, live = true
+    ; (async () => {
+      try {
+        const db = await getApmlDatabase()
+        if (!live) return
+        ref = db.ref('Analytics page/recent_actions')
+        handler = ref.orderByChild('timestamp').limitToLast(50).on('value', snapshot => {
+          if (!live) return
+          setActivity(Object.entries(snapshot.val() || {}).map(([id, value]) => ({ id, ...value })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)))
+        }, err => console.warn('Activity log listener:', err.message))
+      } catch (err) { console.warn('Activity log unavailable:', err.message) }
+    })()
+    return () => { live = false; if (ref && handler) ref.off('value', handler) }
+  }, [admin])
   const selected = useMemo(() => {
     if (!logs) return []
     const end = range === 'custom' ? (customEnd || dateKey(new Date())) : dateKey(new Date())
