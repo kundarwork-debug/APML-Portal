@@ -228,7 +228,7 @@ export default function Analytics() {
     ]
   }
   const visitorTrendOptions = { ...chartOptions, plugins: { ...chartOptions.plugins, legend: { ...chartOptions.plugins.legend, position: 'bottom' } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 8 } } } }
-  const cityRows = visitorStats?.devices?.slice(0, 6) || []
+  const cityRows = visitorStats?.browsers?.slice(0, 6) || []
   const deviceRows = visitorStats?.devices || []
   const visitorBarData = { labels: cityRows.map(row => row.name), datasets: [{ label: 'Sessions', data: cityRows.map(row => row.count || 0), backgroundColor: 'rgba(157,36,56,.72)', borderRadius: 6, maxBarThickness: 22 }] }
   const visitorBarOptions = { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: chartOptions.plugins.tooltip }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, ticks: { color: '#8b929e', precision: 0 } }, y: { grid: { display: false }, ticks: { color: 'var(--text-muted)', autoSkip: false } } } }
@@ -296,7 +296,7 @@ export default function Analytics() {
             <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
-            <div><b>Top devices</b>{visitorStats?.cities?.length ? visitorStats.cities.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for location data</small>}</div>
+            <div><b>Top devices</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}</div>
             <div><b>Devices &amp; browsers</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,3).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}{visitorStats?.browsers?.slice(0,2).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>)}</div>
             <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page data</small>}</div>
           </div>
@@ -305,7 +305,7 @@ export default function Analytics() {
       </div>
       <div className="an-visitor-charts">
         <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily anonymous browsers · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Bar data={visitorTrendData} options={{ ...visitorTrendOptions, plugins: { ...visitorTrendOptions.plugins, legend: { display: false } }, scales: { ...visitorTrendOptions.scales, x: { ...visitorTrendOptions.scales.x, grid: { display: false } }, y: { ...visitorTrendOptions.scales.y, beginAtZero: true } } }} /> : <small>No visitor trend data available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card"><div><b>Top devices</b><span>Recorded sessions by device type</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No device data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card"><div><b>Top browsers</b><span>Recorded sessions by browser</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No device data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
       </div>
     </section>
