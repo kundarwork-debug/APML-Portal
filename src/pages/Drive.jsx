@@ -27,11 +27,11 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  async function adminToggle(){setBusy(true);try{if(admin){await signOut();if(parent==='deleted')setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Admin sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
+  void incrementApmlMediaDownload().catch(e=>console.warn('Drive download counter unavailable',e))
   const name=item.name||'apml-file';
   try{
    if(window.ApmNativeDownload?.start){
     window.ApmNativeDownload.start(item.fileId,name);
-    try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
     void logApmlAction({action:'File downloaded',module:'Drive',item:name});
     window.APMNotify?.send?.({type:'drive',title:'Drive file downloaded',file:name,folder:folders.find(folder=>folder.key===(item.parentId||'root'))?.name||'APML Drive'});
     await driveToast('Download started');
@@ -44,7 +44,6 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    const url=URL.createObjectURL(blob),a=document.createElement('a');
    a.href=url;a.download=name;a.style.display='none';document.body.append(a);a.click();a.remove();
    setTimeout(()=>URL.revokeObjectURL(url),10000);
-   try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
    void logApmlAction({action:'File downloaded',module:'Drive',item:name});
    window.APMNotify?.send?.({type:'drive',title:'Drive file downloaded',file:name,folder:folders.find(folder=>folder.key===(item.parentId||'root'))?.name||'APML Drive'});
    await driveToast('Download started');
@@ -167,3 +166,4 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
   {trash&&<div className="drive-trash-note">Trash Archive · {trashFolders.length+trashFiles.length} items</div>}
  </main>
 }
+
