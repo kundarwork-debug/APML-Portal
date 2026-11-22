@@ -47,6 +47,8 @@ export default function Analytics() {
   const [customOpen, setCustomOpen] = useState(false)
   const [activity, setActivity] = useState([])
   const [activityFilter, setActivityFilter] = useState('All')
+  const [visitorStats, setVisitorStats] = useState(null)
+  const [visitorError, setVisitorError] = useState('')
   const { admin } = useApmlAdminAuth()
 
   const load = useCallback(async () => {
@@ -102,6 +104,15 @@ export default function Analytics() {
     })()
     return () => { live = false; if (ref && handler) ref.off('value', handler) }
   }, [admin])
+
+  useEffect(() => {
+    let live = true
+    fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=365')
+      .then(response => { if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.'); return response.json() })
+      .then(data => { if (live && data.ok) setVisitorStats(data.visitorIntelligence || null) })
+      .catch(error => { if (live) setVisitorError(error.message || 'Visitor analytics are temporarily unavailable.') })
+    return () => { live = false }
+  }, [])
 
   const selected = useMemo(() => {
     if (!logs) return []
@@ -190,10 +201,24 @@ export default function Analytics() {
     </section>
 
     <section className="an-section-block an-intelligence-block">
-      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">COLLECTION NOT ACTIVE</span></div>
+      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
       <div className="an-visitor-layout">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Know where portal visits come from.</h3><p>This area is reserved for estimated human visitors, first-time and returning visits, and approximate country, region and city insights.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate network location only. No GPS coordinates or raw IP addresses are intended to be stored.</span></div></div>
-        <div className="an-visitor-empty"><div className="an-empty-icon"><Users size={25} /></div><b>Visitor collection has not been connected</b><p>No visitor counts or location records are being collected yet. This dashboard will only show verified records after the privacy notice and secure collection endpoint are implemented.</p><span><i /> No estimated or sample figures shown</span></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Cloudflare derives approximate location and a one-way visitor identifier from the connecting IP. The raw IP is not saved in the analytics database. Obvious bots are filtered, but human classification and IP-based identity are estimates.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate network location only · no GPS · raw IP not stored · latest 500 sessions used for these insights.</span></div></div>
+        <div className="an-visitor-data">
+          {visitorError && <p className="an-visitor-status">{visitorError}</p>}
+          <div className="an-visitor-metrics">
+            <div><small>SESSIONS</small><b>{number(visitorStats?.sessions || 0)}</b></div>
+            <div><small>EST. UNIQUE VISITORS</small><b>{number(visitorStats?.uniqueBrowsers || 0)}</b></div>
+            <div><small>RETURNING VISITORS</small><b>{number(visitorStats?.returningBrowsers || 0)}</b></div>
+            <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
+          </div>
+          <div className="an-visitor-lists">
+            <div><b>Top locations</b>{visitorStats?.cities?.length ? visitorStats.cities.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for location data</small>}</div>
+            <div><b>Devices & browsers</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,3).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}{visitorStats?.browsers?.slice(0,2).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>)}</div>
+            <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page-view data</small>}</div>
+          </div>
+          <p className="an-visitor-footnote">Estimated human traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · latest 500 sessions.</p>
+        </div>
       </div>
     </section>
 
