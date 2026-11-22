@@ -63,6 +63,7 @@ export default function VisitorAnalyticsTracker() {
             online: true,
             currentPage: page,
             pageViews: (Number(current?.pageViews) || 0) + 1,
+            pages: { ...(current?.pages || {}), [page]: (Number(current?.pages?.[page]) || 0) + 1 },
             totalSeconds: Number(current?.totalSeconds) || 0,
             ...info
           }))
