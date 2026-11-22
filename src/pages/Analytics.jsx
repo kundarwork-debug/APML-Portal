@@ -139,7 +139,6 @@ export default function Analytics() {
   const activeDays = selected.filter(row => row.pdf + row.media > 0).length
   const average = selected.length ? Math.round(combined / selected.length * 10) / 10 : 0
   const peak = selected.reduce((best, row) => !best || row.pdf + row.media > best.pdf + best.media ? row : best, null)
-  const visibleRows = useMemo(() => range === '365d' ? selected.slice(-45).reverse() : [...selected].reverse(), [selected, range])
   const heatmap = useMemo(() => {
     const end = dateKey(new Date())
     const days = Array.from({ length: 365 }, (_, i) => { const key = shiftKey(end, i - 364), day = dayData(logs, key); return { key, ...day, total: day.pdf + day.media } })
@@ -269,10 +268,6 @@ export default function Analytics() {
       <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-calendar"><div className="an-heat-days"><span /><span>Mon</span><span /><span>Wed</span><span /><span>Fri</span><span /></div><div className="an-heat-months">{heatmap.monthLabels.map((month, index) => <span key={index}>{month}</span>)}</div><div className="an-heat-grid">{heatmapWeeks.map((week, wi) => <div className="an-heat-week" key={wi}>{week.map((day, di) => day ? <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} /> : <span key={'blank-' + wi + '-' + di} className="an-heat-cell an-heat-blank" />)}</div>)}</div></div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
     </section>
 
-    <section className="an-section-block">
-      <div className="an-section-heading"><div><span>05 / DAILY REPORT</span><h2>Activity breakdown</h2></div><p>{range === '365d' ? 'Latest 45 days shown · export for full range' : 'Newest dates first'}</p></div>
-      <div className="an-table-card"><div className="an-table-wrap"><table className="an-table"><thead><tr><th>DATE</th><th>PDF GENERATED</th><th>DRIVE / GALLERY</th><th>TOTAL</th></tr></thead><tbody>{visibleRows.length ? visibleRows.map(row => <tr key={row.key}><td>{fullDate(row.key)}</td><td><span className="an-table-dot pdf-dot" />{number(row.pdf)}</td><td><span className="an-table-dot media-dot" />{number(row.media)}</td><td><b>{number(row.pdf + row.media)}</b></td></tr>) : <tr><td colSpan="4" className="an-empty">No data available for this period.</td></tr>}</tbody></table></div></div>
-    </section>
 
     {admin && <section className="an-section-block">
       <div className="an-section-heading"><div><span>06 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
