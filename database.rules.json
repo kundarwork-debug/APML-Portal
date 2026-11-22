@@ -82,6 +82,25 @@
           }
         }
       }
+    },
+    "visitor_intelligence": {
+      ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')))",
+      "sessions": {
+        "$uid": {
+          "$sessionId": {
+            ".write": "auth != null && auth.uid == $uid && auth.token.firebase.sign_in_provider == 'anonymous'",
+            ".validate": "newData.hasChildren(['startedAt','lastSeen','online','currentPage','pageViews','totalSeconds','pages','device','browser','os']) && newData.child('startedAt').isNumber() && newData.child('lastSeen').isNumber() && newData.child('online').isBoolean() && newData.child('currentPage').isString() && newData.child('currentPage').val().length <= 120 && newData.child('pageViews').isNumber() && newData.child('totalSeconds').isNumber() && newData.child('pages').hasChildren() && newData.child('device').isString() && newData.child('browser').isString() && newData.child('os').isString()"
+          }
+        }
+      },
+      "daily": {
+        "$day": {
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid && auth.token.firebase.sign_in_provider == 'anonymous' && $day.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && !data.exists() && newData.val() == true",
+            ".validate": "newData.isBoolean() && newData.val() == true"
+          }
+        }
+      }
     }
   }
 }
