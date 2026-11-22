@@ -108,7 +108,7 @@ export default function Analytics() {
     let live = true
     const refreshVisitors = async () => {
       try {
-        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=365')
+        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=90')
         if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.')
         const data = await response.json()
         if (!data.ok || !data.visitorIntelligence) throw new Error(data.error || 'Visitor analytics are temporarily unavailable.')
@@ -171,11 +171,14 @@ export default function Analytics() {
   }
   const visitorDaily = visitorStats?.dailySessions || []
   const visitorUniqueDaily = visitorStats?.dailyUniqueVisitors || []
+  const visitorDateMap = new Map(visitorDaily.map(row => [row.date, Number(row.sessions) || 0]))
+  const visitorUniqueDateMap = new Map(visitorUniqueDaily.map(row => [row.date, Number(row.visitors) || 0]))
+  const visitorTrendDates = visitorDaily.map(row => row.date)
   const visitorTrendData = {
-    labels: visitorDaily.map(row => new Date(row.date + 'T00:00:00Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
+    labels: visitorTrendDates.map(date => new Date(date + 'T00:00:00Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
     datasets: [
-      { label: 'Sessions', data: visitorDaily.map(row => row.sessions || 0), borderColor: '#9d2438', backgroundColor: 'rgba(157,36,56,.13)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0 },
-      { label: 'Estimated unique visitors', data: visitorUniqueDaily.map(row => row.visitors || 0), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0 }
+      { label: 'Sessions', data: visitorTrendDates.map(date => visitorDateMap.get(date) ?? null), borderColor: '#9d2438', backgroundColor: 'rgba(157,36,56,.13)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0, spanGaps: false },
+      { label: 'Estimated unique visitors', data: visitorTrendDates.map(date => visitorUniqueDateMap.get(date) ?? null), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0, spanGaps: false }
     ]
   }
   const visitorTrendOptions = { ...chartOptions, plugins: { ...chartOptions.plugins, legend: { ...chartOptions.plugins.legend, position: 'bottom' } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 8 } } } }
@@ -237,7 +240,7 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visitor identity and human/bot classification are estimates, not verified identities.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not returned by this analytics endpoint · visitor metrics are based on up to 500 short-lived sessions.</span></div></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visitor identity and human/bot classification are estimates, not verified identities.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not returned by this analytics endpoint · visitor metrics are based on retained session records (90-day expiry).</span></div></div>
         <div className="an-visitor-data">
           {visitorError && <p className="an-visitor-status">{visitorError}</p>}
           <div className="an-visitor-metrics">
@@ -255,7 +258,7 @@ export default function Analytics() {
         </div>
       </div>
       <div className="an-visitor-charts">
-        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily sessions vs estimated unique visitors · last 365 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Line data={visitorTrendData} options={visitorTrendOptions} /> : <small>No visitor trend data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily sessions vs estimated unique visitors · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Line data={visitorTrendData} options={visitorTrendOptions} /> : <small>No visitor trend data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Sessions by approximate city</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No location data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
       </div>
