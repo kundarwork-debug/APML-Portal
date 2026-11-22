@@ -2087,7 +2087,16 @@ async function handleNovaAnalytics(request, env) {
   const visitorPages = Object.entries(pages).map(([name,views])=>({name,views,seconds:pageSeconds[name]||0})).sort((a,b)=>b.views-a.views).slice(0,10);
   const dropoffPages = topObjects(dropoffs,10).map(item=>({...item,share:sessions.length?Math.round(item.sessions/sessions.length*100):0,viewsPerSession:item.sessions?Number((item.views/item.sessions).toFixed(1)):0}));
   const peakHours = hours.map((count,hour)=>({hour,label:String(hour).padStart(2,'0')+':00',count})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
-  const visitorDaily = daily.map(row=>({date:row.date,sessions:dailySessions[row.date]||0}));
+  const visitorDaily = [];
+  const visitorUniqueDaily = [];
+  const visitorCursor = new Date(startKey + 'T00:00:00Z');
+  const visitorLast = new Date(endKey + 'T00:00:00Z');
+  while (visitorCursor <= visitorLast) {
+    const date = visitorCursor.toISOString().slice(0, 10);
+    visitorDaily.push({ date, sessions: dailySessions[date] || 0 });
+    visitorUniqueDaily.push({ date, visitors: dailyUniqueVisitors[date] ? dailyUniqueVisitors[date].size : 0 });
+    visitorCursor.setUTCDate(visitorCursor.getUTCDate() + 1);
+  }
   const suggestions = [];
   const topDrop = dropoffPages[0];
   if (topDrop && topDrop.sessions >= 3 && topDrop.share >= 25) suggestions.push('Review ' + topDrop.name + ': it is the last recorded page in ' + topDrop.sessions + ' sessions (' + topDrop.share + '% of sessions with a recorded journey). This is a drop-off signal, not a confirmed exit.');
@@ -2106,7 +2115,7 @@ async function handleNovaAnalytics(request, env) {
       activeNow, pageViews, averageSessionSeconds: sessions.length ? Math.round(totalSeconds/sessions.length) : 0,
       devices: top(devices), browsers: top(browsers), cities: top(cities), topPages: visitorPages,
       dailySessions: visitorDaily,
-      dailyUniqueVisitors: daily.map(row => ({ date: row.date, visitors: dailyUniqueVisitors[row.date] ? dailyUniqueVisitors[row.date].size : 0 })),
+      dailyUniqueVisitors: visitorUniqueDaily,
       peakHours, dropoffPages, deviceComparison, suggestions
     },
     performance: {
