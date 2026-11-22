@@ -118,3 +118,18 @@ html[data-theme="dark"] .an-heat-cell{border-color:#3e3441}
 .an-visitor-lists>div>small{color:var(--text-muted);font-size:8px}
 .an-visitor-footnote{margin:0;color:var(--text-muted);font-size:8px;line-height:1.6}
 @media(max-width:760px){.an-visitor-layout{grid-template-columns:1fr}.an-visitor-lists{grid-template-columns:1fr 1fr}.an-visitor-lists>div:last-child{grid-column:1/-1}}
+
+
+/* Visitor Intelligence charts */
+.an-visitor-overview{display:grid;grid-template-columns:minmax(250px,.78fr) minmax(0,1.45fr);gap:13px}
+.an-visitor-charts{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:13px;margin-top:13px}
+.an-visitor-chart-card{min-width:0;padding:17px;border:1px solid var(--border-subtle);border-radius:18px;background:var(--surface-card)}
+.an-visitor-chart-card>div:first-child{display:flex;flex-direction:column;gap:5px}
+.an-visitor-chart-card>div:first-child b{font-size:11px;color:var(--text-main)}
+.an-visitor-chart-card>div:first-child span{font-size:8px;color:var(--text-muted);line-height:1.5}
+.an-visitor-chart{position:relative;height:210px;margin-top:13px;display:flex;align-items:center;justify-content:center}
+.an-visitor-chart small{font-size:9px;color:var(--text-muted)}
+.an-visitor-bars{height:210px}
+.an-visitor-donut{height:210px}
+@media(max-width:1000px){.an-visitor-overview{grid-template-columns:1fr}.an-visitor-charts{grid-template-columns:1fr 1fr}.an-visitor-trend{grid-column:1/-1}}
+@media(max-width:600px){.an-visitor-charts{grid-template-columns:1fr}.an-visitor-trend{grid-column:auto}.an-visitor-chart{height:190px}}
