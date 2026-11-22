@@ -81,11 +81,21 @@ export async function getApmlPresenceServices() {
 }
 export async function incrementApmlMediaDownload() {
   const { database } = await getApmlPresenceServices()
-  const result = await database.ref('analytics/totalMediaDownloads').transaction(
-    value => (Number(value) || 0) + 1
-  )
-  if (!result.committed) throw new Error('Firebase did not commit the media download count.')
-  return result.snapshot.val()
+  const date = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date())
+  const [totalResult, dailyResult] = await Promise.all([
+    database.ref('analytics/totalMediaDownloads').transaction(
+      value => (Number(value) || 0) + 1
+    ),
+    database.ref(`analytics/daily_logs/${date}/media`).transaction(
+      value => (Number(value) || 0) + 1
+    )
+  ])
+  if (!totalResult.committed || !dailyResult.committed) {
+    throw new Error('Firebase did not commit the media download count.')
+  }
+  return totalResult.snapshot.val()
 }
 
 export async function incrementApmlPdfGenerated() {
@@ -96,3 +106,4 @@ export async function incrementApmlPdfGenerated() {
   if (!result.committed) throw new Error('Firebase did not commit the generated PDF count.')
   return result.snapshot.val()
 }
+
