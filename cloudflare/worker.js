@@ -2118,7 +2118,7 @@ async function handleNovaAnalytics(request, env) {
       daily: perfDaily, pages: perfPages
     },
     dataNotes: [
-      'Visitor metrics use the latest 500 short-lived sessions stored privately in Cloudflare KV with a 90-day expiry. Daily unique visitor counts are calculated from those sampled sessions.',
+      'Visitor metrics use the up to 500 short-lived sessions stored privately in Cloudflare KV with a 90-day expiry. Daily unique visitor counts are calculated from those sampled sessions.',
       'Raw IP addresses and individual visitor session records are not returned by this aggregate endpoint.',
       'Last recorded pages are engagement signals, not confirmed visitor exits. Approximate location is aggregated.'
     ]
@@ -2329,7 +2329,7 @@ export default {
       return json({
         ok: true,
         service: 'APML Drive API',
-        version: '2026-11-16-public-analytics',
+        version: '2026-11-22-visitor-intelligence',
         routes: {
           announcement: true,
           maintenance: true,
