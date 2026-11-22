@@ -168,16 +168,12 @@ export default function Analytics() {
     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, color: 'var(--text-muted)', font: { size: 11 }, padding: 22 } }, tooltip: { backgroundColor: '#191b25', titleColor: '#fff', bodyColor: '#e7e8ee', padding: 12, cornerRadius: 10 } },
     scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b929e', maxTicksLimit: 10, maxRotation: 0 } }, y: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, border: { display: false }, ticks: { color: '#8b929e', precision: 0 } } }
   }
-  const visitorDaily = visitorStats?.dailySessions || []
-  const visitorUniqueDaily = visitorStats?.dailyUniqueVisitors || []
-  const visitorDateMap = new Map(visitorDaily.map(row => [row.date, Number(row.sessions) || 0]))
-  const visitorUniqueDateMap = new Map(visitorUniqueDaily.map(row => [row.date, Number(row.visitors) || 0]))
+  const visitorDaily = visitorStats?.dailyVisitors || [];
   const visitorTrendDates = visitorDaily.map(row => row.date)
   const visitorTrendData = {
     labels: visitorTrendDates.map(date => new Date(date + 'T00:00:00Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
     datasets: [
-      { label: 'Sessions', data: visitorTrendDates.map(date => visitorDateMap.get(date) ?? null), borderColor: '#9d2438', backgroundColor: 'rgba(157,36,56,.13)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0, spanGaps: false },
-      { label: 'Estimated unique visitors', data: visitorTrendDates.map(date => visitorUniqueDateMap.get(date) ?? null), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0, spanGaps: false }
+      { label: 'Visitors', data: visitorDaily.map(row => Number(row.visitors) || 0), borderColor: '#9d2438', backgroundColor: 'rgba(157,36,56,.13)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0, spanGaps: false }
     ]
   }
   const visitorTrendOptions = { ...chartOptions, plugins: { ...chartOptions.plugins, legend: { ...chartOptions.plugins.legend, position: 'bottom' } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 8 } } } }
@@ -239,13 +235,12 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visitor identity and human/bot classification are estimates, not verified identities.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not returned by this analytics endpoint · visitor metrics are based on retained session records (90-day expiry).</span></div></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visits are counted from a one-way IP fingerprint, with a 30-minute cooldown between counted visits.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not stored · one visit per IP fingerprint every 30 minutes · daily totals retained for up to 400 days.</span></div></div>
         <div className="an-visitor-data">
           {visitorError && <p className="an-visitor-status">{visitorError}</p>}
           <div className="an-visitor-metrics">
-            <div><small>SESSIONS</small><b>{number(visitorStats?.sessions || 0)}</b></div>
-            <div><small>EST. UNIQUE VISITORS</small><b>{number(visitorStats?.uniqueBrowsers || 0)}</b></div>
-            <div><small>RETURNING VISITORS</small><b>{number(visitorStats?.returningBrowsers || 0)}</b></div>
+            <div><small>VISITORS · SELECTED PERIOD</small><b>{number(visitorStats?.visitors || 0)}</b></div>
+            <div><small>VISITORS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
             <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
@@ -257,8 +252,8 @@ export default function Analytics() {
         </div>
       </div>
       <div className="an-visitor-charts">
-        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily sessions vs estimated unique visitors · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Line data={visitorTrendData} options={visitorTrendOptions} /> : <small>No visitor trend data available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Sessions by approximate city</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No location data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily counted visits · 30-minute IP cooldown · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Line data={visitorTrendData} options={visitorTrendOptions} /> : <small>No visitor trend data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Recorded sessions by approximate city</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No location data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
       </div>
     </section>
