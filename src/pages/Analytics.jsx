@@ -50,6 +50,7 @@ export default function Analytics() {
   const [activityFilter, setActivityFilter] = useState('All')
   const [visitorStats, setVisitorStats] = useState(null)
   const [visitorError, setVisitorError] = useState('')
+  const [visitorConnection, setVisitorConnection] = useState(() => window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for the first browser heartbeat…' })
   const { admin } = useApmlAdminAuth()
 
   const load = useCallback(async () => {
@@ -104,6 +105,13 @@ export default function Analytics() {
     })()
     return () => { live = false; if (ref && handler) ref.off('value', handler) }
   }, [])
+  useEffect(() => {
+    const updateStatus = event => setVisitorConnection(event.detail || window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for browser heartbeat…' })
+    window.addEventListener('apml:visitor-tracker-status', updateStatus)
+    if (window.__apmlVisitorTrackerStatus) setVisitorConnection(window.__apmlVisitorTrackerStatus)
+    return () => window.removeEventListener('apml:visitor-tracker-status', updateStatus)
+  }, [])
+
   useEffect(() => {
     let live = true
     const refreshVisitors = async () => {
@@ -224,7 +232,7 @@ export default function Analytics() {
 
     <section className="an-section-block">
       <div className="an-section-heading"><div><span>02 / ACTIVITY TRENDS</span><h2>Usage over time</h2></div><div className="an-peak-chip"><TrendingIcon /> {peak && peak.pdf + peak.media ? 'Peak · ' + fullDate(peak.key) : 'Waiting for activity'}</div></div>
-      <div className="an-chart-card"><div className="an-chart-top"><div><b>Daily activity</b><span>Compare quotation PDF generation with Drive/Gallery downloads</span></div><span className="an-chart-total">{number(combined)} <small>actions</small></span></div><div className="an-chart">{selected.length ? <Line data={chartData} options={chartOptions} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
+      <div className="an-chart-card"><div className="an-chart-top"><div><b>Daily activity</b><span>Compare quotation PDF generation with Drive/Gallery downloads</span></div><span className="an-chart-total">{number(combined)} <small>actions</small></span></div><div className="an-chart">{selected.length ? <Bar data={chartData} options={{ ...chartOptions, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
       <div className="an-insight-strip">
         <div><span className="an-insight-icon"><ArrowUpRight size={16} /></span><small>BUSIEST DAY</small><b>{peak && peak.pdf + peak.media ? fullDate(peak.key) : '—'}</b></div>
         <div><span className="an-insight-icon blue"><Activity size={16} /></span><small>DAILY AVERAGE</small><b>{number(average)} actions</b></div>
@@ -233,11 +241,12 @@ export default function Analytics() {
     </section>
 
     <section className="an-section-block an-intelligence-block">
-      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
+      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
         <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visits are counted from a one-way IP fingerprint, with a 30-minute cooldown between counted visits.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not stored · one visit per IP fingerprint every 30 minutes · daily totals retained for up to 400 days.</span></div></div>
         <div className="an-visitor-data">
-          {visitorError && <p className="an-visitor-status">{visitorError}</p>}
+          <p className={'an-visitor-status an-collector-status an-collector-' + visitorConnection.state}><i /> <span><b>{visitorConnection.state === 'connected' ? 'Browser tracker connected' : visitorConnection.state === 'error' ? 'Browser tracker failed' : 'Browser tracker connecting'}</b> · {visitorConnection.message || 'Waiting for heartbeat.'}</span></p>
+          {visitorError && <p className="an-visitor-status">Analytics read: {visitorError}</p>}
           <div className="an-visitor-metrics">
             <div><small>VISITORS · SELECTED PERIOD</small><b>{number(visitorStats?.visitors || 0)}</b></div>
             <div><small>VISITORS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
@@ -252,7 +261,7 @@ export default function Analytics() {
         </div>
       </div>
       <div className="an-visitor-charts">
-        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily counted visits · 30-minute IP cooldown · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Line data={visitorTrendData} options={visitorTrendOptions} /> : <small>No visitor trend data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily counted visits · 30-minute IP cooldown · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Bar data={visitorTrendData} options={{ ...visitorTrendOptions, plugins: { ...visitorTrendOptions.plugins, legend: { display: false } }, scales: { ...visitorTrendOptions.scales, x: { ...visitorTrendOptions.scales.x, grid: { display: false } }, y: { ...visitorTrendOptions.scales.y, beginAtZero: true } } }} /> : <small>No visitor trend data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Recorded sessions by approximate city</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No location data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
       </div>
