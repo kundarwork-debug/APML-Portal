@@ -1845,7 +1845,7 @@ async function sendHourlyAnalyticsSummary(env) {
 async function handleVisitorCollect(request, env) {
   const origin = request.headers.get('Origin') || '';
   if (origin && !CONFIG.ALLOWED_ORIGINS.includes(origin)) return json({ ok: false, error: 'Origin not allowed' }, 403);
-  if (!env.VISITOR_HASH_SECRET) return json({ ok: false, error: 'Visitor hash secret is not configured' }, 503);
+  if (!env.ANNOUNCE_KV) return json({ ok: false, error: 'Visitor storage is not configured' }, 503);\n  const rateKey = 'visitor_rate:' + (request.headers.get('CF-Connecting-IP') || 'unknown');\n  const minute = Math.floor(Date.now() / 60000);\n  const priorRate = await env.ANNOUNCE_KV.get(rateKey);\n  if (priorRate && Number(priorRate) >= 90) return json({ ok: false, error: 'Rate limit exceeded' }, 429);\n  await env.ANNOUNCE_KV.put(rateKey, String((Number(priorRate) || 0) + 1), { expirationTtl: 90 });
   const ua = String(request.headers.get('User-Agent') || '').slice(0, 500);
   if (!ua || /(bot|crawler|spider|preview|facebookexternalhit|slackbot|discordbot|whatsapp|telegrambot|googlebot|bingbot|uptimerobot|headless|lighthouse|pagespeed)/i.test(ua)) {
     return json({ ok: true, ignored: 'automated-or-unknown-client' });
@@ -1860,7 +1860,13 @@ async function handleVisitorCollect(request, env) {
   const now = Date.now();
   const startedAt = Math.min(now, Math.max(now - 86400000, Number(body.startedAt) || now));
   const seconds = Math.min(120, Math.max(0, Math.floor(Number(body.seconds) || 0)));
-  const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.VISITOR_HASH_SECRET + ':' + ip));
+  let hashSecret = env.VISITOR_HASH_SECRET || await env.ANNOUNCE_KV.get('visitor_hash_secret');
+  if (!hashSecret) {
+    const random = crypto.getRandomValues(new Uint8Array(32));
+    hashSecret = Array.from(random).map(x => x.toString(16).padStart(2, '0')).join('');
+    await env.ANNOUNCE_KV.put('visitor_hash_secret', hashSecret);
+  }
+  const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashSecret + ':' + ip));
   const visitorId = Array.from(new Uint8Array(hashBytes)).map(x => x.toString(16).padStart(2, '0')).join('');
   const uaLower = ua.toLowerCase();
   const device = /ipad|tablet/i.test(ua) ? 'Tablet' : /mobile|android|iphone/i.test(ua) ? 'Mobile' : 'Desktop';
