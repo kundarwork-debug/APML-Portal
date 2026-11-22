@@ -142,9 +142,19 @@ export default function Analytics() {
   const visibleRows = useMemo(() => range === '365d' ? selected.slice(-45).reverse() : [...selected].reverse(), [selected, range])
   const heatmap = useMemo(() => {
     const end = dateKey(new Date())
-    return Array.from({ length: 365 }, (_, i) => { const key = shiftKey(end, i - 364), day = dayData(logs, key); return { key, ...day, total: day.pdf + day.media } })
+    const days = Array.from({ length: 365 }, (_, i) => { const key = shiftKey(end, i - 364), day = dayData(logs, key); return { key, ...day, total: day.pdf + day.media } })
+    const startWeekday = (new Date(days[0].key + 'T00:00:00Z').getUTCDay() + 6) % 7
+    const cells = [...Array(startWeekday).fill(null), ...days]
+    while (cells.length % 7) cells.push(null)
+    const weeks = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7))
+    const monthLabels = weeks.map(week => {
+      const monthStart = week.find(day => day && new Date(day.key + 'T00:00:00Z').getUTCDate() === 1)
+      return monthStart ? new Date(monthStart.key + 'T00:00:00Z').toLocaleDateString('en-IN', { month: 'short', timeZone: 'UTC' }) : ''
+    })
+    return { weeks, monthLabels }
   }, [logs])
-  const maxHeat = Math.max(1, ...heatmap.map(day => day.total))
+  const heatmapWeeks = heatmap.weeks
+  const maxHeat = Math.max(1, ...heatmapWeeks.flat().filter(Boolean).map(day => day.total))
   const modules = ['All', ...new Set(activity.map(row => row.module).filter(Boolean).sort())]
   const filteredActivity = activityFilter === 'All' ? activity : activity.filter(row => row.module === activityFilter)
   const chartData = {
@@ -253,7 +263,7 @@ export default function Analytics() {
 
     <section className="an-section-block">
       <div className="an-section-heading"><div><span>04 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
-      <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-grid">{heatmap.map(day => <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} />)}</div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
+      <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-calendar"><div className="an-heat-days"><span /><span>Mon</span><span /><span>Wed</span><span /><span>Fri</span><span /></div><div className="an-heat-months">{heatmap.monthLabels.map((month, index) => <span key={index}>{month}</span>)}</div><div className="an-heat-grid">{heatmapWeeks.map((week, wi) => <div className="an-heat-week" key={wi}>{week.map((day, di) => day ? <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} /> : <span key={'blank-' + wi + '-' + di} className="an-heat-cell an-heat-blank" />)}</div>)}</div></div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
     </section>
 
     <section className="an-section-block">
