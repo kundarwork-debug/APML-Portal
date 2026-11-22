@@ -2045,8 +2045,7 @@ async function handleNovaAnalytics(request, env) {
     return stamp >= cutoff && stamp <= rangeEnd;
   });
   const devices = {}, browsers = {}, cities = {}, pages = {}, pageSeconds = {}, hours = Array(24).fill(0);
-  const dailySessions = {}, dropoffs = {}, deviceStats = {};
-  const visitorSessions = new Map();
+  const dropoffs = {}, deviceStats = {};
   let pageViews = 0, totalSeconds = 0, performanceCount = 0, loadTotal = 0, domTotal = 0, ttfbTotal = 0;
   let activeNow = 0;
   const perfValues = [], perfByDay = {}, perfByPage = {};
@@ -2054,7 +2053,6 @@ async function handleNovaAnalytics(request, env) {
 
   for (const session of sessions) {
     if (!session || typeof session !== 'object') continue;
-    if (session.visitorId) visitorSessions.set(session.visitorId, (visitorSessions.get(session.visitorId) || 0) + 1);
     const device = String(session.device || 'Unknown').slice(0, 32);
     const os = String(session.os || 'Unknown').slice(0, 32);
     const browser = String(session.browser || 'Unknown').slice(0, 40);
@@ -2065,7 +2063,6 @@ async function handleNovaAnalytics(request, env) {
     const startedAt = Number(session.startedAt) || 0;
     if (startedAt) {
       const day = new Date(startedAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-      dailySessions[day] = (dailySessions[day] || 0) + 1;
       const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', hourCycle: 'h23' }).format(new Date(startedAt)));
       if (Number.isInteger(hour) && hour >= 0 && hour < 24) hours[hour]++;
     }
@@ -2118,8 +2115,6 @@ async function handleNovaAnalytics(request, env) {
   const topObjects = (map, limit = 10) => Object.entries(map).sort((a,b) => (b[1].views || b[1].sessions || 0) - (a[1].views || a[1].sessions || 0)).slice(0,limit).map(([name,value]) => ({ name, ...value }));
   const sortedPerf = perfValues.slice().sort((a,b)=>a-b);
   const p75 = sortedPerf.length ? sortedPerf[Math.min(sortedPerf.length-1, Math.ceil(sortedPerf.length*.75)-1)] : null;
-  const uniqueBrowsers = visitorSessions.size;
-  const returningBrowsers = [...visitorSessions.values()].filter(count => count > 1).length;
   const heatStart = new Date(Date.parse(today + 'T00:00:00Z') - 364 * 86400000).toISOString().slice(0,10);
   const heatmap = makeDaily(heatStart, today);
   const perfDaily = Object.entries(perfByDay).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,v])=>({date,averageLoadMs:Math.round(v.total/v.count),samples:v.count}));
