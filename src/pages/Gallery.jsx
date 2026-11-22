@@ -316,7 +316,7 @@ export default function Gallery() {
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     try {
       if (window.ApmNativeDownload?.start) {
-        window.ApmNativeDownload.start(item.url, name)
+        await Promise.resolve(window.ApmNativeDownload.start(item.url, name))
         void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
         window.APMNotify?.send?.({type:'gallery',title:item.isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery'})
         void metric(item, 'downloadsCount')
