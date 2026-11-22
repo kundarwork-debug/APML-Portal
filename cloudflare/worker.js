@@ -2339,14 +2339,16 @@ export default {
           quotationCleanup: true,
           adminNotifications: true,
           novaAnalytics: true,
-          publicAnalytics: true,\n          visitorCollection: true
+          publicAnalytics: true,
+          visitorCollection: true
         },
         configuration: {
           firebase: !!CONFIG.FIREBASE_DB_URL,
           cloudinary: !!(env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET),
           telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
           telegramWebhookSecret: !!env.TELEGRAM_WEBHOOK_SECRET,
-          announcementKV: !!env.ANNOUNCE_KV,\n          visitorHashSecret: !!env.VISITOR_HASH_SECRET
+          announcementKV: !!env.ANNOUNCE_KV,
+          visitorStorage: !!env.ANNOUNCE_KV
         },
         timestamp: new Date().toISOString()
       });
@@ -2354,7 +2356,9 @@ export default {
 
     if (request.method === 'GET' && path === '/storage-audit') return await handleStorageAudit(request, env);
 
-    if (request.method === 'POST' && path === '/visitor/collect') return await handleVisitorCollect(request, env);\n\n    if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
+    if (request.method === 'POST' && path === '/visitor/collect') return await handleVisitorCollect(request, env);
+
+    if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
 
     if (request.method === 'GET' && path === '/nova/analytics') return await handleNovaAnalytics(request, env);
 
