@@ -1882,7 +1882,8 @@ async function handleVisitorCollect(request, env) {
   const storageKey = 'visitor_session:' + sessionId;
   try {
     const old = await env.ANNOUNCE_KV.get(storageKey, 'json') || {};
-    const isNewSession = !old.startedAt;
+    // Versioned one-time marker also catches visitors whose browser session began before this alert was deployed.
+    const shouldNotifyOnline = old.onlineAlertVersion !== 1;
     const pageMap = old.pages && typeof old.pages === 'object' ? old.pages : {};
     const previous = pageMap[page] || {};
     pageMap[page] = { path: page, views: Number(previous.views || 0) + (body.pageView === true ? 1 : 0), seconds: Number(previous.seconds || 0) + seconds, lastSeen: now };
@@ -1890,13 +1891,14 @@ async function handleVisitorCollect(request, env) {
     if (body.pageView === true && journey[journey.length - 1]?.path !== page) journey.push({ path: page, timestamp: now });
     const record = {
       visitorId, startedAt: Number(old.startedAt) || startedAt, lastSeen: now,
+      onlineAlertVersion: Number(old.onlineAlertVersion) || 0,
       device, browser, os, city, region, country,
       pageViews: Object.values(pageMap).reduce((sum, p) => sum + (Number(p.views) || 0), 0),
       totalSeconds: Math.min(86400, Number(old.totalSeconds || 0) + seconds),
       firstPage: old.firstPage || page, lastPage: page, pages: pageMap, journey
     };
     await env.ANNOUNCE_KV.put(storageKey, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 * 90 });
-    if (isNewSession && env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+    if (shouldNotifyOnline && env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
       const place = tgPlace(request);
       const lines = [
         '🟢 <b>Someone is online on APML Portal</b>',
@@ -1908,7 +1910,12 @@ async function handleVisitorCollect(request, env) {
       const alert = await tgSendMessage(env, env.TELEGRAM_CHAT_ID, {
         text: lines, parse_mode: 'HTML', disable_web_page_preview: true
       });
-      if (!alert.ok) console.warn('New-online Telegram alert was not sent:', alert.data?.description || alert.status);
+      if (alert.ok) {
+        record.onlineAlertVersion = 1;
+        await env.ANNOUNCE_KV.put(storageKey, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 * 90 });
+      } else {
+        console.warn('New-online Telegram alert was not sent:', alert.data?.description || alert.status);
+      }
     }
     return json({ ok: true });
   } catch {
