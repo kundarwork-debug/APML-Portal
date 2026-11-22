@@ -1882,6 +1882,7 @@ async function handleVisitorCollect(request, env) {
   const storageKey = 'visitor_session:' + sessionId;
   try {
     const old = await env.ANNOUNCE_KV.get(storageKey, 'json') || {};
+    const isNewSession = !old.startedAt;
     const pageMap = old.pages && typeof old.pages === 'object' ? old.pages : {};
     const previous = pageMap[page] || {};
     pageMap[page] = { path: page, views: Number(previous.views || 0) + (body.pageView === true ? 1 : 0), seconds: Number(previous.seconds || 0) + seconds, lastSeen: now };
@@ -1895,6 +1896,20 @@ async function handleVisitorCollect(request, env) {
       firstPage: old.firstPage || page, lastPage: page, pages: pageMap, journey
     };
     await env.ANNOUNCE_KV.put(storageKey, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 * 90 });
+    if (isNewSession && env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
+      const place = tgPlace(request);
+      const lines = [
+        '🟢 <b>Someone is online on APML Portal</b>',
+        '📄 Page: <code>' + tgEsc(page) + '</code>',
+        '💻 ' + tgEsc(device + ' · ' + browser + ' · ' + os),
+        place ? '📍 Approx. location: ' + tgEsc(place) : '',
+        '🕒 ' + tgTime()
+      ].filter(Boolean).join('\\n');
+      const alert = await tgSendMessage(env, env.TELEGRAM_CHAT_ID, {
+        text: lines, parse_mode: 'HTML', disable_web_page_preview: true
+      });
+      if (!alert.ok) console.warn('New-online Telegram alert was not sent:', alert.data?.description || alert.status);
+    }
     return json({ ok: true });
   } catch {
     return json({ ok: false, error: 'Visitor collection temporarily unavailable' }, 502);
