@@ -89,7 +89,6 @@ export default function Analytics() {
   }, [])
 
   useEffect(() => {
-    if (!admin) return
     let ref, handler, live = true
     ; (async () => {
       try {
@@ -103,7 +102,7 @@ export default function Analytics() {
       } catch (err) { console.warn('Activity log unavailable:', err.message) }
     })()
     return () => { live = false; if (ref && handler) ref.off('value', handler) }
-  }, [admin])
+  }, [])
   useEffect(() => {
     let live = true
     const refreshVisitors = async () => {
@@ -269,12 +268,12 @@ export default function Analytics() {
     </section>
 
 
-    {admin && <section id="an-audit-trail" className="an-section-block">
+    <section id="an-audit-trail" className="an-section-block">
       <div className="an-section-heading"><div><span>05 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
       <div className="an-audit-card"><div className="an-audit-toolbar"><span>Latest successful instrumented actions</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
         {filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.item, row.details].filter(Boolean).join(' · ')}</span><small>{row.user || 'Guest'}</small></div><time>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
       </div>
-    </section>}
+    </section>
 
     <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Recent Activity shows the latest 50 instrumented actions, not every click or page view.</p></footer>
   </main>
