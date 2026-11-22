@@ -203,7 +203,7 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
       <div className="an-visitor-layout">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Cloudflare derives approximate location and a one-way visitor identifier from the connecting IP. The raw IP is not saved in the analytics database. Obvious bots are filtered, but human classification and IP-based identity are estimates.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate network location only · no GPS · raw IP not stored · latest 500 sessions used for these insights.</span></div></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Cloudflare derives approximate location and a one-way visitor identifier from the connecting IP. The raw IP is not saved in the analytics database. Obvious bots are filtered, but human classification and IP-based identity are estimates.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate network location only · no GPS · raw IP not stored · up to 500 stored sessions used for these insights.</span></div></div>
         <div className="an-visitor-data">
           {visitorError && <p className="an-visitor-status">{visitorError}</p>}
           <div className="an-visitor-metrics">
@@ -217,7 +217,7 @@ export default function Analytics() {
             <div><b>Devices & browsers</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,3).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}{visitorStats?.browsers?.slice(0,2).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>)}</div>
             <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page-view data</small>}</div>
           </div>
-          <p className="an-visitor-footnote">Estimated human traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · latest 500 sessions.</p>
+          <p className="an-visitor-footnote">Estimated human traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · up to 500 stored sessions.</p>
         </div>
       </div>
     </section>
