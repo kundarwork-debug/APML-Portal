@@ -145,7 +145,7 @@ export default function Analytics() {
           return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
         }
         const pages = {}
-        recentSessions.forEach(session => Object.entries(session.pages || {}).forEach(([page, count]) => { pages[page] = (pages[page] || 0) + (Number(count) || 0) }))
+        recentSessions.forEach(session => Object.entries(session.pages || {}).forEach(([pageKey, count]) => { let page = pageKey; try { page = decodeURIComponent(pageKey) } catch {} pages[page] = (pages[page] || 0) + (Number(count) || 0) }))
         const topPages = Object.entries(pages).map(([name, views]) => ({ name, views })).sort((a, b) => b.views - a.views)
         const pageViews = recentSessions.reduce((total, session) => total + (Number(session.pageViews) || 0), 0)
         const averageSessionSeconds = recentSessions.length ? recentSessions.reduce((total, session) => total + (Number(session.totalSeconds) || 0), 0) / recentSessions.length : 0
