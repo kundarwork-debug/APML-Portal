@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend } from 'chart.js'
-import { getApmlDatabase, ensureApmlAnalyticsStructure } from '../lib/firebase'
+import { getApmlDatabase, getApmlPresenceServices, ensureApmlAnalyticsStructure } from '../lib/firebase'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Analytics.css'
 
@@ -114,20 +114,64 @@ export default function Analytics() {
 
   useEffect(() => {
     let live = true
+    let interval
     const refreshVisitors = async () => {
       try {
-        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=90')
-        if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.')
-        const data = await response.json()
-        if (!data.ok || !data.visitorIntelligence) throw new Error(data.error || 'Visitor analytics are temporarily unavailable.')
-        if (live) { setVisitorStats(data.visitorIntelligence); setVisitorError('') }
+        const { database } = await getApmlPresenceServices()
+        const [dailySnap, sessionsSnap] = await Promise.all([
+          database.ref('visitor_intelligence/daily').once('value'),
+          database.ref('visitor_intelligence/sessions').once('value')
+        ])
+        const daily = dailySnap.val() || {}
+        const sessionsByUser = sessionsSnap.val() || {}
+        const end = new Date()
+        const start = new Date(end.getTime() - 89 * 86400000)
+        const dayKeys = Array.from({ length: 90 }, (_, index) => {
+          const day = new Date(start.getTime() + index * 86400000)
+          return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(day)
+        })
+        const dailyVisitors = dayKeys.map(date => ({ date, visitors: Object.keys(daily[date] || {}).length }))
+        const visitorIds = new Set()
+        dayKeys.forEach(date => Object.keys(daily[date] || {}).forEach(uid => visitorIds.add(uid)))
+        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+        const todayCount = Object.keys(daily[today] || {}).length
+        const sessions = Object.values(sessionsByUser).flatMap(userSessions => Object.values(userSessions || {}))
+        const now = Date.now()
+        const recentSessions = sessions.filter(session => Number(session.startedAt) >= start.getTime())
+        const activeNow = sessions.filter(session => session.online === true && now - Number(session.lastSeen) < 90000).length
+        const countBy = key => {
+          const counts = {}
+          recentSessions.forEach(session => { const name = session[key] || 'Other'; counts[name] = (counts[name] || 0) + 1 })
+          return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
+        }
+        const pages = {}
+        recentSessions.forEach(session => Object.entries(session.pages || {}).forEach(([page, count]) => { pages[page] = (pages[page] || 0) + (Number(count) || 0) }))
+        const topPages = Object.entries(pages).map(([name, views]) => ({ name, views })).sort((a, b) => b.views - a.views)
+        const pageViews = recentSessions.reduce((total, session) => total + (Number(session.pageViews) || 0), 0)
+        const averageSessionSeconds = recentSessions.length ? recentSessions.reduce((total, session) => total + (Number(session.totalSeconds) || 0), 0) / recentSessions.length : 0
+        if (live) {
+          setVisitorStats({
+            visitors: visitorIds.size,
+            visitorsToday: todayCount,
+            activeNow,
+            pageViews,
+            averageSessionSeconds,
+            dailyVisitors,
+            devices: countBy('device'),
+            browsers: countBy('browser'),
+            topPages,
+            cities: []
+          })
+          setVisitorError('')
+          setVisitorConnection(current => current.state === 'error' ? { state: 'connected', message: 'Firebase visitor records are readable.' } : current)
+        }
       } catch (error) {
-        if (live) setVisitorError(error.message || 'Visitor analytics are temporarily unavailable.')
+        if (live) setVisitorError(error.message || 'Could not read visitor records from Firebase.')
       }
     }
     refreshVisitors()
-    const interval = window.setInterval(refreshVisitors, 30000)
-    return () => { live = false; window.clearInterval(interval) }
+    interval = window.setInterval(refreshVisitors, 30000)
+    return () => { live = false; if (interval) window.clearInterval(interval) }
   }, [])
 
   const selected = useMemo(() => {
@@ -243,26 +287,26 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visits are counted from a one-way IP fingerprint, with a 30-minute cooldown between counted visits.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not stored · one visit per IP fingerprint every 30 minutes · daily totals retained for up to 400 days.</span></div></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Firebase visitor sessions, not just page loads.</h3><p>Understand how people discover and use APML Portal through anonymous Firebase sessions, daily visitor counts, device types and popular pages. Each anonymous browser profile is counted once per India calendar day. No IP address or precise location is collected.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>No IP address · no GPS · anonymous Firebase ID · daily visitor counts · device and page activity only.</span></div></div>
         <div className="an-visitor-data">
           <p className={'an-visitor-status an-collector-status an-collector-' + visitorConnection.state}><i /> <span><b>{visitorConnection.state === 'connected' ? 'Browser tracker connected' : visitorConnection.state === 'error' ? 'Browser tracker failed' : 'Browser tracker connecting'}</b> · {visitorConnection.message || 'Waiting for heartbeat.'}</span></p>
           {visitorError && <p className="an-visitor-status">Analytics read: {visitorError}</p>}
           <div className="an-visitor-metrics">
-            <div><small>VISITORS · SELECTED PERIOD</small><b>{number(visitorStats?.visitors || 0)}</b></div>
+            <div><small>VISITORS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
             <div><small>VISITORS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
             <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
-            <div><b>Top locations</b>{visitorStats?.cities?.length ? visitorStats.cities.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for location data</small>}</div>
+            <div><b>Top devices</b>{visitorStats?.cities?.length ? visitorStats.cities.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for location data</small>}</div>
             <div><b>Devices &amp; browsers</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,3).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}{visitorStats?.browsers?.slice(0,2).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>)}</div>
             <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page data</small>}</div>
           </div>
-          <p className="an-visitor-footnote">Estimated human traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · refreshed every 30 seconds.</p>
+          <p className="an-visitor-footnote">Estimated browser traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · refreshed every 30 seconds.</p>
         </div>
       </div>
       <div className="an-visitor-charts">
-        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily counted visits · 30-minute IP cooldown · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Bar data={visitorTrendData} options={{ ...visitorTrendOptions, plugins: { ...visitorTrendOptions.plugins, legend: { display: false } }, scales: { ...visitorTrendOptions.scales, x: { ...visitorTrendOptions.scales.x, grid: { display: false } }, y: { ...visitorTrendOptions.scales.y, beginAtZero: true } } }} /> : <small>No visitor trend data available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Recorded sessions by approximate city</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No location data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily anonymous browsers · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Bar data={visitorTrendData} options={{ ...visitorTrendOptions, plugins: { ...visitorTrendOptions.plugins, legend: { display: false } }, scales: { ...visitorTrendOptions.scales, x: { ...visitorTrendOptions.scales.x, grid: { display: false } }, y: { ...visitorTrendOptions.scales.y, beginAtZero: true } } }} /> : <small>No visitor trend data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Recorded sessions by device and browser</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No device data available yet.</small>}</div></article>
         <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
       </div>
     </section>
