@@ -84,31 +84,35 @@ These paths are kept in sync by the counter writer for existing consumers:
 
 The homepage telemetry and Cloudflare Worker report code still reference these lowercase paths. Do not remove them until those consumers are deliberately migrated and verified.
 
-## 6. Data that is missing / not currently collected
+## 6. Visitor Intelligence: collection contract and limitations
 
-The following are **not currently valid Analytics dashboard metrics**:
+- **Session source:** Cloudflare KV keys prefixed `visitor_session:`; records expire 90 days after their last update (the TTL is refreshed by heartbeats).
+- **Session identity:** a random ID in `sessionStorage`, so sessions are browser-tab/session scoped rather than a verified person.
+- **IP identifier:** `SHA-256(secret + ':' + IP)` groups sessions by a stable network identifier. The raw IP is not stored in the session record. The secret is held in the Worker KV namespace and currently has no automatic rotation.
+- **Location:** approximate city, region and country from Cloudflare `request.cf`; no GPS coordinates.
+- **Client details:** broad device, browser and OS categories derived from the user-agent; the raw user-agent is not stored.
+- **Pages and duration:** route paths without query strings, page-view counts and accumulated active-tab heartbeat time.
+- **Bot filtering:** obvious bot/crawler/preview/headless user-agent strings are ignored. This is not proof of a human; user-agent filtering can miss automation and can reject unusual clients.
+- **Sampling:** the Worker reads at most 500 KV session records per analytics request. KV list order is not guaranteed to be newest-first, so once the namespace contains more than 500 records, this is not a reliable latest-500 sample. Unique/returning IP figures and location/device rankings can then be incomplete or biased.
+- **Interpretation:** distinct IP hashes are not unique people. Shared office/home networks may collapse several people into one identifier; VPNs and changing IPs may split one person across identifiers. Active now means a record was updated in the last 60 seconds.
+- **Endpoint exposure:** `/nova/analytics` returns aggregate visitor summaries without authentication. It does not return session IDs, raw IPs or individual session records.
 
-- Unique visitors (daily, weekly or monthly)
-- Page views or page/module visits
-- Visitor sessions, session duration or bounce rate
-- Historical online-user counts or peak concurrent users
+The following are **not currently collected or verified**:
+
+- A guaranteed count of real human beings (bot filtering is heuristic)
 - Referral sources / campaign attribution
-- Browser, device or operating-system breakdown
-- Geographic visitor breakdown
-- Per-module usage for calculators, directory searches, editor opens, etc.
-- A complete event stream of all user actions
+- GPS or precise device location
+- A complete clickstream or every user interaction
 - Historical per-file download totals in the Analytics aggregate dataset
 - Upload totals by day as an aggregate metric
 
-The Worker contains a reader for `analytics/visitor_sessions`, but this audit found no corresponding writer in the React application. A reader alone does not mean the data is being collected.
-
 ## 7. Important interpretation and privacy notes
 
-- The homepage reads the `presence` node and calculates a temporary online count using recent session timestamps. That live operational count is not a daily visitor count and is not used by the Analytics page.
-- The Privacy Policy now discloses automatic IP-derived visitor analytics, approximate network location, page paths, duration and device/browser categories. It also states that raw IP addresses are not stored in the portal analytics database. The IP-derived identifier secret currently has no scheduled rotation; revisit retention and rotation if the collection design changes.
-- Do not add visitor/session/page-view tracking or visitor identifiers without an explicit decision and a corresponding privacy-policy update.
-- Aggregate totals and client-side activity events are only as trustworthy as the Firebase Realtime Database Security Rules. Client-side code is not a security boundary. Review Rules separately before relying on these counts for auditing or compliance.
+- The homepage reads the `presence` node and calculates a temporary online count using recent session timestamps. That live operational count is separate from Visitor Intelligence.
+- The Privacy Policy and Cookies Policy disclose automatic IP-derived visitor analytics without a consent popup. Raw IP addresses are not stored in the portal analytics database; the IP-derived identifier secret currently has no scheduled rotation.
+- Aggregate totals and client-side activity events are only as trustworthy as the Firebase Realtime Database Security Rules. Client-side code is not a security boundary. Review deployed Rules separately before relying on these counts for auditing or compliance.
 - The activity list is capped at 50 records; older actions are intentionally pruned and cannot be used for long-term reporting. Firebase Rules restrict `Analytics page/recent_actions` writes to verified admin accounts, so actions from ordinary signed-out visitors will not be captured by this log.
+- The repository's current Rules file restricts reads at the `Analytics page/daily_logs` parent to verified admins, while the dashboard reads that entire parent node. If those exact Rules are deployed, a signed-out/non-admin dashboard session will not be able to read the daily report. The live dashboard did return daily data during this audit, so verify the deployed Firebase Rules and the active browser auth context before changing access.
 
 ## 8. Rules for future Analytics development
 
