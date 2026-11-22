@@ -196,3 +196,71 @@ html[data-theme="dark"] .an-heat-cell{border-color:#3e3441}
 }
 
 .an-activity-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}.an-activity-meta small{display:inline-flex;align-items:center;gap:4px;color:var(--text-muted);font-size:8px}.an-activity-row time{max-width:170px;text-align:right;line-height:1.5;white-space:normal}.an-activity-copy>span{overflow-wrap:anywhere;white-space:normal;line-height:1.5}
+
+
+/* Analytics refresh: crisp reporting workspace with stronger chart hierarchy */
+.an-page{max-width:1500px;padding:18px 0 58px}
+.an-hero{min-height:190px;margin-bottom:16px;padding:30px 34px;border-radius:20px;background:linear-gradient(115deg,#151923 0%,#252b39 65%,#7b293e 100%);box-shadow:none}
+.an-hero:before{right:4%;top:-345px;opacity:.7}
+.an-hero h1{font-size:clamp(38px,4.5vw,54px);letter-spacing:-.065em}
+.an-hero-side{min-width:205px;border-radius:13px}
+.an-controlbar{gap:13px;margin-bottom:27px;padding:12px 14px;border-radius:13px;box-shadow:none}
+.an-section-block{margin-bottom:29px}
+.an-section-heading{margin-bottom:12px}
+.an-section-heading h2{font-size:clamp(19px,2vw,23px);letter-spacing:-.04em}
+.an-stats-grid{gap:10px}
+.an-stat{min-height:148px;padding:15px 16px;border-radius:14px;box-shadow:none}
+.an-stat:hover{transform:translateY(-2px);box-shadow:0 9px 24px rgba(28,25,23,.07)}
+.an-stat-top{margin-bottom:13px}
+.an-stat-icon{width:34px;height:34px;border-radius:10px}
+.an-stat strong{font-size:clamp(25px,2.5vw,33px)}
+.an-chart-card,.an-heat-card,.an-table-card,.an-audit-card,.an-visitor-chart-card{border-radius:14px;box-shadow:none}
+.an-chart-card{padding:17px 18px 12px}
+.an-chart{height:285px}
+.an-visitor-overview{grid-template-columns:minmax(230px,.65fr) minmax(0,1.6fr);gap:10px}
+.an-visitor-intro{min-height:100%;padding:20px;border-radius:14px}
+.an-visitor-data{gap:12px;padding:15px;border-radius:14px}
+.an-visitor-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.an-visitor-metrics>div{padding:11px;border-radius:10px}
+.an-visitor-metrics b{font-size:24px}
+.an-visitor-lists{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.an-visitor-lists>div{padding:10px;border:1px solid var(--border-subtle);border-radius:10px;background:var(--surface-subtle)}
+.an-visitor-charts{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:10px}
+.an-visitor-chart-card{padding:15px;border-radius:14px}
+.an-visitor-chart{height:195px}
+.an-visitor-trend .an-visitor-chart{height:220px}
+.an-collector-status{display:flex;align-items:flex-start;gap:8px;padding:9px 11px;border:1px solid var(--border-subtle);border-radius:9px;background:var(--surface-subtle)}
+.an-collector-status i{width:7px;height:7px;flex:none;margin-top:4px;border-radius:50%;background:#b88b36}
+.an-collector-status b{color:var(--text-main)}
+.an-collector-connected i{background:#21966c;box-shadow:0 0 0 3px rgba(33,150,108,.12)}
+.an-collector-error i{background:#c43b50;box-shadow:0 0 0 3px rgba(196,59,80,.12)}
+.an-heat-card{padding:17px}
+.an-audit-card{padding:15px}
+.an-activity-row{padding:13px 14px}
+.an-footer{margin-top:28px}
+@media(max-width:1000px){.an-visitor-overview{grid-template-columns:1fr}.an-visitor-charts{grid-template-columns:1fr 1fr}.an-visitor-trend{grid-column:1/-1}}
+@media(max-width:700px){
+ .an-page{padding-top:10px;padding-bottom:38px}
+ .an-hero{min-height:0;padding:22px 18px;border-radius:15px}
+ .an-hero h1{font-size:40px}
+ .an-hero-side{min-width:0}
+ .an-controlbar{padding:11px;border-radius:12px}
+ .an-period-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ .an-period-switch button{padding:8px 7px}
+ .an-control-actions{margin-left:0}
+ .an-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .an-stat{min-height:137px;padding:12px}
+ .an-stat strong{font-size:26px}
+ .an-visitor-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .an-visitor-metrics>div{padding:9px 7px}
+ .an-visitor-metrics small{font-size:6px;letter-spacing:.04em}
+ .an-visitor-metrics b{font-size:20px}
+ .an-visitor-lists{grid-template-columns:1fr}
+ .an-visitor-lists>div:last-child{grid-column:auto}
+ .an-visitor-charts{grid-template-columns:1fr}
+ .an-visitor-trend{grid-column:auto}
+ .an-visitor-chart,.an-visitor-trend .an-visitor-chart{height:190px}
+ .an-chart{height:235px}
+ .an-audit-card{padding:10px}
+}
+@media(max-width:360px){.an-stats-grid{grid-template-columns:1fr}.an-visitor-metrics b{font-size:18px}}
