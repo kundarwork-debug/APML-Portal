@@ -1904,7 +1904,7 @@ async function handleVisitorCollect(request, env) {
         '💻 ' + tgEsc(device + ' · ' + browser + ' · ' + os),
         place ? '📍 Approx. location: ' + tgEsc(place) : '',
         '🕒 ' + tgTime()
-      ].filter(Boolean).join('\\n');
+      ].filter(Boolean).join('\n');
       const alert = await tgSendMessage(env, env.TELEGRAM_CHAT_ID, {
         text: lines, parse_mode: 'HTML', disable_web_page_preview: true
       });
