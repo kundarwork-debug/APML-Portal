@@ -1988,8 +1988,16 @@ async function handleNovaAnalytics(request, env) {
   let sessionsResult = { ok: true, value: {} };
   try {
     if (env.ANNOUNCE_KV) {
-      const listed = await env.ANNOUNCE_KV.list({ prefix: 'visitor_session:', limit: 500 });
-      const pairs = await Promise.all(listed.keys.map(async item => [item.name.slice('visitor_session:'.length), await env.ANNOUNCE_KV.get(item.name, 'json')]));
+      // Paginate KV keys instead of taking an arbitrary first 500. The previous
+      // cap could omit today's sessions depending on key ordering, making Visitor Trend appear empty.
+      const keys = [];
+      let cursor;
+      do {
+        const listed = await env.ANNOUNCE_KV.list({ prefix: 'visitor_session:', limit: 1000, ...(cursor ? { cursor } : {}) });
+        keys.push(...listed.keys);
+        cursor = listed.list_complete ? undefined : listed.cursor;
+      } while (cursor);
+      const pairs = await Promise.all(keys.map(async item => [item.name.slice('visitor_session:'.length), await env.ANNOUNCE_KV.get(item.name, 'json')]));
       sessionsResult.value = Object.fromEntries(pairs.filter(([, value]) => value));
     }
   } catch { sessionsResult = { ok: false, value: {} }; }
