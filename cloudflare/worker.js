@@ -1868,6 +1868,21 @@ async function handleVisitorCollect(request, env) {
   }
   const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashSecret + ':' + ip));
   const visitorId = Array.from(new Uint8Array(hashBytes)).map(x => x.toString(16).padStart(2, '0')).join('');
+
+  // Count one visit per IP fingerprint, then allow another after a full 30-minute cooldown.
+  // Only the keyed one-way fingerprint is stored; the raw IP is never persisted.
+  const visitDay = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const cooldownKey = 'visitor_cooldown:' + visitorId;
+  const lastCountedAt = Number(await env.ANNOUNCE_KV.get(cooldownKey) || 0);
+  let countedVisit = false;
+  if (!lastCountedAt || now - lastCountedAt >= 30 * 60 * 1000) {
+    const dailyKey = 'visitor_daily:' + visitDay;
+    const dailyCount = Number(await env.ANNOUNCE_KV.get(dailyKey) || 0);
+    await env.ANNOUNCE_KV.put(dailyKey, String(dailyCount + 1), { expirationTtl: 60 * 60 * 24 * 400 });
+    await env.ANNOUNCE_KV.put(cooldownKey, String(now), { expirationTtl: 60 * 60 * 24 });
+    countedVisit = true;
+  }
+
   const rateKey = 'visitor_rate:' + visitorId + ':' + Math.floor(now / 60000);
   const priorRate = Number(await env.ANNOUNCE_KV.get(rateKey) || 0);
   if (priorRate >= 90) return json({ ok: false, error: 'Rate limit exceeded' }, 429);
@@ -1917,7 +1932,7 @@ async function handleVisitorCollect(request, env) {
         console.warn('New-online Telegram alert was not sent:', alert.data?.description || alert.status);
       }
     }
-    return json({ ok: true });
+    return json({ ok: true, countedVisit });
   } catch {
     return json({ ok: false, error: 'Visitor collection temporarily unavailable' }, 502);
   }
@@ -2030,7 +2045,7 @@ async function handleNovaAnalytics(request, env) {
     return stamp >= cutoff && stamp <= rangeEnd;
   });
   const devices = {}, browsers = {}, cities = {}, pages = {}, pageSeconds = {}, hours = Array(24).fill(0);
-  const dailySessions = {}, dailyUniqueVisitors = {}, dropoffs = {}, deviceStats = {};
+  const dailySessions = {}, dropoffs = {}, deviceStats = {};
   const visitorSessions = new Map();
   let pageViews = 0, totalSeconds = 0, performanceCount = 0, loadTotal = 0, domTotal = 0, ttfbTotal = 0;
   let activeNow = 0;
@@ -2051,10 +2066,6 @@ async function handleNovaAnalytics(request, env) {
     if (startedAt) {
       const day = new Date(startedAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
       dailySessions[day] = (dailySessions[day] || 0) + 1;
-      if (session.visitorId) {
-        if (!dailyUniqueVisitors[day]) dailyUniqueVisitors[day] = new Set();
-        dailyUniqueVisitors[day].add(String(session.visitorId));
-      }
       const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', hourCycle: 'h23' }).format(new Date(startedAt)));
       if (Number.isInteger(hour) && hour >= 0 && hour < 24) hours[hour]++;
     }
@@ -2118,13 +2129,14 @@ async function handleNovaAnalytics(request, env) {
   const dropoffPages = topObjects(dropoffs,10).map(item=>({...item,share:sessions.length?Math.round(item.sessions/sessions.length*100):0,viewsPerSession:item.sessions?Number((item.views/item.sessions).toFixed(1)):0}));
   const peakHours = hours.map((count,hour)=>({hour,label:String(hour).padStart(2,'0')+':00',count})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
   const visitorDaily = [];
-  const visitorUniqueDaily = [];
   const visitorCursor = new Date(startKey + 'T00:00:00Z');
   const visitorLast = new Date(endKey + 'T00:00:00Z');
+  let totalVisitors = 0;
   while (visitorCursor <= visitorLast) {
     const date = visitorCursor.toISOString().slice(0, 10);
-    visitorDaily.push({ date, sessions: dailySessions[date] || 0 });
-    visitorUniqueDaily.push({ date, visitors: dailyUniqueVisitors[date] ? dailyUniqueVisitors[date].size : 0 });
+    const count = env.ANNOUNCE_KV ? Number(await env.ANNOUNCE_KV.get('visitor_daily:' + date) || 0) : 0;
+    visitorDaily.push({ date, visitors: count });
+    totalVisitors += count;
     visitorCursor.setUTCDate(visitorCursor.getUTCDate() + 1);
   }
   const suggestions = [];
@@ -2141,11 +2153,11 @@ async function handleNovaAnalytics(request, env) {
       totalMediaLifetime: mediaResult.ok && Number.isFinite(Number(mediaResult.value)) ? Number(mediaResult.value) : Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).media : 0), 0) },
     previousTotals,
     visitorIntelligence: {
-      sessions: sessions.length, uniqueBrowsers, newBrowsers: Math.max(0,uniqueBrowsers-returningBrowsers), returningBrowsers,
-      activeNow, pageViews, averageSessionSeconds: sessions.length ? Math.round(totalSeconds/sessions.length) : 0,
+      visitors: totalVisitors,
+      visitorsToday: Number(env.ANNOUNCE_KV ? await env.ANNOUNCE_KV.get('visitor_daily:' + today) || 0 : 0),
+      sessions: sessions.length, activeNow, pageViews, averageSessionSeconds: sessions.length ? Math.round(totalSeconds/sessions.length) : 0,
       devices: top(devices), browsers: top(browsers), cities: top(cities), topPages: visitorPages,
-      dailySessions: visitorDaily,
-      dailyUniqueVisitors: visitorUniqueDaily,
+      dailyVisitors: visitorDaily,
       peakHours, dropoffPages, deviceComparison, suggestions
     },
     performance: {
@@ -2157,8 +2169,8 @@ async function handleNovaAnalytics(request, env) {
       daily: perfDaily, pages: perfPages
     },
     dataNotes: [
-      'Visitor metrics use the up to 500 short-lived sessions stored privately in Cloudflare KV with a 90-day expiry. Daily unique visitor counts are calculated from those sampled sessions.',
-      'Raw IP addresses and individual visitor session records are not returned by this aggregate endpoint.',
+      'Visitor totals count qualifying visits by a one-way IP fingerprint. The same fingerprint is counted again only after a 30-minute cooldown. Daily totals are retained for up to 400 days.',
+      'Raw IP addresses are not stored; only a keyed one-way fingerprint is used for the cooldown. IP-based counts can undercount shared networks and overcount people whose IP changes.',
       'Last recorded pages are engagement signals, not confirmed visitor exits. Approximate location is aggregated.'
     ]
   });
