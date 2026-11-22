@@ -1842,6 +1842,60 @@ async function sendHourlyAnalyticsSummary(env) {
 }
 
 
+async function handleVisitorCollect(request, env) {
+  const origin = request.headers.get('Origin') || '';
+  if (origin && !CONFIG.ALLOWED_ORIGINS.includes(origin)) return json({ ok: false, error: 'Origin not allowed' }, 403);
+  if (!env.VISITOR_HASH_SECRET) return json({ ok: false, error: 'Visitor hash secret is not configured' }, 503);
+  const ua = String(request.headers.get('User-Agent') || '').slice(0, 500);
+  if (!ua || /(bot|crawler|spider|preview|facebookexternalhit|slackbot|discordbot|whatsapp|telegrambot|googlebot|bingbot|uptimerobot|headless|lighthouse|pagespeed)/i.test(ua)) {
+    return json({ ok: true, ignored: 'automated-or-unknown-client' });
+  }
+  const ip = request.headers.get('CF-Connecting-IP') || '';
+  if (!ip) return json({ ok: false, error: 'Cloudflare client address unavailable' }, 400);
+  let body;
+  try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
+  const sessionId = String(body.sessionId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+  const page = String(body.page || '/').split('?')[0].split('#')[0].slice(0, 120) || '/';
+  if (!/^[a-zA-Z0-9_-]{8,80}$/.test(sessionId)) return json({ ok: false, error: 'Invalid session identifier' }, 400);
+  const now = Date.now();
+  const startedAt = Math.min(now, Math.max(now - 86400000, Number(body.startedAt) || now));
+  const seconds = Math.min(120, Math.max(0, Math.floor(Number(body.seconds) || 0)));
+  const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(env.VISITOR_HASH_SECRET + ':' + ip));
+  const visitorId = Array.from(new Uint8Array(hashBytes)).map(x => x.toString(16).padStart(2, '0')).join('');
+  const uaLower = ua.toLowerCase();
+  const device = /ipad|tablet/i.test(ua) ? 'Tablet' : /mobile|android|iphone/i.test(ua) ? 'Mobile' : 'Desktop';
+  const browser = /edg\//i.test(ua) ? 'Edge' : /opr\//i.test(ua) ? 'Opera' : /firefox\//i.test(ua) ? 'Firefox' : /chrome\//i.test(ua) ? 'Chrome' : /safari\//i.test(ua) ? 'Safari' : 'Other';
+  const os = /windows/i.test(ua) ? 'Windows' : /android/i.test(ua) ? 'Android' : /iphone|ipad|ios/i.test(ua) ? 'iOS' : /mac os/i.test(ua) ? 'macOS' : /linux/i.test(ua) ? 'Linux' : 'Other';
+  const cf = request.cf || {};
+  const city = String(cf.city || '').slice(0, 80);
+  const region = String(cf.region || '').slice(0, 80);
+  const country = String(cf.country || '').slice(0, 2);
+  const ref = CONFIG.FIREBASE_DB_URL + '/analytics/visitor_sessions/' + encodeURIComponent(sessionId) + '.json';
+  try {
+    const oldResponse = await fetch(ref);
+    if (!oldResponse.ok) return json({ ok: false, error: 'Could not read visitor session' }, 502);
+    const old = await oldResponse.json() || {};
+    const pageMap = old.pages && typeof old.pages === 'object' ? old.pages : {};
+    const previous = pageMap[page] || {};
+    pageMap[page] = { path: page, views: Number(previous.views || 0) + (body.pageView === true ? 1 : 0), seconds: Number(previous.seconds || 0) + seconds, lastSeen: now };
+    const journey = Array.isArray(old.journey) ? old.journey.slice(-19) : [];
+    if (body.pageView === true && journey[journey.length - 1]?.path !== page) journey.push({ path: page, timestamp: now });
+    const record = {
+      visitorId, startedAt: Number(old.startedAt) || startedAt, lastSeen: now,
+      displayName: String(body.displayName || old.displayName || '').replace(/[<>\u0000-\u001f]/g, '').trim().slice(0, 32) || 'Anonymous',
+      device, browser, os, city, region, country,
+      pageViews: Object.values(pageMap).reduce((sum, p) => sum + (Number(p.views) || 0), 0),
+      totalSeconds: Math.min(86400, Number(old.totalSeconds || 0) + seconds),
+      firstPage: old.firstPage || page, lastPage: page, pages: pageMap, journey
+    };
+    const saved = await fetch(ref, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) });
+    if (!saved.ok) return json({ ok: false, error: 'Could not save visitor session' }, 502);
+    return json({ ok: true });
+  } catch {
+    return json({ ok: false, error: 'Visitor collection temporarily unavailable' }, 502);
+  }
+}
+
 async function handlePublicAnalytics(request) {
   const url = new URL(request.url);
   const today = getTodayIST();
@@ -2273,14 +2327,14 @@ export default {
           quotationCleanup: true,
           adminNotifications: true,
           novaAnalytics: true,
-          publicAnalytics: true
+          publicAnalytics: true,\n          visitorCollection: true
         },
         configuration: {
           firebase: !!CONFIG.FIREBASE_DB_URL,
           cloudinary: !!(env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET),
           telegram: !!(env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID),
           telegramWebhookSecret: !!env.TELEGRAM_WEBHOOK_SECRET,
-          announcementKV: !!env.ANNOUNCE_KV
+          announcementKV: !!env.ANNOUNCE_KV,\n          visitorHashSecret: !!env.VISITOR_HASH_SECRET
         },
         timestamp: new Date().toISOString()
       });
@@ -2288,7 +2342,7 @@ export default {
 
     if (request.method === 'GET' && path === '/storage-audit') return await handleStorageAudit(request, env);
 
-    if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
+    if (request.method === 'POST' && path === '/visitor/collect') return await handleVisitorCollect(request, env);\n\n    if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
 
     if (request.method === 'GET' && path === '/nova/analytics') return await handleNovaAnalytics(request, env);
 
