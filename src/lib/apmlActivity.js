@@ -3,7 +3,7 @@ import { getApmlDatabase } from './firebase'
 const ACTIVITY_PATH = 'Analytics page/recent_actions'
 const ACTIVITY_LIMIT = 50
 
-export async function logApmlAction({ action, module, item = '', details = '' } = {}) {
+export async function logApmlAction({ action, module, item = '', details = '', fileName = '', folder = '', fileSize = null, fileType = '' } = {}) {
   if (!action || !module) return
   try {
     const database = await getApmlDatabase()
@@ -16,7 +16,11 @@ export async function logApmlAction({ action, module, item = '', details = '' } 
       action: String(action).slice(0, 80),
       module: String(module).slice(0, 40),
       item: String(item || '').slice(0, 180),
-      details: String(details || '').slice(0, 180),
+      details: String(details || '').slice(0, 300),
+      fileName: String(fileName || '').slice(0, 220),
+      folder: String(folder || '').slice(0, 180),
+      fileSize: Number.isFinite(Number(fileSize)) && fileSize !== null ? Number(fileSize) : null,
+      fileType: String(fileType || '').slice(0, 80),
       user: String(user).slice(0, 100),
       timestamp: Date.now()
     })
