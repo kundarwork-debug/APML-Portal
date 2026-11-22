@@ -30,7 +30,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
   const name=item.name||'apml-file';
   try{
    if(window.ApmNativeDownload?.start){
-    window.ApmNativeDownload.start(item.fileId,name);
+    await Promise.resolve(window.ApmNativeDownload.start(item.fileId,name));
     void incrementApmlMediaDownload().catch(e=>console.warn('Drive download counter unavailable',e))
     void logApmlAction({action:'File downloaded',module:'Drive',item:name});
     window.APMNotify?.send?.({type:'drive',title:'Drive file downloaded',file:name,folder:folders.find(folder=>folder.key===(item.parentId||'root'))?.name||'APML Drive'});
@@ -43,6 +43,7 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    if(!blob.size)throw Error('The downloaded file is empty.');
    const url=URL.createObjectURL(blob),a=document.createElement('a');
    a.href=url;a.download=name;a.style.display='none';document.body.append(a);a.click();a.remove();
+   void incrementApmlMediaDownload().catch(e=>console.warn('Drive download counter unavailable',e))
    setTimeout(()=>URL.revokeObjectURL(url),10000);
    void logApmlAction({action:'File downloaded',module:'Drive',item:name});
    window.APMNotify?.send?.({type:'drive',title:'Drive file downloaded',file:name,folder:folders.find(folder=>folder.key===(item.parentId||'root'))?.name||'APML Drive'});
