@@ -194,3 +194,5 @@ html[data-theme="dark"] .an-heat-cell{border-color:#3e3441}
   .an-hero h1{font-size:40px}
   .an-chart{height:220px}
 }
+
+.an-activity-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}.an-activity-meta small{display:inline-flex;align-items:center;gap:4px;color:var(--text-muted);font-size:8px}.an-activity-row time{max-width:170px;text-align:right;line-height:1.5;white-space:normal}.an-activity-copy>span{overflow-wrap:anywhere;white-space:normal;line-height:1.5}
