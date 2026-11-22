@@ -57,8 +57,11 @@
         }
       },
       "recent_actions": {
-        ".read": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
-        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')"
+        ".read": true,
+        "$actionId": {
+          ".write": "auth != null && ((auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')) || (auth.token.firebase.sign_in_provider == 'anonymous' && !data.exists() && newData.exists() && newData.hasChildren(['action','module','item','details','user','timestamp']) && newData.child('action').isString() && newData.child('action').val().length <= 80 && newData.child('module').isString() && newData.child('module').val().length <= 40 && newData.child('item').isString() && newData.child('item').val().length <= 180 && newData.child('details').isString() && newData.child('details').val().length <= 180 && newData.child('user').isString() && newData.child('user').val().length <= 100 && newData.child('timestamp').isNumber())",
+          ".validate": "newData.hasChildren(['action','module','item','details','user','timestamp']) && newData.child('action').isString() && newData.child('module').isString() && newData.child('item').isString() && newData.child('details').isString() && newData.child('user').isString() && newData.child('timestamp').isNumber()"
+        }
       }
     },
     "analytics": {
@@ -82,4 +85,3 @@
     }
   }
 }
-
