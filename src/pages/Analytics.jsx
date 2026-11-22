@@ -41,7 +41,7 @@ export default function Analytics() {
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
   const [updated, setUpdated] = useState(null)
-  const [range, setRange] = useState('7d')
+  const [range, setRange] = useState('30d')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [customOpen, setCustomOpen] = useState(false)
