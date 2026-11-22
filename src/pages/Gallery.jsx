@@ -313,13 +313,13 @@ export default function Gallery() {
   }
   async function downloadMedia(item) {
     if (!item?.url) return driveAlert('Media unavailable', 'The media URL is missing.', 'error')
+    void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
     const name = item.name || (item.isVideo ? 'apml-video.mp4' : 'apml-image.jpg')
     try {
       if (window.ApmNativeDownload?.start) {
         window.ApmNativeDownload.start(item.url, name)
         window.APMNotify?.send?.({type:'gallery',title:item.isVideo?'Gallery video downloaded':'Gallery photo downloaded',file:name,folder:folders.find(folder=>folder.id===item.folder)?.label||item.folder||'Gallery'})
         void metric(item, 'downloadsCount')
-        void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
         void logApmlAction({action:'Media downloaded',module:'Gallery',item:name})
         window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
         await driveToast('Download started')
@@ -350,7 +350,6 @@ export default function Gallery() {
       window.setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
 
       void metric(item, 'downloadsCount')
-      void incrementApmlMediaDownload().catch(error => console.warn('Gallery download counter unavailable', error))
       void logApmlAction({action:'Media downloaded',module:'Gallery',item:name})
       window.APMLMascot?.happy?.(item.isVideo ? 'Video download started!' : 'Photo download started!')
       await driveToast('Download started')
@@ -491,3 +490,4 @@ export default function Gallery() {
     </div>}
   </main>
 }
+

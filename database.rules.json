@@ -19,6 +19,67 @@
     "field_officers": {
       ".read": true,
       ".write": true
+    },
+    "Analytics page": {
+      "_meta": {
+        ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && !data.exists() && newData.child('schemaVersion').val() == 1 && newData.child('timezone').val() == 'Asia/Kolkata' && newData.child('createdAt').isNumber() && newData.child('description').val() == 'Source of truth for all metrics displayed on the APML Analytics page.'",
+        ".validate": "newData.hasChildren(['schemaVersion', 'timezone', 'createdAt', 'description'])"
+      },
+      "daily_logs": {
+        ".read": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
+        "$day": {
+          ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && $day.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.numChildren() <= 2 && (!newData.child('pdf').exists() || newData.child('pdf').isNumber()) && (!newData.child('media').exists() || newData.child('media').isNumber()) && newData.child('pdf').val() == (data.child('pdf').exists() ? data.child('pdf').val() : (root.child('analytics/daily_logs').child($day).child('pdf').val() || 0)) && newData.child('media').val() == (data.child('media').exists() ? data.child('media').val() : (root.child('analytics/daily_logs').child($day).child('media').val() || 0))",
+          ".validate": "newData.numChildren() <= 2 && (!newData.child('pdf').exists() || newData.child('pdf').isNumber()) && (!newData.child('media').exists() || newData.child('media').isNumber())",
+          "pdf": {
+            ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1",
+            ".validate": "newData.isNumber()"
+          },
+          "media": {
+            ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+            ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1",
+            ".validate": "newData.isNumber()"
+          }
+        }
+      },
+      "lifetime_totals": {
+        "pdfGenerated": {
+          ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && ((!data.exists() && newData.val() == (root.child('analytics/totalPdfDownloads').val() || 0)) || newData.val() == (data.exists() ? data.val() : 0) + 1)",
+          ".validate": "newData.isNumber()"
+        },
+        "mediaDownloads": {
+          ".read": "auth != null && (auth.token.firebase.sign_in_provider == 'anonymous' || (auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com'))) ",
+          ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && ((!data.exists() && newData.val() == (root.child('analytics/totalMediaDownloads').val() || 0)) || newData.val() == (data.exists() ? data.val() : 0) + 1)",
+          ".validate": "newData.isNumber()"
+        }
+      },
+      "recent_actions": {
+        ".read": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')",
+        ".write": "auth != null && auth.token.email_verified == true && (auth.token.email == 'kundar.work@gmail.com' || auth.token.email == 'kundar701@gmail.com')"
+      }
+    },
+    "analytics": {
+      ".read": true,
+      "totalPdfDownloads": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1",
+        ".validate": "newData.isNumber()"
+      },
+      "totalMediaDownloads": {
+        ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1",
+        ".validate": "newData.isNumber()"
+      },
+      "daily_logs": {
+        "$day": {
+          "$counter": {
+            ".write": "auth != null && auth.token.firebase.sign_in_provider == 'anonymous' && ($counter == 'pdf' || $counter == 'media') && newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1",
+            ".validate": "newData.isNumber()"
+          }
+        }
+      }
     }
   }
 }
+
