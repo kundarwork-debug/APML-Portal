@@ -15,11 +15,11 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
  async function adminToggle(){setBusy(true);try{if(signedIn){await signOut();if(trash)setParent('root')}else{await signIn()}}catch(e){try{await driveAlert('Google sign-in failed',e.message,'error')}catch{setStatus(e.message)}}finally{setBusy(false)}}
  async function downloadFile(item){
   if(!item?.fileId){await driveAlert('File unavailable','The file URL is missing.','error');return}
+  void incrementApmlMediaDownload().catch(e=>console.warn('Drive download counter unavailable',e))
   const name=item.name||'apml-file';
   try{
    if(window.ApmNativeDownload?.start){
     window.ApmNativeDownload.start(item.fileId,name);
-    try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
     await driveToast('Download started');
     return;
    }
@@ -30,7 +30,6 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
    const url=URL.createObjectURL(blob),a=document.createElement('a');
    a.href=url;a.download=name;a.style.display='none';document.body.append(a);a.click();a.remove();
    setTimeout(()=>URL.revokeObjectURL(url),10000);
-   try{await incrementApmlMediaDownload()}catch(e){console.warn('Drive download counter unavailable',e)}
    await driveToast('Download started');
   }catch(e){
    console.warn('Drive download fallback',e);
@@ -116,3 +115,4 @@ export default function Drive(){const [folders,setFolders]=useState([]),[files,s
   {trash&&<div className="drive-trash-note">Trash Archive · {trashFolders.length+trashFiles.length} items</div>}
  </main>
 }
+
