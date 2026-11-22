@@ -20,15 +20,20 @@ export async function logApmlAction({ action, module, item = '', details = '' } 
       user: String(user).slice(0, 100),
       timestamp: Date.now()
     })
-    const snapshot = await ref.once('value')
-    const entries = Object.entries(snapshot.val() || {}).sort(
-      (a, b) => Number(b[1]?.timestamp || 0) - Number(a[1]?.timestamp || 0)
-    )
-    const stale = entries.slice(ACTIVITY_LIMIT)
-    if (stale.length) {
-      const updates = {}
-      stale.forEach(([entryKey]) => { updates[entryKey] = null })
-      await ref.update(updates)
+    // Anonymous users may create entries but cannot read the admin-only log.
+    // Only verified APML admins read/prune old entries to keep the list bounded.
+    const isAdmin = authUser?.emailVerified && ['kundar.work@gmail.com', 'kundar701@gmail.com'].includes(authUser.email)
+    if (isAdmin) {
+      const snapshot = await ref.once('value')
+      const entries = Object.entries(snapshot.val() || {}).sort(
+        (a, b) => Number(b[1]?.timestamp || 0) - Number(a[1]?.timestamp || 0)
+      )
+      const stale = entries.slice(ACTIVITY_LIMIT)
+      if (stale.length) {
+        const updates = {}
+        stale.forEach(([entryKey]) => { updates[entryKey] = null })
+        await ref.update(updates)
+      }
     }
   } catch (error) {
     console.warn('APML activity log could not be saved:', error)
