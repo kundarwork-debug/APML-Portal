@@ -2,7 +2,7 @@
 
 **Audit date:** 22 November 2026  
 **Repository branch reviewed:** `main`  
-**Scope:** Static code audit of the React Analytics page, Firebase counter writers, selected action loggers, homepage telemetry, and the Cloudflare Worker references. This is not a live Firebase data export; actual stored numeric values and Firebase Rules were not independently verified during this audit.
+**Scope:** Static code audit of the React Analytics page, Firebase counter writers, selected action loggers, homepage telemetry, and the Cloudflare Worker references. Live dashboard values and the deployed Vercel page were inspected. This was not a direct Firebase data export, and the deployed Firebase Rules were not independently retrieved.
 
 ## 1. Executive summary
 
@@ -33,8 +33,8 @@ The dashboard now reads from the canonical Firebase folder **`Analytics page`**.
 ### Recorded aggregate counters
 
 - **PDF generation:** `src/pages/Editor.jsx` calls `incrementApmlPdfGenerated()` after a PDF is generated and downloaded. The counter is stored as a daily `pdf` count and a lifetime `pdfGenerated` total.
-- **Drive downloads:** `src/pages/Drive.jsx` calls `incrementApmlMediaDownload()` after a Drive download action.
-- **Gallery downloads:** `src/pages/Gallery.jsx` calls `incrementApmlMediaDownload()` after a Gallery download action.
+- **Drive downloads:** `src/pages/Drive.jsx` calls `incrementApmlMediaDownload()` after the download request succeeds and the browser/native download is started.
+- **Gallery downloads:** `src/pages/Gallery.jsx` calls `incrementApmlMediaDownload()` after the media fetch succeeds and the browser/native download is started.
 - **Timezone:** daily keys are generated in `Asia/Kolkata` (IST).
 
 ### Recent Activity events
@@ -71,7 +71,7 @@ Analytics page/
 
 The `media` / `mediaDownloads` field names are retained for compatibility with existing counter code; their actual meaning is **Drive/Gallery downloads**, not exclusively image/video downloads.
 
-The first Analytics page load (or next counter write) runs `ensureApmlAnalyticsStructure()`. It migrates existing daily PDF/media counts and lifetime totals from the legacy lowercase node if schema version 1 has not yet been initialized. The migration intentionally does not copy a legacy `visitors` field because no verified visitor writer exists and the current dashboard does not display visitor counts.
+The first Analytics page load (or next counter write) runs `ensureApmlAnalyticsStructure()`. It migrates existing daily PDF/media counts and lifetime totals from the legacy lowercase node if schema version 1 has not yet been initialized. Visitor sessions are collected separately in Cloudflare KV; no legacy Firebase `visitors` field is used as a source for these estimates.
 
 ## 5. Legacy compatibility paths
 
