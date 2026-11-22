@@ -203,7 +203,7 @@ export default function Analytics() {
         <p>A clearer view of portal activity, document generation and shared-file engagement.</p>
         <div className="an-hero-meta"><span><i className="an-live-dot" /> Live Firebase data</span><span><Clock3 size={13} /> {updated ? 'Synced ' + updated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Connecting to data'}</span></div>
       </div>
-      <div className="an-hero-side"><div className="an-hero-symbol"><BarChart3 size={35} strokeWidth={1.3} /></div><div><small>REPORTING TIMEZONE</small><b>India Standard Time</b><span>UTC +05:30</span></div></div>
+      <div className="an-hero-side"><div className="an-hero-symbol"><BarChart3 size={35} strokeWidth={1.3} /></div><div><small>REPORTING TIMEZONE</small><b>India Standard Time</b><span>UTC +05:30</span>{admin && <a className="an-audit-jump" href="#an-audit-trail">View Recent Activity ↓</a>}</div></div>
     </section>
 
     <section className="an-controlbar">
@@ -269,8 +269,8 @@ export default function Analytics() {
     </section>
 
 
-    {admin && <section className="an-section-block">
-      <div className="an-section-heading"><div><span>06 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
+    {admin && <section id="an-audit-trail" className="an-section-block">
+      <div className="an-section-heading"><div><span>05 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
       <div className="an-audit-card"><div className="an-audit-toolbar"><span>Latest successful instrumented actions</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
         {filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.item, row.details].filter(Boolean).join(' · ')}</span><small>{row.user || 'Guest'}</small></div><time>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
       </div>
