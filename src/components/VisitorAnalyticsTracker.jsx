@@ -19,7 +19,6 @@ export default function VisitorAnalyticsTracker() {
       session.current = {
         sessionId,
         startedAt: Number(sessionStorage.getItem('apml-visitor-started') || 0) || Date.now(),
-        displayName: (localStorage.getItem('apml-welcome-name') || '').trim().slice(0, 32)
       }
       sessionStorage.setItem('apml-visitor-started', String(session.current.startedAt))
     } catch {
@@ -34,7 +33,6 @@ export default function VisitorAnalyticsTracker() {
       const payload = {
         sessionId: session.current.sessionId,
         startedAt: session.current.startedAt,
-        displayName: session.current.displayName || 'Anonymous',
         page: safePage(window.location.pathname),
         pageView: !!pageView,
         seconds
