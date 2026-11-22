@@ -163,7 +163,6 @@ export default function Analytics() {
             cities: []
           })
           setVisitorError('')
-          setVisitorConnection(current => current.state === 'error' ? { state: 'connected', message: 'Firebase visitor records are readable.' } : current)
         }
       } catch (error) {
         if (live) setVisitorError(error.message || 'Could not read visitor records from Firebase.')
