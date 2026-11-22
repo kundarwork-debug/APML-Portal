@@ -146,3 +146,51 @@ html[data-theme="dark"] .an-heat-cell{border-color:#3e3441}
 .an-heat-blank{visibility:hidden}
 
 .an-audit-jump{display:inline-flex;align-items:center;margin-top:8px;color:#ffc1ca;font-size:10px;font-weight:800;text-decoration:none}.an-audit-jump:hover{color:#fff;text-decoration:underline}
+
+
+/* Mobile overflow and public activity feed refinements */
+.an-page,.an-page *{box-sizing:border-box}
+.an-page{min-width:0;overflow-x:clip}
+.an-hero,.an-controlbar,.an-section-block,.an-chart-card,.an-visitor-overview,
+.an-visitor-charts,.an-audit-card,.an-activity-row{min-width:0;max-width:100%}
+.an-visitor-overview>*,
+.an-visitor-charts>*{min-width:0}
+.an-activity-row{flex-wrap:wrap}
+.an-activity-row time{overflow-wrap:anywhere}
+.an-audit-toolbar{flex-wrap:wrap}
+.an-audit-toolbar select{max-width:100%;min-width:0}
+.an-chart,.an-visitor-chart{min-width:0;max-width:100%}
+.an-hero-side{max-width:100%;flex-wrap:wrap}
+.an-control-actions{flex-wrap:wrap}
+.an-custom-pop{max-width:calc(100vw - 32px)}
+@media(max-width:600px){
+  .an-page{padding-left:12px;padding-right:12px}
+  .an-hero{width:100%;gap:18px;padding:23px 18px}
+  .an-hero-copy,.an-hero-copy>p{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .an-eyebrow{flex-wrap:wrap;letter-spacing:.12em}
+  .an-hero-side{width:100%;min-width:0}
+  .an-controlbar{width:100%;align-items:stretch}
+  .an-period-switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .an-control-actions{justify-content:flex-start}
+  .an-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .an-stat{min-width:0;overflow-wrap:anywhere}
+  .an-stat strong{font-size:clamp(22px,7vw,29px)}
+  .an-visitor-lists{grid-template-columns:1fr}
+  .an-visitor-lists>div:last-child{grid-column:auto}
+  .an-visitor-overview,.an-visitor-charts{grid-template-columns:minmax(0,1fr)}
+  .an-visitor-trend{grid-column:auto}
+  .an-activity-row{align-items:flex-start}
+  .an-activity-copy{flex-basis:calc(100% - 54px)}
+  .an-activity-copy span{white-space:normal;overflow-wrap:anywhere}
+  .an-activity-row time{margin-left:46px;max-width:none;text-align:left}
+  .an-audit-card{padding:13px}
+  .an-audit-toolbar{align-items:flex-start}
+  .an-audit-toolbar select{width:100%}
+  .an-footer{min-width:0}
+  .an-footer p{overflow-wrap:anywhere}
+}
+@media(max-width:360px){
+  .an-stats-grid{grid-template-columns:1fr}
+  .an-hero h1{font-size:40px}
+  .an-chart{height:220px}
+}
