@@ -107,11 +107,20 @@ export default function Analytics() {
 
   useEffect(() => {
     let live = true
-    fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=365')
-      .then(response => { if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.'); return response.json() })
-      .then(data => { if (live && data.ok) setVisitorStats(data.visitorIntelligence || null) })
-      .catch(error => { if (live) setVisitorError(error.message || 'Visitor analytics are temporarily unavailable.') })
-    return () => { live = false }
+    const refreshVisitors = async () => {
+      try {
+        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=365')
+        if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.')
+        const data = await response.json()
+        if (!data.ok || !data.visitorIntelligence) throw new Error(data.error || 'Visitor analytics are temporarily unavailable.')
+        if (live) { setVisitorStats(data.visitorIntelligence); setVisitorError('') }
+      } catch (error) {
+        if (live) setVisitorError(error.message || 'Visitor analytics are temporarily unavailable.')
+      }
+    }
+    refreshVisitors()
+    const interval = window.setInterval(refreshVisitors, 30000)
+    return () => { live = false; window.clearInterval(interval) }
   }, [])
 
   const selected = useMemo(() => {
@@ -208,8 +217,8 @@ export default function Analytics() {
           {visitorError && <p className="an-visitor-status">{visitorError}</p>}
           <div className="an-visitor-metrics">
             <div><small>SESSIONS</small><b>{number(visitorStats?.sessions || 0)}</b></div>
-            <div><small>EST. UNIQUE VISITORS</small><b>{number(visitorStats?.uniqueBrowsers || 0)}</b></div>
-            <div><small>RETURNING VISITORS</small><b>{number(visitorStats?.returningBrowsers || 0)}</b></div>
+            <div><small>EST. UNIQUE IPs</small><b>{number(visitorStats?.uniqueBrowsers || 0)}</b></div>
+            <div><small>RETURNING IPs</small><b>{number(visitorStats?.returningBrowsers || 0)}</b></div>
             <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
