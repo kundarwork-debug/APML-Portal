@@ -4,13 +4,13 @@ import {
   Download, FileJson, FileText, Globe2, Image as ImageIcon, MapPin,
   RefreshCw, Sparkles, Users, Zap
 } from 'lucide-react'
-import { Line } from 'react-chartjs-2'
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
+import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend } from 'chart.js'
 import { getApmlDatabase, ensureApmlAnalyticsStructure } from '../lib/firebase'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Analytics.css'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend)
 
 const TZ = 'Asia/Kolkata'
 const nf = new Intl.NumberFormat('en-IN')
@@ -47,6 +47,8 @@ export default function Analytics() {
   const [customOpen, setCustomOpen] = useState(false)
   const [activity, setActivity] = useState([])
   const [activityFilter, setActivityFilter] = useState('All')
+  const [visitorStats, setVisitorStats] = useState(null)
+  const [visitorError, setVisitorError] = useState('')
   const { admin } = useApmlAdminAuth()
 
   const load = useCallback(async () => {
@@ -102,6 +104,24 @@ export default function Analytics() {
     })()
     return () => { live = false; if (ref && handler) ref.off('value', handler) }
   }, [admin])
+  useEffect(() => {
+    let live = true
+    const refreshVisitors = async () => {
+      try {
+        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=365')
+        if (!response.ok) throw new Error('Visitor analytics endpoint is not ready yet.')
+        const data = await response.json()
+        if (!data.ok || !data.visitorIntelligence) throw new Error(data.error || 'Visitor analytics are temporarily unavailable.')
+        if (live) { setVisitorStats(data.visitorIntelligence); setVisitorError('') }
+      } catch (error) {
+        if (live) setVisitorError(error.message || 'Visitor analytics are temporarily unavailable.')
+      }
+    }
+    refreshVisitors()
+    const interval = window.setInterval(refreshVisitors, 30000)
+    return () => { live = false; window.clearInterval(interval) }
+  }, [])
+
   const selected = useMemo(() => {
     if (!logs) return []
     const end = range === 'custom' ? (customEnd || dateKey(new Date())) : dateKey(new Date())
@@ -139,6 +159,22 @@ export default function Analytics() {
     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, color: 'var(--text-muted)', font: { size: 11 }, padding: 22 } }, tooltip: { backgroundColor: '#191b25', titleColor: '#fff', bodyColor: '#e7e8ee', padding: 12, cornerRadius: 10 } },
     scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b929e', maxTicksLimit: 10, maxRotation: 0 } }, y: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, border: { display: false }, ticks: { color: '#8b929e', precision: 0 } } }
   }
+  const visitorDaily = visitorStats?.dailySessions || []
+  const visitorUniqueDaily = visitorStats?.dailyUniqueVisitors || []
+  const visitorTrendData = {
+    labels: visitorDaily.map(row => new Date(row.date + 'T00:00:00Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
+    datasets: [
+      { label: 'Sessions', data: visitorDaily.map(row => row.sessions || 0), borderColor: '#9d2438', backgroundColor: 'rgba(157,36,56,.13)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0 },
+      { label: 'Estimated unique visitors', data: visitorUniqueDaily.map(row => row.visitors || 0), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0 }
+    ]
+  }
+  const visitorTrendOptions = { ...chartOptions, plugins: { ...chartOptions.plugins, legend: { ...chartOptions.plugins.legend, position: 'bottom' } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 8 } } } }
+  const cityRows = visitorStats?.cities?.slice(0, 6) || []
+  const deviceRows = visitorStats?.devices || []
+  const visitorBarData = { labels: cityRows.map(row => row.name), datasets: [{ label: 'Sessions', data: cityRows.map(row => row.count || 0), backgroundColor: 'rgba(157,36,56,.72)', borderRadius: 6, maxBarThickness: 22 }] }
+  const visitorBarOptions = { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: chartOptions.plugins.tooltip }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, ticks: { color: '#8b929e', precision: 0 } }, y: { grid: { display: false }, ticks: { color: 'var(--text-muted)', autoSkip: false } } } }
+  const visitorDeviceData = { labels: deviceRows.map(row => row.name), datasets: [{ data: deviceRows.map(row => row.count || 0), backgroundColor: ['#9d2438', '#4387c9', '#c59b4a', '#6e9c83', '#8d78b5'], borderWidth: 0, hoverOffset: 5 }] }
+  const visitorDoughnutOptions = { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, color: 'var(--text-muted)', font: { size: 10 }, padding: 15 } }, tooltip: chartOptions.plugins.tooltip } }
   const exportCsv = () => {
     const lines = [['Date', 'PDFs generated', 'Drive/Gallery downloads', 'Total actions'], ...selected.map(row => [row.key, row.pdf, row.media, row.pdf + row.media])]
     downloadFile('apml-analytics-' + range + '.csv', lines.map(row => row.map(value => '"' + String(value).replaceAll('"', '""') + '"').join(',')).join('\n'), 'text/csv;charset=utf-8')
@@ -188,18 +224,45 @@ export default function Analytics() {
       </div>
     </section>
 
+    <section className="an-section-block an-intelligence-block">
+      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorStats ? 'COLLECTING LIVE' : 'CONNECTING'}</span></div>
+      <div className="an-visitor-overview">
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Estimated visitors, not just page loads.</h3><p>Understand how people discover and use APML Portal through aggregated visitor sessions, approximate network locations, device types and popular pages. Visitor identity and human/bot classification are estimates, not verified identities.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>Approximate location only · no GPS · raw IP addresses are not returned by this analytics endpoint · visitor metrics are based on up to 500 short-lived sessions.</span></div></div>
+        <div className="an-visitor-data">
+          {visitorError && <p className="an-visitor-status">{visitorError}</p>}
+          <div className="an-visitor-metrics">
+            <div><small>SESSIONS</small><b>{number(visitorStats?.sessions || 0)}</b></div>
+            <div><small>EST. UNIQUE VISITORS</small><b>{number(visitorStats?.uniqueBrowsers || 0)}</b></div>
+            <div><small>RETURNING VISITORS</small><b>{number(visitorStats?.returningBrowsers || 0)}</b></div>
+            <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
+          </div>
+          <div className="an-visitor-lists">
+            <div><b>Top locations</b>{visitorStats?.cities?.length ? visitorStats.cities.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for location data</small>}</div>
+            <div><b>Devices &amp; browsers</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,3).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}{visitorStats?.browsers?.slice(0,2).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>)}</div>
+            <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page data</small>}</div>
+          </div>
+          <p className="an-visitor-footnote">Estimated human traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · refreshed every 30 seconds.</p>
+        </div>
+      </div>
+      <div className="an-visitor-charts">
+        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily sessions vs estimated unique visitors · last 365 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Line data={visitorTrendData} options={visitorTrendOptions} /> : <small>No visitor trend data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card"><div><b>Top locations</b><span>Sessions by approximate city</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No location data available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
+      </div>
+    </section>
+
     <section className="an-section-block">
-      <div className="an-section-heading"><div><span>03 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
+      <div className="an-section-heading"><div><span>04 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
       <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-grid">{heatmap.map(day => <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} />)}</div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
     </section>
 
     <section className="an-section-block">
-      <div className="an-section-heading"><div><span>04 / DAILY REPORT</span><h2>Activity breakdown</h2></div><p>{range === '365d' ? 'Latest 45 days shown · export for full range' : 'Newest dates first'}</p></div>
+      <div className="an-section-heading"><div><span>05 / DAILY REPORT</span><h2>Activity breakdown</h2></div><p>{range === '365d' ? 'Latest 45 days shown · export for full range' : 'Newest dates first'}</p></div>
       <div className="an-table-card"><div className="an-table-wrap"><table className="an-table"><thead><tr><th>DATE</th><th>PDF GENERATED</th><th>DRIVE / GALLERY</th><th>TOTAL</th></tr></thead><tbody>{visibleRows.length ? visibleRows.map(row => <tr key={row.key}><td>{fullDate(row.key)}</td><td><span className="an-table-dot pdf-dot" />{number(row.pdf)}</td><td><span className="an-table-dot media-dot" />{number(row.media)}</td><td><b>{number(row.pdf + row.media)}</b></td></tr>) : <tr><td colSpan="4" className="an-empty">No data available for this period.</td></tr>}</tbody></table></div></div>
     </section>
 
     {admin && <section className="an-section-block">
-      <div className="an-section-heading"><div><span>05 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
+      <div className="an-section-heading"><div><span>06 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review selected recorded actions across Quotation Editor, Drive, Gallery, Directory and Field Officer. Each entry includes an activity summary, user label and timestamp where available. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
       <div className="an-audit-card"><div className="an-audit-toolbar"><span>Latest successful instrumented actions</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
         {filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.item, row.details].filter(Boolean).join(' · ')}</span><small>{row.user || 'Guest'}</small></div><time>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
       </div>
