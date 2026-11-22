@@ -1,12 +1,12 @@
 # APML Portal Analytics — Data Audit & Firebase Contract
 
-**Audit date:** 21 November 2026  
+**Audit date:** 22 November 2026  
 **Repository branch reviewed:** `main`  
 **Scope:** Static code audit of the React Analytics page, Firebase counter writers, selected action loggers, homepage telemetry, and the Cloudflare Worker references. This is not a live Firebase data export; actual stored numeric values and Firebase Rules were not independently verified during this audit.
 
 ## 1. Executive summary
 
-The Analytics page previously displayed a **Visitors** metric even though no code path was found that writes a daily visitor count. The homepage does calculate a temporary online-presence count from the `presence` node, but that is not a daily unique-visitor metric or historical visitor count. The current policy text also says visitor/presence analytics are not collected, so visitor tracking must not be added without an explicit product and privacy-policy decision.
+The Analytics page now includes a live Visitor Intelligence panel. The React shell posts page views and 30-second heartbeats to the Cloudflare Worker at `/visitor/collect`; the Worker derives a secret-keyed SHA-256 identifier from the connecting IP, reads approximate location from Cloudflare request metadata, filters obvious automated user agents, and stores pseudonymous session records in Cloudflare KV. Raw IP addresses are not written to the analytics database. The privacy policy now discloses this automatic collection without a consent popup. The metrics are estimates, not verified counts of individual human beings.
 
 The existing download counter called **Media downloads** was also too narrow a label: its writer is called by both Gallery downloads and Drive downloads, including non-media files. The dashboard now labels it **Drive/Gallery downloads**.
 
@@ -105,10 +105,10 @@ The Worker contains a reader for `analytics/visitor_sessions`, but this audit fo
 ## 7. Important interpretation and privacy notes
 
 - The homepage reads the `presence` node and calculates a temporary online count using recent session timestamps. That live operational count is not a daily visitor count and is not used by the Analytics page.
-- The current Privacy and Cookies copy says visitor/presence analytics are not collected. Because the homepage has live presence logic, that wording should be reviewed for accuracy before any visitor/session analytics are introduced.
+- The Privacy Policy now discloses automatic IP-derived visitor analytics, approximate network location, page paths, duration and device/browser categories. It also states that raw IP addresses are not stored in the portal analytics database. The IP-derived identifier secret currently has no scheduled rotation; revisit retention and rotation if the collection design changes.
 - Do not add visitor/session/page-view tracking or visitor identifiers without an explicit decision and a corresponding privacy-policy update.
 - Aggregate totals and client-side activity events are only as trustworthy as the Firebase Realtime Database Security Rules. Client-side code is not a security boundary. Review Rules separately before relying on these counts for auditing or compliance.
-- The current activity list is capped at 50 records; older actions are intentionally pruned and cannot be used for long-term reporting.
+- The activity list is capped at 50 records; older actions are intentionally pruned and cannot be used for long-term reporting. Firebase Rules restrict `Analytics page/recent_actions` writes to verified admin accounts, so actions from ordinary signed-out visitors will not be captured by this log.
 
 ## 8. Rules for future Analytics development
 
