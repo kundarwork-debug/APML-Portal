@@ -156,6 +156,34 @@ export async function incrementApmlMediaDownload() {
   return incrementAnalyticsCounter(database, 'mediaDownloads', 'analytics/totalMediaDownloads', 'media', 'Media download')
 }
 
+
+export async function reserveApmlQuotationNumber(company) {
+  const sequences = {
+    exact: { seed: 2025323429, prefix: '' },
+    maxcare: { seed: 202526954, prefix: 'MAX' }
+  }
+  const sequence = sequences[company]
+  if (!sequence) throw new Error('Unknown quotation company.')
+
+  const { database } = await getApmlPresenceServices()
+  // Keep the counters beneath the existing analytics lifetime_totals permission
+  // boundary. RTDB transactions make reservations atomic across devices/tabs.
+  const counter = database.ref('Analytics page/lifetime_totals/quotationNumbers/' + company)
+  const result = await counter.transaction(current => {
+    const value = Number(current)
+    const previous = Number.isSafeInteger(value) && value >= sequence.seed
+      ? value
+      : sequence.seed
+    return previous + 1
+  })
+
+  const next = Number(result.snapshot?.val())
+  if (!result.committed || !Number.isSafeInteger(next) || next <= sequence.seed) {
+    throw new Error('Could not reserve a unique quotation number. Please check Firebase permissions and try again.')
+  }
+  return sequence.prefix + String(next)
+}
+
 export async function incrementApmlPdfGenerated() {
   const { database } = await getApmlPresenceServices()
   await ensureApmlAnalyticsStructure(database)
