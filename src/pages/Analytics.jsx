@@ -1,97 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Clock3,
-  Download, FileJson, FileText, Image as ImageIcon,
-  RefreshCw, Sparkles, Zap
-} from 'lucide-react'
-import { Line, Bar, Doughnut } from 'react-chartjs-2'
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend } from 'chart.js'
-import { getApmlDatabase, ensureApmlAnalyticsStructure } from '../lib/firebase'
-import './Analytics.css'
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend)
-
-const TZ = 'Asia/Kolkata'
-const nf = new Intl.NumberFormat('en-IN')
-const number = value => nf.format(Number(value) || 0)
-const dateKey = date => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
-const shiftKey = (key, offset) => { const d = new Date(key + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + offset); return d.toISOString().slice(0, 10) }
-const labelDate = key => new Date(key + 'T00:00:00Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' })
-const fullDate = key => new Date(key + 'T00:00:00Z').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
-const dayData = (logs, key) => { const row = logs?.[key] || {}; return { pdf: Number(row.pdf) || 0, media: Number(row.media) || 0 } }
-const sum = values => values.reduce((total, value) => total + (Number(value) || 0), 0)
-const periods = [{ id: '7d', label: '7 days', days: 7 }, { id: '30d', label: '30 days', days: 30 }, { id: '365d', label: '365 days', days: 365 }]
-
-function downloadFile(name, content, type) {
-  const blob = new Blob([content], { type }), url = URL.createObjectURL(blob), link = document.createElement('a')
-  link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url)
-}
-
-function StatCard({ icon: Icon, label, value, detail, tone, trend }) {
-  return <article className={'an-stat an-stat-' + tone}>
-    <div className="an-stat-top"><span className="an-stat-icon"><Icon size={18} /></span><span className="an-stat-tag">{trend || 'SELECTED PERIOD'}</span></div>
-    <span className="an-stat-label">{label}</span><strong>{value}</strong><span className="an-stat-detail">{detail}</span>
-  </article>
-}
-
-export default function Analytics() {
-  const [logs, setLogs] = useState(null)
-  const [totals, setTotals] = useState({ pdf: null, media: null })
-  const [busy, setBusy] = useState(true)
-  const [error, setError] = useState('')
-  const [updated, setUpdated] = useState(null)
-  const [range, setRange] = useState('30d')
-  const [customStart, setCustomStart] = useState('')
-  const [customEnd, setCustomEnd] = useState('')
-  const [customOpen, setCustomOpen] = useState(false)
-  const [visitorStats, setVisitorStats] = useState(null)
-  const [visitorError, setVisitorError] = useState('')
-  const [visitorConnection, setVisitorConnection] = useState(() => window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for the first browser heartbeat…' })
-
-  const load = useCallback(async () => {
-    setBusy(true); setError('')
-    try {
-      const db = await getApmlDatabase()
-      await ensureApmlAnalyticsStructure(db)
-      const [daily, pdf, media] = await Promise.all([
-        db.ref('Analytics page/daily_logs').once('value'),
-        db.ref('Analytics page/lifetime_totals/pdfGenerated').once('value'),
-        db.ref('Analytics page/lifetime_totals/mediaDownloads').once('value')
-      ])
-      setLogs(daily.val() || {})
-      setTotals({ pdf: Number(pdf.val()) || 0, media: Number(media.val()) || 0 })
-      setUpdated(new Date())
-    } catch (e) { setError(e.message || 'Could not load analytics from Firebase.') }
-    finally { setBusy(false) }
-  }, [])
-
-  useEffect(() => {
-    let db, refs = [], live = true
-    ; (async () => {
-      try {
-        db = await getApmlDatabase()
-        await ensureApmlAnalyticsStructure(db)
-        if (!live) return
-        const subscribe = (path, callback) => {
-          const ref = db.ref(path), handler = snapshot => { if (live) callback(snapshot.val()) }
-          ref.on('value', handler, err => { if (live) setError(err.message || 'Firebase read failed.') })
-          refs.push([ref, handler])
-        }
-        subscribe('Analytics page/daily_logs', value => { setLogs(value || {}); setUpdated(new Date()); setBusy(false) })
-        subscribe('Analytics page/lifetime_totals/pdfGenerated', value => setTotals(old => ({ ...old, pdf: Number(value) || 0 })))
-        subscribe('Analytics page/lifetime_totals/mediaDownloads', value => setTotals(old => ({ ...old, media: Number(value) || 0 })))
-      } catch (e) { if (live) { setError(e.message || 'Could not connect to Firebase.'); setBusy(false) } }
-    })()
-    return () => { live = false; refs.forEach(([ref, handler]) => ref.off('value', handler)) }
-  }, [])
-
-  useEffect(() => {
-    const updateStatus = event => setVisitorConnection(event.detail || window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for browser heartbeat…' })
-    window.addEventListener('apml:visitor-tracker-status', updateStatus)
-    if (window.__apmlVisitorTrackerStatus) setVisitorConnection(window.__apmlVisitorTrackerStatus)
-    return () => window.removeEventListener('apml:visitor-tracker-status', updateStatus)
-  }, [])
-
   useEffect(() => {
     let live = true
     let interval
@@ -99,7 +5,7 @@ export default function Analytics() {
       try {
         const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=90', { cache: 'no-store' })
         const result = await response.json().catch(() => ({}))
-        if (!response.ok || result.ok !== true) throw new Error(result.error || 'Cloudflare visitor analytics could not be loaded.')
+        if (!response.ok || result.ok !== true) throw new Error(result.error || 'Firebase visitor analytics could not be loaded.')
         const data = result.visitorIntelligence || {}
         const hours = Array.from({ length: 24 }, (_, hour) => {
           const match = (data.peakHours || []).find(item => Number(item.hour) === hour)
@@ -123,7 +29,7 @@ export default function Analytics() {
           setVisitorError('')
         }
       } catch (error) {
-        if (live) setVisitorError(error.message || 'Could not read visitor intelligence from Cloudflare.')
+        if (live) setVisitorError(error.message || 'Could not read visitor intelligence from Firebase.')
       }
     }
     refreshVisitors()
@@ -131,148 +37,44 @@ export default function Analytics() {
     return () => { live = false; if (interval) window.clearInterval(interval) }
   }, [])
 
-  const selected = useMemo(() => {
-    if (!logs) return []
-    const end = range === 'custom' ? (customEnd || dateKey(new Date())) : dateKey(new Date())
-    let start
-    if (range === 'custom') start = customStart
-    else { const days = periods.find(item => item.id === range)?.days || 7; start = shiftKey(end, -(days - 1)) }
-    if (!start || start > end) return []
-    const keys = []; let cursor = start, guard = 0
-    while (cursor <= end && guard++ < 740) { keys.push(cursor); cursor = shiftKey(cursor, 1) }
-    return keys.map(key => ({ key, ...dayData(logs, key) }))
-  }, [logs, range, customStart, customEnd])
-
-  const periodTotals = { pdf: sum(selected.map(row => row.pdf)), media: sum(selected.map(row => row.media)) }
-  const combined = periodTotals.pdf + periodTotals.media
-  const activeDays = selected.filter(row => row.pdf + row.media > 0).length
-  const average = selected.length ? Math.round(combined / selected.length * 10) / 10 : 0
-  const peak = selected.reduce((best, row) => !best || row.pdf + row.media > best.pdf + best.media ? row : best, null)
-  const heatmap = useMemo(() => {
-    const end = dateKey(new Date())
-    const days = Array.from({ length: 365 }, (_, i) => { const key = shiftKey(end, i - 364), day = dayData(logs, key); return { key, ...day, total: day.pdf + day.media } })
-    const startWeekday = (new Date(days[0].key + 'T00:00:00Z').getUTCDay() + 6) % 7
-    const cells = [...Array(startWeekday).fill(null), ...days]
-    while (cells.length % 7) cells.push(null)
-    const weeks = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7))
-    const monthLabels = weeks.map(week => {
-      const monthStart = week.find(day => day && new Date(day.key + 'T00:00:00Z').getUTCDate() === 1)
-      return monthStart ? new Date(monthStart.key + 'T00:00:00Z').toLocaleDateString('en-IN', { month: 'short', timeZone: 'UTC' }) : ''
-    })
-    return { weeks, monthLabels }
-  }, [logs])
-  const heatmapWeeks = heatmap.weeks
-  const maxHeat = Math.max(1, ...heatmapWeeks.flat().filter(Boolean).map(day => day.total))
-  const chartData = {
-    labels: selected.map(row => labelDate(row.key)),
-    datasets: [
-      { label: 'PDFs generated', data: selected.map(row => row.pdf), borderColor: '#c58a43', backgroundColor: 'rgba(197,138,67,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 },
-      { label: 'Drive/Gallery downloads', data: selected.map(row => row.media), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 }
-    ]
-  }
-  const chartOptions = {
-    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, color: 'var(--text-muted)', font: { size: 11 }, padding: 22 } }, tooltip: { backgroundColor: '#191b25', titleColor: '#fff', bodyColor: '#e7e8ee', padding: 12, cornerRadius: 10 } },
-    scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b929e', maxTicksLimit: 10, maxRotation: 0 } }, y: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, border: { display: false }, ticks: { color: '#8b929e', precision: 0 } } }
-  }
-  const recentSessionCount = Number(visitorStats?.sessionCount) || 0
-  const visitorDaily = visitorStats?.dailyVisitors || []
-  const pageRows = (visitorStats?.topPages || []).slice(0, 8)
-  const browserRows = (visitorStats?.browsers || []).slice(0, 7)
-  const locationRows = (visitorStats?.cities || []).slice(0, 8)
-  const deviceRows = visitorStats?.devices || []
-  const hourlyRows = visitorStats?.hourlyActivity || []
-  const visitorBarOptions = { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: chartOptions.plugins.tooltip }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, ticks: { color: '#8b929e', precision: 0 } }, y: { grid: { display: false }, ticks: { color: 'var(--text-muted)', autoSkip: false } } } }
-  const pageChartData = { labels: pageRows.map(row => row.name), datasets: [{ label: 'Page views', data: pageRows.map(row => row.views || 0), backgroundColor: 'rgba(161,42,64,.78)', borderRadius: 6, maxBarThickness: 22 }] }
-  const browserChartData = { labels: browserRows.map(row => row.name), datasets: [{ label: 'Sessions', data: browserRows.map(row => row.count || 0), backgroundColor: 'rgba(67,131,193,.78)', borderRadius: 6, maxBarThickness: 22 }] }
-  const hourlyChartData = { labels: hourlyRows.map(row => String(row.hour).padStart(2, '0') + ':00'), datasets: [{ label: 'Session starts', data: hourlyRows.map(row => row.count || 0), backgroundColor: 'rgba(197,138,67,.78)', borderRadius: 5, maxBarThickness: 18 }] }
-  const visitorDeviceData = { labels: deviceRows.map(row => row.name), datasets: [{ data: deviceRows.map(row => row.count || 0), backgroundColor: ['#9d2438', '#4387c9', '#c59b4a', '#6e9c83', '#8d78b5'], borderWidth: 0, hoverOffset: 5 }] }
-  const visitorDoughnutOptions = { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, color: 'var(--text-muted)', font: { size: 10 }, padding: 15 } }, tooltip: chartOptions.plugins.tooltip } }
-  const exportCsv = () => {
-    const lines = [['Date', 'PDFs generated', 'Drive/Gallery downloads', 'Total actions'], ...selected.map(row => [row.key, row.pdf, row.media, row.pdf + row.media])]
-    downloadFile('apml-analytics-' + range + '.csv', lines.map(row => row.map(value => '"' + String(value).replaceAll('"', '""') + '"').join(',')).join('\n'), 'text/csv;charset=utf-8')
-  }
-  const exportJson = () => downloadFile('apml-analytics-' + range + '.json', JSON.stringify({ portal: 'APML Portal', generatedAt: new Date().toISOString(), timezone: TZ, dataSource: 'Analytics page', range, totals: periodTotals, lifetimeTotals: totals, days: selected }, null, 2), 'application/json')
-  const applyCustom = () => { if (customStart && customEnd && customStart <= customEnd) { setRange('custom'); setCustomOpen(false) } }
-
-  return <main className="an-page">
-    <section className="an-hero">
-      <div className="an-hero-orbit an-orbit-one" /><div className="an-hero-orbit an-orbit-two" />
-      <div className="an-hero-copy">
-        <div className="an-eyebrow"><span className="an-eyebrow-dot" /> APML PORTAL <span>/</span> BUSINESS INTELLIGENCE</div>
-        <h1>Analytics<span>.</span></h1>
-        <p>A clearer view of portal activity, document generation and shared-file engagement.</p>
-        <div className="an-hero-meta"><span><i className="an-live-dot" /> Live Firebase data</span><span><Clock3 size={13} /> {updated ? 'Synced ' + updated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Connecting to data'}</span></div>
-      </div>
-      <div className="an-hero-side"><div className="an-hero-symbol"><BarChart3 size={35} strokeWidth={1.3} /></div><div><small>REPORTING TIMEZONE</small><b>India Standard Time</b><span>UTC +05:30</span></div></div>
-    </section>
-
-    <section className="an-controlbar">
-      <div className="an-control-title"><span>REPORT OVERVIEW</span><small>Choose a reporting window</small></div>
-      <div className="an-period-switch">{periods.map(item => <button key={item.id} className={range === item.id ? 'selected' : ''} onClick={() => setRange(item.id)}>{item.label}</button>)}<button className={range === 'custom' ? 'selected' : ''} onClick={() => setCustomOpen(value => !value)}><CalendarDays size={14} /> Custom</button></div>
-      <div className="an-control-actions"><button onClick={load} disabled={busy} title="Refresh data"><RefreshCw size={15} className={busy ? 'an-spin' : ''} /></button><button onClick={exportCsv} disabled={!selected.length}><Download size={14} /> CSV</button><button onClick={exportJson} disabled={!selected.length}><FileJson size={14} /> JSON</button></div>
-      {customOpen && <div className="an-custom-pop"><label>START DATE<input type="date" value={customStart} onChange={event => setCustomStart(event.target.value)} /></label><label>END DATE<input type="date" value={customEnd} onChange={event => setCustomEnd(event.target.value)} /></label><button onClick={applyCustom} disabled={!customStart || !customEnd || customStart > customEnd}>Apply dates</button></div>}
-    </section>
-
-    {error && <div className="an-error"><b>Unable to load analytics</b><span>{error}</span><button onClick={load}>Retry</button></div>}
-    {busy && !logs && <div className="an-loading"><i /><i /><i /><i /></div>}
-
-    <div className="an-dashboard-bento">
-    <section className="an-section-block an-bento-snapshot">
-      <div className="an-section-heading"><div><span>01 / PERFORMANCE SNAPSHOT</span><h2>The numbers that matter</h2></div><p>{selected.length} calendar days · {activeDays} active days</p></div>
-      <div className="an-stats-grid">
-        <StatCard icon={Zap} label="Total recorded actions" value={number(combined)} detail={number(average) + ' average actions per day'} tone="total" trend="IN THIS PERIOD" />
-        <StatCard icon={FileText} label="Quotation PDFs generated" value={number(periodTotals.pdf)} detail={'Lifetime total · ' + number(totals.pdf)} tone="pdf" />
-        <StatCard icon={ImageIcon} label="Drive & Gallery downloads" value={number(periodTotals.media)} detail={'Lifetime total · ' + number(totals.media)} tone="media" />
-      </div>
-    </section>
-
-    <section className="an-section-block an-bento-trends">
-      <div className="an-section-heading"><div><span>02 / ACTIVITY TRENDS</span><h2>Usage over time</h2></div><div className="an-peak-chip"><TrendingIcon /> {peak && peak.pdf + peak.media ? 'Peak · ' + fullDate(peak.key) : 'Waiting for activity'}</div></div>
-      <div className="an-chart-card"><div className="an-chart-top"><div><b>PDFs &amp; Drive/Gallery downloads</b><span>Daily quotation PDFs generated and shared-file downloads</span></div><span className="an-chart-total">{number(combined)} <small>PDFs + downloads</small></span></div><div className="an-chart">{selected.length ? <Line data={chartData} options={{ ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
-      <div className="an-insight-strip">
-        <div><span className="an-insight-icon"><ArrowUpRight size={16} /></span><small>BUSIEST DAY</small><b>{peak && peak.pdf + peak.media ? fullDate(peak.key) : '—'}</b></div>
-        <div><span className="an-insight-icon blue"><Activity size={16} /></span><small>DAILY AVERAGE</small><b>{number(average)} actions</b></div>
-        <div><span className="an-insight-icon gold"><Download size={16} /></span><small>COMBINED DOWNLOADS</small><b>{number(combined)}</b></div>
-      </div>
-    </section>
-
-    <section className="an-section-block an-intelligence-block an-bento-intelligence">
-      <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
-      <div className="an-visitor-overview">
-                <div className="an-visitor-data">
-          <p className={'an-visitor-status an-collector-status an-collector-' + visitorConnection.state}><i /> <span><b>{visitorConnection.state === 'connected' ? 'Browser tracker connected' : visitorConnection.state === 'error' ? 'Browser tracker failed' : 'Browser tracker connecting'}</b> · {visitorConnection.message || 'Waiting for heartbeat.'}</span></p>
-          {visitorError && <p className="an-visitor-status">Analytics read: {visitorError}</p>}
-          <div className="an-visitor-metrics">
-            <div><small>VISITS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
-            <div><small>VISITS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
-          </div>
-          <div className="an-visitor-lists">
-            <div><b>Top devices</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}</div>
-            <div><b>Browsers</b>{visitorStats?.browsers?.length ? visitorStats.browsers.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for browser data</small>}</div>
-            <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page data</small>}</div>
-            <div><b>Approx. locations</b>{locationRows.length ? locationRows.map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>No location records yet</small>}</div>
-          </div>
-          <p className="an-visitor-footnote">Approximate IP-derived location · raw IP addresses are not stored · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec.</p>
-        </div>
-      </div>
-      <div className="an-visitor-charts an-bento-charts">
-        <article className="an-visitor-chart-card an-bento-pages"><div><b>Most visited pages</b><span>Page views from recorded browser sessions · last 90 days</span></div><div className="an-visitor-chart an-visitor-bars">{pageRows.length ? <Bar data={pageChartData} options={visitorBarOptions} /> : <small>No page-view records available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card an-bento-hourly"><div><b>Hourly activity</b><span>Session starts by India time · last 90 days</span></div><div className="an-visitor-chart">{recentSessionCount ? <Bar data={hourlyChartData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, legend: { display: false } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, grid: { display: false }, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 12 } } } }} /> : <small>No session timestamps available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card an-bento-device"><div><b>Device mix</b><span>Recorded sessions by device</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device records available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card an-bento-browser"><div><b>Browser mix</b><span>Recorded sessions by browser</span></div><div className="an-visitor-chart an-visitor-bars">{browserRows.length ? <Bar data={browserChartData} options={visitorBarOptions} /> : <small>No browser records available yet.</small>}</div></article>
-      </div>
-    </section>
-
-    <section className="an-section-block an-bento-calendar">
-      <div className="an-section-heading"><div><span>04 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
-      <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-calendar"><div className="an-heat-days"><span /><span>Mon</span><span /><span>Wed</span><span /><span>Fri</span><span /></div><div className="an-heat-months">{heatmap.monthLabels.map((month, index) => <span key={index}>{month}</span>)}</div><div className="an-heat-grid">{heatmapWeeks.map((week, wi) => <div className="an-heat-week" key={wi}>{week.map((day, di) => day ? <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} /> : <span key={'blank-' + wi + '-' + di} className="an-heat-cell an-heat-blank" />)}</div>)}</div></div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
-    </section>
-
-    </div>
-
-    <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Visitor intelligence uses approximate Cloudflare data; activity metrics reflect recorded PDFs and Drive/Gallery downloads.</p></footer>
-  </main>
-}
-
-function TrendingIcon() { return <ArrowDownRight size={14} /> }
+  useEffect(() => {
+    let live=true, refs=[]
+    ;(async()=>{
+      try{
+        const {database}=await getApmlPresenceServices()
+        if(!live)return
+        const sessionsRef=database.ref('visitor_intelligence/sessions'), dailyRef=database.ref('visitor_intelligence/daily')
+        let sessions=null,daily=null
+        const process=()=>{
+          if(!live)return
+          const all=[]
+          Object.entries(sessions||{}).forEach(([uid,rows])=>Object.entries(rows||{}).forEach(([id,row])=>all.push({...row,uid,id})))
+          const cutoff=Date.now()-90*86400000, recent=all.filter(row=>Number(row.startedAt)>=cutoff)
+          const today=Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
+          const unique=new Set(recent.map(row=>row.uid)), visitorsToday=Object.keys(daily?.[today]||{}).length
+          const pageMap={}, deviceMap={}, browserMap={}, hours=Array.from({length:24},(_,hour)=>({hour,count:0})), dayMap={}
+          let pageViews=0,seconds=0,active=0
+          recent.forEach(row=>{
+            pageViews+=Number(row.pageViews)||0;seconds+=Number(row.totalSeconds)||0
+            if(Number(row.lastSeen)>Date.now()-90000)active++
+            const h=Number(new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Kolkata',hour:'2-digit',hourCycle:'h23'}).format(new Date(Number(row.startedAt))))
+            if(hours[h])hours[h].count++
+            const day=Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(Number(row.startedAt)))
+            dayMap[day]=(dayMap[day]||new Set());dayMap[day].add(row.uid)
+            const device=row.device||'Unknown', browser=row.browser||'Unknown'
+            deviceMap[device]=(deviceMap[device]||0)+1;browserMap[browser]=(browserMap[browser]||0)+1
+            Object.values(row.pages||{}).forEach(p=>{const name=p.name||'/';pageMap[name]=(pageMap[name]||0)+(Number(p.views)||0)})
+          })
+          const rows=obj=>Object.entries(obj).map(([name,count])=>({name,count})).sort((x,y)=>y.count-x.count)
+          setVisitorStats({visitors:unique.size,visitorsToday,activeNow:active,pageViews,sessionCount:recent.length,averageSessionSeconds:recent.length?Math.round(seconds/recent.length):0,dailyVisitors:Object.entries(dayMap).map(([date,set])=>({date,count:set.size})).sort((x,y)=>x.date.localeCompare(y.date)),devices:rows(deviceMap),browsers:rows(browserMap),topPages:Object.entries(pageMap).map(([name,views])=>({name,views})).sort((x,y)=>y.views-x.views),hourlyActivity:hours})
+          setVisitorError('')
+          setVisitorConnection({state:'connected',message:'Visitor records are read directly from Firebase Realtime Database.',backend:'firebase'})
+        }
+        const sh=snap=>{sessions=snap.val();process()}, dh=snap=>{daily=snap.val();process()}
+        sessionsRef.on('value',sh,e=>live&&setVisitorError(e.message||'Firebase sessions read failed.'))
+        dailyRef.on('value',dh,e=>live&&setVisitorError(e.message||'Firebase daily records read failed.'))
+        refs.push([sessionsRef,sh],[dailyRef,dh])
+      }catch(e){if(live){setVisitorError(e.message||'Could not read visitor records from Firebase.');setVisitorConnection({state:'error',message:e.message||'Firebase visitor read failed.',backend:'firebase'})}}
+    })()
+    return()=>{live=false;refs.forEach(([ref,handler])=>ref.off('value',handler))}
+  },[])
