@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react'
 import {Plus,Trash2,Download,RotateCcw,FileText,Calculator} from 'lucide-react'
 import './Editor.css'
-import { getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
+import { getApmlPresenceServices, incrementApmlPdfGenerated, reserveApmlQuotationNumber } from '../lib/firebase'
 import { apmlDialog } from '../lib/sweetalert'
 import { logApmlAction } from '../lib/apmlActivity'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
@@ -59,7 +59,14 @@ const download=async()=>{
  try{
   const load=(src,ok)=>ok()?Promise.resolve():new Promise((res,rej)=>{const e=document.createElement('script');e.src=src;e.onload=()=>ok()?res():rej(Error('PDF library failed'));e.onerror=()=>rej(Error('Could not load PDF library'));document.head.append(e)});
   await Promise.all([load('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>!!window.html2canvas),load('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)]);
-  const source=preview.current?.querySelector('.quote-document');
+  let source=preview.current?.querySelector('.quote-document');
+  if(!source)throw Error('Quotation preview is not ready.');
+  setStatus('Reserving your unique document number…');
+  const reservedNumber=await reserveApmlQuotationNumber(company);
+  setForms(current=>({...current,[company]:{...current[company],docNo:reservedNumber}}));
+  // Let React update the live preview before cloning it for the PDF export.
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  source=preview.current?.querySelector('.quote-document');
   if(!source)throw Error('Quotation preview is not ready.');
   if(document.fonts?.ready)await document.fonts.ready;
   // Export an unscaled copy. The live preview is responsively transformed on
@@ -104,7 +111,7 @@ const download=async()=>{
 return <div className="editor-page"><div className="editor-layout"><section className="editor-panel">
 <div className="company-tabs"><button className={company==='exact'?'active exact':'exact'} onClick={()=>{setCompany('exact');setStatus('')}}>Exact Container<br/>Logistics</button><button className={company==='maxcare'?'active maxcare':'maxcare'} onClick={()=>{setCompany('maxcare');setStatus('')}}>Maxcare Packers<br/>&amp; Movers</button></div>
 <div className="editor-group shared-group"><h2>Customer &amp; details <span>— shared</span></h2><Field label="Date"><input value={shared.date} onChange={e=>ps('date',e.target.value)}/></Field><Field label="Customer name *"><input value={shared.custName} onChange={e=>ps('custName',e.target.value)} placeholder="Customer name"/></Field><div className="editor-two"><Field label="Customer company"><input value={shared.custCompany} onChange={e=>ps('custCompany',e.target.value)}/></Field><Field label="Customer GST"><input value={shared.custGst} onChange={e=>ps('custGst',e.target.value)}/></Field></div><div className="editor-two"><Field label="Moving from *"><input value={shared.fromCity} onChange={e=>ps('fromCity',e.target.value)}/></Field><Field label="Moving to *"><input value={shared.toCity} onChange={e=>ps('toCity',e.target.value)}/></Field></div></div>
-<div className="editor-group"><h2>Document details</h2><Field label={d.docNoLabel}><input value={d.docNo} onChange={e=>patch('docNo',e.target.value)}/></Field><Field label={d.gstLabel}><input value={d.gstNo} onChange={e=>patch('gstNo',e.target.value)}/></Field></div>
+<div className="editor-group"><h2>Document details</h2><Field label={d.docNoLabel}><input value={d.docNo} readOnly aria-readonly="true" title="Automatically assigned when each PDF is generated"/></Field><Field label={d.gstLabel}><input value={d.gstNo} onChange={e=>patch('gstNo',e.target.value)}/></Field></div>
 <div className="editor-group"><h2>Cost items</h2><div className="quick-pricing"><div className="quick-label"><Calculator size={15}/> INSTANT PRICING CALCULATOR</div><Field label="Total amount (auto-split using standard %)"><div className="apply-total"><input type="number" value={totalAmount} onChange={e=>setTotalAmount(e.target.value)} onKeyDown={e=>e.key==='Enter'&&applyTotal()} placeholder="e.g. 47500"/><button onClick={applyTotal}>Apply</button></div></Field><div className="editor-two"><Field label="Car Freight (₹)"><input type="number" value={carIndex<0?'':d.costItems[carIndex].amount} onChange={e=>changeCar(e.target.value)}/></Field><Field label="GST %"><input type="number" value={d.gstPercent} onChange={e=>patch('gstPercent',e.target.value)}/></Field></div></div>
 {d.costItems.map((x,i)=><div className="editor-dynamic-row" key={i}><input aria-label="Cost item description" value={x.label} onChange={e=>patch('costItems',d.costItems.map((z,j)=>j===i?{...z,label:e.target.value}:z))}/><input aria-label="Cost item amount" type="number" value={x.amount} onChange={e=>patch('costItems',d.costItems.map((z,j)=>j===i?{...z,amount:e.target.value}:z))}/><button className="remove-row" onClick={()=>patch('costItems',d.costItems.filter((_,j)=>j!==i))} aria-label="Remove cost item"><Trash2 size={16}/></button></div>)}<button className="editor-add" onClick={()=>patch('costItems',[...d.costItems,{label:'New Charge',amount:0}])}><Plus size={16}/> Add cost item</button><div className="editor-totals"><div><span>Subtotal</span><strong>₹ {money(t.subtotal)}</strong></div><div><span>GST ({Number(d.gstPercent)||0}%)</span><strong>₹ {money(t.gst)}</strong></div><div className="grand"><span>Total with GST</span><strong>₹ {money(t.grand)}</strong></div></div></div>
 <div className="editor-group"><h2>Terms &amp; conditions</h2>{d.terms.map((x,i)=><div className="editor-dynamic-row term-edit" key={i}><textarea value={x} onChange={e=>patch('terms',d.terms.map((z,j)=>j===i?e.target.value:z))}/><button className="remove-row" onClick={()=>patch('terms',d.terms.filter((_,j)=>j!==i))} aria-label="Remove term"><Trash2 size={16}/></button></div>)}<button className="editor-add" onClick={()=>patch('terms',[...d.terms,'New term or condition.'])}><Plus size={16}/> Add term</button></div>
