@@ -2,16 +2,21 @@ import { useCallback, useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
 import { FileText, Download, RefreshCw } from 'lucide-react'
+import { getApmlDatabase } from '../lib/firebase'
 import './Analytics.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
-const API_URL = 'https://apml-drive-api.kundar-work.workers.dev/nova/analytics'
 const fmt = value => new Intl.NumberFormat('en-IN').format(Number(value) || 0)
 const dateKey = date => {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date)
   const get = type => parts.find(part => part.type === type)?.value || ''
   return get('year') + '-' + get('month') + '-' + get('day')
+}
+const getRangeStart = (days, endKey) => {
+  const date = new Date(endKey + 'T00:00:00Z')
+  date.setUTCDate(date.getUTCDate() - days + 1)
+  return date.toISOString().slice(0, 10)
 }
 const dateLabel = value => new Date(value + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
 
@@ -25,10 +30,39 @@ export default function Analytics() {
     setBusy(true)
     setError('')
     try {
-      const response = await fetch(API_URL + '?days=' + range, { headers: { Accept: 'application/json' }, cache: 'no-store' })
-      const result = await response.json().catch(() => ({}))
-      if (!response.ok || !result.ok) throw new Error(result.error || 'Analytics report could not be loaded.')
-      setData(result)
+      const database = await getApmlDatabase()
+      const [dailySnapshot, lifetimeSnapshot] = await Promise.all([
+        database.ref('Analytics page/daily_logs').once('value'),
+        database.ref('Analytics page/lifetime_totals').once('value')
+      ])
+      const allDaily = dailySnapshot.val() || {}
+      const lifetime = lifetimeSnapshot.val() || {}
+      const endDate = dateKey(new Date())
+      const startDate = getRangeStart(Number(range), endDate)
+      const rows = []
+      const cursor = new Date(startDate + 'T00:00:00Z')
+      const last = new Date(endDate + 'T00:00:00Z')
+      const totals = { pdf: 0, media: 0 }
+      while (cursor <= last) {
+        const date = cursor.toISOString().slice(0, 10)
+        const entry = allDaily[date] || {}
+        const pdf = Number(entry.pdf) || 0
+        const media = Number(entry.media) || 0
+        rows.push({ date, pdf, media })
+        totals.pdf += pdf
+        totals.media += media
+        cursor.setUTCDate(cursor.getUTCDate() + 1)
+      }
+      setData({
+        startDate,
+        endDate,
+        daily: rows,
+        totals: {
+          ...totals,
+          totalPdfsLifetime: Number(lifetime.pdfGenerated) || 0,
+          totalMediaLifetime: Number(lifetime.mediaDownloads) || 0
+        }
+      })
     } catch (err) {
       setError(err.message || 'Analytics report could not be loaded.')
     } finally {
@@ -108,19 +142,19 @@ export default function Analytics() {
       <span className="analytics-range-caption">{data?.startDate ? dateLabel(data.startDate) + ' – ' + dateLabel(data.endDate) : 'Choose a reporting period'}</span>
     </section>
 
-    {busy && <div className="analytics-loading-indicator" role="status">Updating download totals…</div>}
+    {busy && <div className="analytics-sync-status" role="status"><span className="analytics-sync-dot"/> Syncing latest totals</div>}
     {error && <div className="analytics-error"><span>{error}</span><button onClick={() => setError('')}>Dismiss</button></div>}
 
     <section className="analytics-kpis analytics-simple-kpis">
       <article className="analytics-kpi tone-red">
         <div className="analytics-kpi-top"><span className="analytics-kpi-icon"><FileText size={18}/></span><span className="analytics-kpi-label">PDF generated</span></div>
-        <strong>{fmt(totals.pdf)}</strong>
-        <small>{fmt(totals.totalPdfsLifetime)} lifetime generated</small>
+        <strong>{data ? fmt(totals.pdf) : '—'}</strong>
+        <small>{data ? fmt(totals.totalPdfsLifetime) : '—'} lifetime generated</small>
       </article>
       <article className="analytics-kpi tone-blue">
         <div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Download size={18}/></span><span className="analytics-kpi-label">Media downloaded</span></div>
-        <strong>{fmt(totals.media)}</strong>
-        <small>{fmt(totals.totalMediaLifetime)} lifetime downloaded</small>
+        <strong>{data ? fmt(totals.media) : '—'}</strong>
+        <small>{data ? fmt(totals.totalMediaLifetime) : '—'} lifetime downloaded</small>
       </article>
     </section>
 
