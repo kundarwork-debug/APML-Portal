@@ -162,6 +162,7 @@ export default function Analytics() {
             visitorsToday: todayCount,
             activeNow,
             pageViews,
+            sessionCount: recentSessions.length,
             averageSessionSeconds,
             dailyVisitors,
             devices: countBy('device'),
@@ -229,7 +230,7 @@ export default function Analytics() {
     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, color: 'var(--text-muted)', font: { size: 11 }, padding: 22 } }, tooltip: { backgroundColor: '#191b25', titleColor: '#fff', bodyColor: '#e7e8ee', padding: 12, cornerRadius: 10 } },
     scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b929e', maxTicksLimit: 10, maxRotation: 0 } }, y: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, border: { display: false }, ticks: { color: '#8b929e', precision: 0 } } }
   }
-  const recentSessionCount = visitorStats?.pageViews ? (visitorStats?.devices || []).reduce((total, item) => total + item.count, 0) : 0
+  const recentSessionCount = Number(visitorStats?.sessionCount) || 0
   const visitorDaily = visitorStats?.dailyVisitors || []
   const pageRows = (visitorStats?.topPages || []).slice(0, 8)
   const browserRows = (visitorStats?.browsers || []).slice(0, 7)
