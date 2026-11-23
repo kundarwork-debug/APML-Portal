@@ -17,7 +17,6 @@ export default function VisitorAnalyticsTracker() {
   const location = useLocation()
   const sessionRef = useRef(null)
   const lastSentAt = useRef(Date.now())
-  const ready = useRef(false)
   const lastPage = useRef('')
 
   useEffect(() => {
@@ -59,9 +58,7 @@ export default function VisitorAnalyticsTracker() {
         const result = await response.json().catch(() => ({}))
         if (!response.ok || result.ok !== true) throw new Error(result.error || 'Cloudflare visitor collection failed (' + response.status + ').')
         if (!active) return
-        ready.current = true
         lastSentAt.current = Date.now()
-        lastPage.current = safePage(page)
         publishStatus({
           state: 'connected',
           message: result.ignored ? 'Automated or unidentified client excluded from visitor totals.' : 'Cloudflare visitor collection is active; approximate location is derived at the edge.',
@@ -74,6 +71,7 @@ export default function VisitorAnalyticsTracker() {
     }
 
     const initialPage = safePage(window.location.pathname)
+    lastPage.current = initialPage
     publishStatus({ state: 'sending', message: 'Connecting to privacy-preserving visitor collection…' })
     send(initialPage, true, 0)
     heartbeat = window.setInterval(() => {
@@ -85,7 +83,6 @@ export default function VisitorAnalyticsTracker() {
 
     return () => {
       active = false
-      ready.current = false
       if (heartbeat) window.clearInterval(heartbeat)
     }
   }, [])
@@ -94,6 +91,7 @@ export default function VisitorAnalyticsTracker() {
     const page = safePage(location.pathname)
     if (page === lastPage.current) return
     if (sessionRef.current) {
+      lastPage.current = page
       const elapsed = Math.min(120, Math.max(0, Math.floor((Date.now() - lastSentAt.current) / 1000)))
       // The first route is sent by the session bootstrap effect.
       if (lastPage.current) {
@@ -108,7 +106,6 @@ export default function VisitorAnalyticsTracker() {
           const result = await response.json().catch(() => ({}))
           if (!response.ok || result.ok !== true) throw new Error(result.error || 'Could not save visitor page view.')
           lastSentAt.current = Date.now()
-          lastPage.current = page
           publishStatus({ state: 'connected', message: 'Visitor session and approximate location saved by Cloudflare.', backend: 'cloudflare' })
         }).catch(error => publishStatus({ state: 'error', message: error?.message || 'Could not save visitor page view.' }))
       }
