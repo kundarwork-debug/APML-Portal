@@ -44,7 +44,7 @@ export default function VisitorAnalyticsTracker() {
       try {
         const response = await fetch(VISITOR_API, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
           body: JSON.stringify({
             sessionId: sessionRef.current.sessionId,
             startedAt: sessionRef.current.startedAt,
