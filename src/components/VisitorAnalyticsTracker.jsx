@@ -98,7 +98,7 @@ export default function VisitorAnalyticsTracker() {
         const sessionId = sessionRef.current.sessionId
         fetch(VISITOR_API, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
           body: JSON.stringify({ sessionId, startedAt: sessionRef.current.startedAt, page, pageView: true, seconds: elapsed }),
           cache: 'no-store',
           keepalive: true
