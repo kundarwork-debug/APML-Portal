@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Clock3,
+  Activity, ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Clock3,
   Download, FileJson, FileText, Image as ImageIcon,
   RefreshCw, Sparkles, Zap
 } from 'lucide-react'
@@ -269,8 +269,6 @@ export default function Analytics() {
       <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-calendar"><div className="an-heat-days"><span /><span>Mon</span><span /><span>Wed</span><span /><span>Fri</span><span /></div><div className="an-heat-months">{heatmap.monthLabels.map((month, index) => <span key={index}>{month}</span>)}</div><div className="an-heat-grid">{heatmapWeeks.map((week, wi) => <div className="an-heat-week" key={wi}>{week.map((day, di) => day ? <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} /> : <span key={'blank-' + wi + '-' + di} className="an-heat-cell an-heat-blank" />)}</div>)}</div></div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
     </section>
 
-
-    }
     </div>
 
     <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Visitor intelligence uses approximate Cloudflare data; activity metrics reflect recorded PDFs and Drive/Gallery downloads.</p></footer>
