@@ -155,6 +155,9 @@ export default function Analytics() {
   // Subscribe to Firebase Realtime Database so the dashboard updates as soon
   // as the portal writes new daily activity, downloads, sessions or presence.
   // The Worker remains responsible for privacy-safe aggregation and insights.
+  const [visitorDailyLive, setVisitorDailyLive] = useState({})
+  const [visitorSessionsLive, setVisitorSessionsLive] = useState({})
+
   useEffect(() => {
     let db
     let refreshTimer
@@ -177,10 +180,10 @@ export default function Analytics() {
       ref.on('value', callback, () => setFirebaseLive(false))
       subscriptions.push(() => ref.off('value', callback))
     }
-    try {
-      // getApmlDatabase() is synchronous; do not treat it as a Promise.
-      db = getApmlDatabase()
-      if (!disposed) {
+    const connect = async () => {
+      try {
+        db = await getApmlDatabase()
+        if (disposed) return
         setFirebaseLive(true)
         attach(db, 'analytics/daily_logs', queueRefresh)
         attach(db, 'analytics/visitor_sessions', queueRefresh)
@@ -189,13 +192,14 @@ export default function Analytics() {
           setData(current => current ? { ...current, totals: { ...current.totals, totalMediaLifetime: value } } : current)
         })
         attach(db, 'presence', snap => setOnlineNow(snap.numChildren()))
-      }
-    } catch {
-      if (!disposed) {
-        setFirebaseLive(false)
-        setOnlineNow(null)
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+        attach(db, 'visitor_intelligence/daily/' + today, snap => setVisitorDailyLive(snap.val() || {}))
+        attach(db, 'visitor_intelligence/sessions', snap => setVisitorSessionsLive(snap.val() || {}))
+      } catch {
+        if (!disposed) { setFirebaseLive(false); setOnlineNow(null) }
       }
     }
+    connect()
     return () => {
       disposed = true
       clearTimeout(refreshTimer)
@@ -222,7 +226,19 @@ export default function Analytics() {
   const peakHours = visitors.peakHours || []
   const visitorDaily = visitors.dailySessions || []
   const deviceRows = visitors.deviceComparison || []
-  const cityRows = visitors.cities || []
+  const todayVisitorRows = Object.values(visitorDailyLive || {})
+  const todayVisitorCount = Object.keys(visitorDailyLive || {}).length
+  const visitorCityCounts = {}
+  todayVisitorRows.forEach(record => {
+    const city = [record?.city, record?.region, record?.country].filter(Boolean).join(', ') || 'Location unavailable'
+    visitorCityCounts[city] = (visitorCityCounts[city] || 0) + 1
+  })
+  const cityRows = Object.entries(visitorCityCounts).map(([name,count]) => ({name,count})).sort((a,b)=>b.count-a.count)
+  const onlineVisitorIds = new Set()
+  Object.entries(visitorSessionsLive || {}).forEach(([uid, sessions]) => {
+    if (Object.values(sessions || {}).some(session => session && session.online !== false && Number(session.lastSeen) > Date.now() - 90000)) onlineVisitorIds.add(uid)
+  })
+  const onlineVisitorCount = onlineVisitorIds.size
   const browserRows = visitors.browsers || []
   const pageRows = visitors.topPages || []
   const dropoffRows = visitors.dropoffPages || []
@@ -530,11 +546,11 @@ export default function Analytics() {
     </section>
 
     <section className="analytics-panel">
-      <div className="analytics-panel-head"><div><h2><Globe2 size={18}/> Visitor intelligence</h2><p>Aggregated consent-based sessions · approximate location only · no individual visitor records exposed.</p></div><button className="analytics-btn apml-download-btn" onClick={exportVisitorsCsv}><Download size={14}/><span className="apml-download-label">Export visitor summary</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
-      <div className="analytics-mini-kpis"><article><small>Recorded sessions</small><strong>{fmt(visitors.sessions)}</strong></article><article><small>Unique browsers</small><strong>{fmt(visitors.uniqueBrowsers)}</strong></article><article><small>New browsers</small><strong>{fmt(visitors.newBrowsers)}</strong></article><article><small>Online now</small><strong>{fmt(visitors.activeNow)}</strong></article><article><small>Returning browsers</small><strong>{fmt(visitors.returningBrowsers)}</strong></article><article><small>Average session</small><strong>{duration(visitors.averageSessionSeconds)}</strong></article><article><small>Page views</small><strong>{fmt(visitors.pageViews)}</strong></article></div>
+      <div className="analytics-panel-head"><div><h2><Globe2 size={18}/> Visitor intelligence</h2><p>Anonymous Firebase sessions with approximate city-level location. No raw IP addresses or individual identities are stored.</p></div><button className="analytics-btn apml-download-btn" onClick={exportVisitorsCsv}><Download size={14}/><span className="apml-download-label">Export visitor summary</span><span className="apml-download-tray" aria-hidden="true"></span><span className="apml-download-tooltip">Download</span></button></div>
+      <div className="analytics-mini-kpis"><article><small>Visitors today</small><strong>{fmt(todayVisitorCount)}</strong></article><article><small>Online now</small><strong>{fmt(onlineVisitorCount)}</strong></article><article><small>Recorded sessions</small><strong>{fmt(visitors.sessions)}</strong></article><article><small>Unique browsers</small><strong>{fmt(visitors.uniqueBrowsers)}</strong></article><article><small>New browsers</small><strong>{fmt(visitors.newBrowsers)}</strong></article><article><small>Online now</small><strong>{fmt(visitors.activeNow)}</strong></article><article><small>Returning browsers</small><strong>{fmt(visitors.returningBrowsers)}</strong></article><article><small>Average session</small><strong>{duration(visitors.averageSessionSeconds)}</strong></article><article><small>Page views</small><strong>{fmt(visitors.pageViews)}</strong></article></div>
       <div className="analytics-two-col analytics-visitor-charts"><div><h3>Daily visitor sessions</h3><div className="analytics-small-chart" ref={visitorRef}/></div><div><h3>Peak visiting hours · IST</h3>{peakHours.length ? <div className="analytics-ranked">{peakHours.map(row=><div key={row.hour}><span>{row.label}</span><b>{fmt(row.count)}</b></div>)}</div> : <p className="analytics-muted">Not enough session data yet.</p>}</div></div>
       <div className="analytics-two-col">
-        <div><h3><MapPin size={15}/> Visitor locations</h3><div className="analytics-ranked">{cityRows.map(row=><div key={row.name}><span>{row.name}</span><b>{fmt(row.count)}</b></div>)}{!cityRows.length && <p className="analytics-muted">No location data yet.</p>}</div></div>
+        <div><h3><MapPin size={15}/> Visitor locations</h3><div className="analytics-ranked">{cityRows.map(row=><div key={row.name}><span>{row.name}</span><b>{fmt(row.count)}</b></div>)}{!cityRows.length && <p className="analytics-muted">No city data yet. New visits will appear after location detection is available.</p>}</div></div>
         <div><h3><MonitorSmartphone size={15}/> Devices and browsers</h3><div className="analytics-ranked">{(visitors.devices || []).map(row=><div key={row.name}><span>{row.name}</span><b>{fmt(row.count)}</b></div>)}{!visitors.devices?.length && <p className="analytics-muted">No device data yet.</p>}</div><div className="analytics-ranked analytics-ranked-secondary">{browserRows.map(row=><div key={row.name}><span>{row.name}</span><b>{fmt(row.count)}</b></div>)}</div></div>
       </div>
       <div className="analytics-two-col">
