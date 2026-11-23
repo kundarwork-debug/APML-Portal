@@ -320,3 +320,9 @@ html[data-theme="dark"] .an-bento-charts .an-visitor-chart-card{box-shadow:0 12p
 @media(max-width:1000px){.an-bento-calendar,.an-bento-audit{grid-column:1/-1}.an-bento-audit .an-audit-card{height:auto}}
 @media(max-width:760px){.an-dashboard-bento{grid-template-columns:minmax(0,1fr);gap:25px}.an-dashboard-bento>.an-section-block{grid-column:1}.an-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.an-bento-audit .an-activity-list{max-height:none}}
 @media(max-width:520px){.an-stats-grid{grid-template-columns:minmax(0,1fr)}.an-visitor-lists{grid-template-columns:1fr 1fr}.an-bento-charts{grid-template-columns:minmax(0,1fr)}.an-bento-pages,.an-bento-hourly,.an-bento-device,.an-bento-browser{grid-column:1}}
+
+
+/* Location column added to Visitor Intelligence */
+.an-visitor-lists{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:900px){.an-visitor-lists{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.an-visitor-lists{grid-template-columns:repeat(2,minmax(0,1fr))}.an-visitor-lists>div:last-child{grid-column:auto}}
