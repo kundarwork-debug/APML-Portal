@@ -293,7 +293,6 @@ export default function Analytics() {
           <div className="an-visitor-metrics">
             <div><small>VISITORS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
             <div><small>VISITORS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
-            <div><small>ACTIVE NOW</small><b>{number(visitorStats?.activeNow || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
             <div><b>Top devices</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}</div>
