@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Activity, ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Clock3,
-  Download, FileJson, FileText, Globe2, Image as ImageIcon, MapPin,
+  Download, FileJson, FileText, Image as ImageIcon,
   RefreshCw, Sparkles, Users, Zap
 } from 'lucide-react'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
@@ -220,7 +220,7 @@ export default function Analytics() {
   const chartData = {
     labels: selected.map(row => labelDate(row.key)),
     datasets: [
-      { label: '30-minute visits', data: selected.map(row => Object.prototype.hasOwnProperty.call(visitorDailyLookup, row.key) ? visitorDailyLookup[row.key] : null), borderColor: '#a12a40', backgroundColor: 'rgba(161,42,64,.10)', tension: .36, fill: true, borderWidth: 2.5, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5, spanGaps: false },
+      { label: 'Visits', data: selected.map(row => Object.prototype.hasOwnProperty.call(visitorDailyLookup, row.key) ? visitorDailyLookup[row.key] : null), borderColor: '#a12a40', backgroundColor: 'rgba(161,42,64,.10)', tension: .36, fill: true, borderWidth: 2.5, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5, spanGaps: false },
       { label: 'PDFs generated', data: selected.map(row => row.pdf), borderColor: '#c58a43', backgroundColor: 'rgba(197,138,67,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 },
       { label: 'Drive/Gallery downloads', data: selected.map(row => row.media), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 }
     ]
@@ -277,7 +277,6 @@ export default function Analytics() {
         <StatCard icon={Zap} label="Total recorded actions" value={number(combined)} detail={number(average) + ' average actions per day'} tone="total" trend="IN THIS PERIOD" />
         <StatCard icon={FileText} label="Quotation PDFs generated" value={number(periodTotals.pdf)} detail={'Lifetime total · ' + number(totals.pdf)} tone="pdf" />
         <StatCard icon={ImageIcon} label="Drive & Gallery downloads" value={number(periodTotals.media)} detail={'Lifetime total · ' + number(totals.media)} tone="media" />
-        <StatCard icon={CalendarDays} label="Active days" value={number(activeDays)} detail={selected.length ? Math.round(activeDays / selected.length * 100) + '% of selected days' : 'No reporting days'} tone="days" />
       </div>
     </section>
 
@@ -294,13 +293,12 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Firebase visitor sessions, not just page loads.</h3><p>Understand how people discover and use APML Portal through anonymous Firebase sessions, daily visitor counts, device types and popular pages. A new visit is counted once per anonymous Firebase profile every 30 minutes, with page views and session activity tracked separately. No IP address or precise location is collected. Geographic charts are intentionally omitted because location is not collected.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>No IP address · no GPS · anonymous Firebase ID · daily visitor counts · device and page activity only.</span></div></div>
-        <div className="an-visitor-data">
+                <div className="an-visitor-data">
           <p className={'an-visitor-status an-collector-status an-collector-' + visitorConnection.state}><i /> <span><b>{visitorConnection.state === 'connected' ? 'Browser tracker connected' : visitorConnection.state === 'error' ? 'Browser tracker failed' : 'Browser tracker connecting'}</b> · {visitorConnection.message || 'Waiting for heartbeat.'}</span></p>
           {visitorError && <p className="an-visitor-status">Analytics read: {visitorError}</p>}
           <div className="an-visitor-metrics">
-            <div><small>30-MIN VISITS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
-            <div><small>30-MIN VISITS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
+            <div><small>VISITS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
+            <div><small>VISITS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
             <div><b>Top devices</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}</div>
