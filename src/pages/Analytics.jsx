@@ -130,11 +130,11 @@ export default function Analytics() {
           const day = new Date(start.getTime() + index * 86400000)
           return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(day)
         })
-        const dailyVisitors = dayKeys.map(date => ({ date, visitors: Object.keys(daily[date] || {}).length }))
-        const visitorIds = new Set()
-        dayKeys.forEach(date => Object.keys(daily[date] || {}).forEach(uid => visitorIds.add(uid)))
+        const dailyVisitCount = date => Object.values(daily[date] || {}).reduce((total, record) => total + (typeof record === 'object' && record !== null ? (Number(record.visits) || 0) : (record ? 1 : 0)), 0)
+        const dailyVisitors = dayKeys.map(date => ({ date, visitors: dailyVisitCount(date) }))
+        const totalVisits = dayKeys.reduce((total, date) => total + dailyVisitCount(date), 0)
         const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
-        const todayCount = Object.keys(daily[today] || {}).length
+        const todayCount = dailyVisitCount(today)
         const sessions = Object.values(sessionsByUser).flatMap(userSessions => Object.values(userSessions || {}))
         const now = Date.now()
         const recentSessions = sessions.filter(session => Number(session.startedAt) >= start.getTime())
@@ -151,7 +151,7 @@ export default function Analytics() {
         const averageSessionSeconds = recentSessions.length ? recentSessions.reduce((total, session) => total + (Number(session.totalSeconds) || 0), 0) / recentSessions.length : 0
         if (live) {
           setVisitorStats({
-            visitors: visitorIds.size,
+            visitors: totalVisits,
             visitorsToday: todayCount,
             activeNow,
             pageViews,
@@ -286,13 +286,13 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Firebase visitor sessions, not just page loads.</h3><p>Understand how people discover and use APML Portal through anonymous Firebase sessions, daily visitor counts, device types and popular pages. Each anonymous browser profile is counted once per India calendar day. No IP address or precise location is collected.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>No IP address · no GPS · anonymous Firebase ID · daily visitor counts · device and page activity only.</span></div></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Firebase visitor sessions, not just page loads.</h3><p>Understand how people discover and use APML Portal through anonymous Firebase sessions, daily visitor counts, device types and popular pages. A new visit is counted once per anonymous Firebase profile every 30 minutes, with page views and session activity tracked separately. No IP address or precise location is collected.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>No IP address · no GPS · anonymous Firebase ID · daily visitor counts · device and page activity only.</span></div></div>
         <div className="an-visitor-data">
           <p className={'an-visitor-status an-collector-status an-collector-' + visitorConnection.state}><i /> <span><b>{visitorConnection.state === 'connected' ? 'Browser tracker connected' : visitorConnection.state === 'error' ? 'Browser tracker failed' : 'Browser tracker connecting'}</b> · {visitorConnection.message || 'Waiting for heartbeat.'}</span></p>
           {visitorError && <p className="an-visitor-status">Analytics read: {visitorError}</p>}
           <div className="an-visitor-metrics">
-            <div><small>VISITORS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
-            <div><small>VISITORS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
+            <div><small>30-MIN VISITS · LAST 90 DAYS</small><b>{number(visitorStats?.visitors || 0)}</b></div>
+            <div><small>30-MIN VISITS TODAY</small><b>{number(visitorStats?.visitorsToday || 0)}</b></div>
           </div>
           <div className="an-visitor-lists">
             <div><b>Top devices</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}</div>
