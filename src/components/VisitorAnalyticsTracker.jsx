@@ -4,6 +4,7 @@ import { getApmlPresenceServices } from '../lib/firebase'
 
 const makeId = () => window.crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2))
 const safePage = value => String(value || '/').split('?')[0].split('#')[0].slice(0, 120) || '/'
+const pageKey = page => encodeURIComponent(page).replace(/\//g, '%2F').replace(/\./g, '%2E')
 const dateKey = () => {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
   const values = Object.fromEntries(parts.map(part => [part.type, part.value]))
@@ -63,7 +64,7 @@ export default function VisitorAnalyticsTracker() {
             online: true,
             currentPage: page,
             pageViews: (Number(current?.pageViews) || 0) + 1,
-            pages: { ...(current?.pages || {}), [encodeURIComponent(page)]: (Number(current?.pages?.[encodeURIComponent(page)]) || 0) + 1 },
+            pages: { ...(current?.pages || {}), [pageKey(page)]: (Number(current?.pages?.[pageKey(page)]) || 0) + 1 },
             totalSeconds: Number(current?.totalSeconds) || 0,
             ...info
           }))
