@@ -31,11 +31,16 @@ export default function Analytics() {
     setError('')
     try {
       const database = await getApmlDatabase()
-      const [dailySnapshot, lifetimeSnapshot] = await Promise.all([
+      const [dailySnapshot, lifetimeSnapshot, legacyDailySnapshot, legacyPdfSnapshot, legacyMediaSnapshot] = await Promise.all([
         database.ref('Analytics page/daily_logs').once('value'),
-        database.ref('Analytics page/lifetime_totals').once('value')
+        database.ref('Analytics page/lifetime_totals').once('value'),
+        database.ref('analytics/daily_logs').once('value'),
+        database.ref('analytics/totalPdfDownloads').once('value'),
+        database.ref('analytics/totalMediaDownloads').once('value')
       ])
-      const allDaily = dailySnapshot.val() || {}
+      const canonicalDaily = dailySnapshot.val() || {}
+      const legacyDaily = legacyDailySnapshot.val() || {}
+      const allDaily = Object.keys(canonicalDaily).length ? canonicalDaily : legacyDaily
       const lifetime = lifetimeSnapshot.val() || {}
       const endDate = dateKey(new Date())
       const startDate = getRangeStart(Number(range), endDate)
@@ -59,8 +64,8 @@ export default function Analytics() {
         daily: rows,
         totals: {
           ...totals,
-          totalPdfsLifetime: Number(lifetime.pdfGenerated) || 0,
-          totalMediaLifetime: Number(lifetime.mediaDownloads) || 0
+          totalPdfsLifetime: Number(lifetime.pdfGenerated ?? legacyPdfSnapshot.val()) || 0,
+          totalMediaLifetime: Number(lifetime.mediaDownloads ?? legacyMediaSnapshot.val()) || 0
         }
       })
     } catch (err) {
@@ -81,7 +86,14 @@ export default function Analytics() {
         label: 'PDF generated',
         data: daily.map(row => Number(row.pdf) || 0),
         borderColor: '#b4232c',
-        backgroundColor: 'rgba(180, 35, 44, 0.10)',
+        backgroundColor: context => {
+          const { ctx, chartArea } = context.chart
+          if (!chartArea) return 'rgba(180, 35, 44, 0.08)'
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
+          gradient.addColorStop(0, 'rgba(180, 35, 44, 0.20)')
+          gradient.addColorStop(1, 'rgba(180, 35, 44, 0.005)')
+          return gradient
+        },
         pointBackgroundColor: '#b4232c',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
@@ -89,13 +101,22 @@ export default function Analytics() {
         pointHoverRadius: 6,
         borderWidth: 2.8,
         tension: 0.42,
+        cubicInterpolationMode: 'monotone',
+        spanGaps: true,
         fill: true
       },
       {
         label: 'Media downloaded',
         data: daily.map(row => Number(row.media) || 0),
         borderColor: '#3977c8',
-        backgroundColor: 'rgba(57, 119, 200, 0.08)',
+        backgroundColor: context => {
+          const { ctx, chartArea } = context.chart
+          if (!chartArea) return 'rgba(57, 119, 200, 0.07)'
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
+          gradient.addColorStop(0, 'rgba(57, 119, 200, 0.16)')
+          gradient.addColorStop(1, 'rgba(57, 119, 200, 0.005)')
+          return gradient
+        },
         pointBackgroundColor: '#3977c8',
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
@@ -110,6 +131,8 @@ export default function Analytics() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: { duration: 650, easing: 'easeOutQuart' },
+    layout: { padding: { top: 4, right: 8, bottom: 0, left: 2 } },
     interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { position: 'top', align: 'end', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7, padding: 18, color: '#746f69', font: { family: 'Plus Jakarta Sans, sans-serif', size: 11, weight: '600' } } },
