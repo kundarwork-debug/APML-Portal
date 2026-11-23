@@ -149,6 +149,13 @@ export default function Analytics() {
         const topPages = Object.entries(pages).map(([name, views]) => ({ name, views })).sort((a, b) => b.views - a.views)
         const pageViews = recentSessions.reduce((total, session) => total + (Number(session.pageViews) || 0), 0)
         const averageSessionSeconds = recentSessions.length ? recentSessions.reduce((total, session) => total + (Number(session.totalSeconds) || 0), 0) / recentSessions.length : 0
+        const hourlyCounts = Array.from({ length: 24 }, (_, hour) => ({ hour, count: 0 }))
+        recentSessions.forEach(session => {
+          const timestamp = Number(session.startedAt)
+          if (!Number.isFinite(timestamp) || timestamp <= 0) return
+          const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' }).format(new Date(timestamp)))
+          if (Number.isInteger(hour) && hourlyCounts[hour]) hourlyCounts[hour].count += 1
+        })
         if (live) {
           setVisitorStats({
             visitors: totalVisits,
@@ -160,6 +167,7 @@ export default function Analytics() {
             devices: countBy('device'),
             browsers: countBy('browser'),
             topPages,
+            hourlyActivity: hourlyCounts,
             cities: []
           })
           setVisitorError('')
@@ -207,11 +215,13 @@ export default function Analytics() {
   const maxHeat = Math.max(1, ...heatmapWeeks.flat().filter(Boolean).map(day => day.total))
   const modules = ['All', ...new Set(activity.map(row => row.module).filter(Boolean).sort())]
   const filteredActivity = activityFilter === 'All' ? activity : activity.filter(row => row.module === activityFilter)
+  const visitorDailyLookup = Object.fromEntries((visitorStats?.dailyVisitors || []).map(row => [row.date, Number(row.visitors) || 0]))
   const chartData = {
     labels: selected.map(row => labelDate(row.key)),
     datasets: [
-      { label: 'PDFs generated', data: selected.map(row => row.pdf), borderColor: '#c23b50', backgroundColor: 'rgba(194,59,80,.13)', tension: .38, fill: true, borderWidth: 2.5, pointRadius: selected.length > 60 ? 0 : 3, pointHoverRadius: 5 },
-      { label: 'Drive/Gallery downloads', data: selected.map(row => row.media), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', tension: .38, fill: true, borderWidth: 2.5, pointRadius: selected.length > 60 ? 0 : 3, pointHoverRadius: 5 }
+      { label: '30-minute visits', data: selected.map(row => Object.prototype.hasOwnProperty.call(visitorDailyLookup, row.key) ? visitorDailyLookup[row.key] : null), borderColor: '#a12a40', backgroundColor: 'rgba(161,42,64,.10)', tension: .36, fill: true, borderWidth: 2.5, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5, spanGaps: false },
+      { label: 'PDFs generated', data: selected.map(row => row.pdf), borderColor: '#c58a43', backgroundColor: 'rgba(197,138,67,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 },
+      { label: 'Drive/Gallery downloads', data: selected.map(row => row.media), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 }
     ]
   }
   const chartOptions = {
@@ -219,19 +229,16 @@ export default function Analytics() {
     plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, boxHeight: 7, color: 'var(--text-muted)', font: { size: 11 }, padding: 22 } }, tooltip: { backgroundColor: '#191b25', titleColor: '#fff', bodyColor: '#e7e8ee', padding: 12, cornerRadius: 10 } },
     scales: { x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b929e', maxTicksLimit: 10, maxRotation: 0 } }, y: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, border: { display: false }, ticks: { color: '#8b929e', precision: 0 } } }
   }
-  const visitorDaily = visitorStats?.dailyVisitors || [];
-  const visitorTrendDates = visitorDaily.map(row => row.date)
-  const visitorTrendData = {
-    labels: visitorTrendDates.map(date => new Date(date + 'T00:00:00Z').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' })),
-    datasets: [
-      { label: 'Visitors', data: visitorDaily.map(row => Number(row.visitors) || 0), borderColor: '#9d2438', backgroundColor: 'rgba(157,36,56,.13)', fill: true, tension: .35, borderWidth: 2, pointRadius: 0, spanGaps: false }
-    ]
-  }
-  const visitorTrendOptions = { ...chartOptions, plugins: { ...chartOptions.plugins, legend: { ...chartOptions.plugins.legend, position: 'bottom' } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 8 } } } }
-  const cityRows = visitorStats?.browsers?.slice(0, 6) || []
+  const recentSessionCount = visitorStats?.pageViews ? (visitorStats?.devices || []).reduce((total, item) => total + item.count, 0) : 0
+  const visitorDaily = visitorStats?.dailyVisitors || []
+  const pageRows = (visitorStats?.topPages || []).slice(0, 8)
+  const browserRows = (visitorStats?.browsers || []).slice(0, 7)
   const deviceRows = visitorStats?.devices || []
-  const visitorBarData = { labels: cityRows.map(row => row.name), datasets: [{ label: 'Sessions', data: cityRows.map(row => row.count || 0), backgroundColor: 'rgba(157,36,56,.72)', borderRadius: 6, maxBarThickness: 22 }] }
+  const hourlyRows = visitorStats?.hourlyActivity || []
   const visitorBarOptions = { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: chartOptions.plugins.tooltip }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, ticks: { color: '#8b929e', precision: 0 } }, y: { grid: { display: false }, ticks: { color: 'var(--text-muted)', autoSkip: false } } } }
+  const pageChartData = { labels: pageRows.map(row => row.name), datasets: [{ label: 'Page views', data: pageRows.map(row => row.views || 0), backgroundColor: 'rgba(161,42,64,.78)', borderRadius: 6, maxBarThickness: 22 }] }
+  const browserChartData = { labels: browserRows.map(row => row.name), datasets: [{ label: 'Sessions', data: browserRows.map(row => row.count || 0), backgroundColor: 'rgba(67,131,193,.78)', borderRadius: 6, maxBarThickness: 22 }] }
+  const hourlyChartData = { labels: hourlyRows.map(row => String(row.hour).padStart(2, '0') + ':00'), datasets: [{ label: 'Session starts', data: hourlyRows.map(row => row.count || 0), backgroundColor: 'rgba(197,138,67,.78)', borderRadius: 5, maxBarThickness: 18 }] }
   const visitorDeviceData = { labels: deviceRows.map(row => row.name), datasets: [{ data: deviceRows.map(row => row.count || 0), backgroundColor: ['#9d2438', '#4387c9', '#c59b4a', '#6e9c83', '#8d78b5'], borderWidth: 0, hoverOffset: 5 }] }
   const visitorDoughnutOptions = { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, color: 'var(--text-muted)', font: { size: 10 }, padding: 15 } }, tooltip: chartOptions.plugins.tooltip } }
   const exportCsv = () => {
@@ -275,7 +282,7 @@ export default function Analytics() {
 
     <section className="an-section-block">
       <div className="an-section-heading"><div><span>02 / ACTIVITY TRENDS</span><h2>Usage over time</h2></div><div className="an-peak-chip"><TrendingIcon /> {peak && peak.pdf + peak.media ? 'Peak · ' + fullDate(peak.key) : 'Waiting for activity'}</div></div>
-      <div className="an-chart-card"><div className="an-chart-top"><div><b>Daily activity</b><span>Compare quotation PDF generation with Drive/Gallery downloads</span></div><span className="an-chart-total">{number(combined)} <small>actions</small></span></div><div className="an-chart">{selected.length ? <Bar data={chartData} options={{ ...chartOptions, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
+      <div className="an-chart-card"><div className="an-chart-top"><div><b>Daily activity</b><span>Compare quotation PDF generation with Drive/Gallery downloads</span></div><span className="an-chart-total">{number(combined)} <small>actions</small></span></div><div className="an-chart">{selected.length ? <Line data={chartData} options={{ ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
       <div className="an-insight-strip">
         <div><span className="an-insight-icon"><ArrowUpRight size={16} /></span><small>BUSIEST DAY</small><b>{peak && peak.pdf + peak.media ? fullDate(peak.key) : '—'}</b></div>
         <div><span className="an-insight-icon blue"><Activity size={16} /></span><small>DAILY AVERAGE</small><b>{number(average)} actions</b></div>
@@ -286,7 +293,7 @@ export default function Analytics() {
     <section className="an-section-block an-intelligence-block">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
-        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Firebase visitor sessions, not just page loads.</h3><p>Understand how people discover and use APML Portal through anonymous Firebase sessions, daily visitor counts, device types and popular pages. A new visit is counted once per anonymous Firebase profile every 30 minutes, with page views and session activity tracked separately. No IP address or precise location is collected.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>No IP address · no GPS · anonymous Firebase ID · daily visitor counts · device and page activity only.</span></div></div>
+        <div className="an-visitor-intro"><div className="an-visitor-globe"><Globe2 size={30} /></div><div><h3>Firebase visitor sessions, not just page loads.</h3><p>Understand how people discover and use APML Portal through anonymous Firebase sessions, daily visitor counts, device types and popular pages. A new visit is counted once per anonymous Firebase profile every 30 minutes, with page views and session activity tracked separately. No IP address or precise location is collected. Geographic charts are intentionally omitted because location is not collected.</p></div><div className="an-visitor-note"><MapPin size={15} /><span>No IP address · no GPS · anonymous Firebase ID · daily visitor counts · device and page activity only.</span></div></div>
         <div className="an-visitor-data">
           <p className={'an-visitor-status an-collector-status an-collector-' + visitorConnection.state}><i /> <span><b>{visitorConnection.state === 'connected' ? 'Browser tracker connected' : visitorConnection.state === 'error' ? 'Browser tracker failed' : 'Browser tracker connecting'}</b> · {visitorConnection.message || 'Waiting for heartbeat.'}</span></p>
           {visitorError && <p className="an-visitor-status">Analytics read: {visitorError}</p>}
@@ -302,10 +309,11 @@ export default function Analytics() {
           <p className="an-visitor-footnote">Estimated browser traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · refreshed every 30 seconds.</p>
         </div>
       </div>
-      <div className="an-visitor-charts">
-        <article className="an-visitor-chart-card an-visitor-trend"><div><b>Visitor trend</b><span>Daily anonymous browsers · last 90 days</span></div><div className="an-visitor-chart">{visitorDaily.length ? <Bar data={visitorTrendData} options={{ ...visitorTrendOptions, plugins: { ...visitorTrendOptions.plugins, legend: { display: false } }, scales: { ...visitorTrendOptions.scales, x: { ...visitorTrendOptions.scales.x, grid: { display: false } }, y: { ...visitorTrendOptions.scales.y, beginAtZero: true } } }} /> : <small>No visitor trend data available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card"><div><b>Top browsers</b><span>Recorded sessions by browser</span></div><div className="an-visitor-chart an-visitor-bars">{cityRows.length ? <Bar data={visitorBarData} options={visitorBarOptions} /> : <small>No device data available yet.</small>}</div></article>
-        <article className="an-visitor-chart-card"><div><b>Device mix</b><span>Share of recorded sessions</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device data available yet.</small>}</div></article>
+      <div className="an-visitor-charts an-bento-charts">
+        <article className="an-visitor-chart-card an-bento-pages"><div><b>Most visited pages</b><span>Page views from recorded browser sessions · last 90 days</span></div><div className="an-visitor-chart an-visitor-bars">{pageRows.length ? <Bar data={pageChartData} options={visitorBarOptions} /> : <small>No page-view records available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-bento-hourly"><div><b>Hourly activity</b><span>Session starts by India time · last 90 days</span></div><div className="an-visitor-chart">{recentSessionCount ? <Bar data={hourlyChartData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, legend: { display: false } }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, grid: { display: false }, ticks: { ...chartOptions.scales.x.ticks, maxTicksLimit: 12 } } } }} /> : <small>No session timestamps available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-bento-device"><div><b>Device mix</b><span>Recorded sessions by device</span></div><div className="an-visitor-chart an-visitor-donut">{deviceRows.length ? <Doughnut data={visitorDeviceData} options={visitorDoughnutOptions} /> : <small>No device records available yet.</small>}</div></article>
+        <article className="an-visitor-chart-card an-bento-browser"><div><b>Browser mix</b><span>Recorded sessions by browser</span></div><div className="an-visitor-chart an-visitor-bars">{browserRows.length ? <Bar data={browserChartData} options={visitorBarOptions} /> : <small>No browser records available yet.</small>}</div></article>
       </div>
     </section>
 
