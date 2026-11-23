@@ -31,22 +31,30 @@ export default function VisitorAnalyticsTracker(){
         const services=await getApmlPresenceServices()
         if(!live)return
         db=services.database; uid=services.user.uid
-        sessionDb=db.ref('visitor_intelligence/sessions/'+uid+'/'+sessionId)
         const ua=navigator.userAgent||'', device=getDevice(ua), browser=getBrowser(ua), os=getOS(ua)
+        let location={city:'',region:'',country:''}
+        try {
+          const response=await fetch('https://apml-drive-api.kundar-work.workers.dev/visitor/location',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId}),cache:'no-store'})
+          if(response.ok){const place=await response.json();location={city:String(place.city||'').slice(0,80),region:String(place.region||'').slice(0,80),country:String(place.country||'').slice(0,2)}}
+        } catch(error) { console.warn('[APML visitor] Approximate city lookup unavailable:',error) }
+        if(!live)return
+        sessionDb=db.ref('visitor_intelligence/sessions/'+uid+'/'+sessionId)
+        const dailyDb=db.ref('visitor_intelligence/daily/'+istDay()+'/'+uid)
+        await dailyDb.update({city:location.city,region:location.region,country:location.country,device,browser,os,firstSeen:startedAt,lastSeen:Date.now()})
         const initial=safePage(window.location.pathname); lastPage.current=initial
         let pages={}
         const bump=path=>{const key=safeKey(path),old=pages[key]||{name:path,views:0};pages[key]={name:path,views:old.views+1}}
         bump(initial)
-        await db.ref('visitor_intelligence/daily/'+istDay()+'/'+uid).set(true)
         const write=async(path,increment=false)=>{
           if(!live)return
           const now=Date.now(),seconds=Math.min(120,Math.max(0,Math.floor((now-lastTick)/1000)))
+          await dailyDb.update({lastSeen:now})
           if(increment)bump(path)
           lastTick=now
           const snap=await sessionDb.once('value'),old=snap.val()||{},oldPages=old.pages||{}
           const merged={...oldPages,...pages}
           const totalViews=Object.values(merged).reduce((sum,p)=>sum+(Number(p.views)||0),0)
-          await sessionDb.set({startedAt,lastSeen:now,online:true,currentPage:path,pageViews:totalViews,totalSeconds:(Number(old.totalSeconds)||0)+seconds,pages:merged,device,browser,os})
+          await sessionDb.set({startedAt,lastSeen:now,online:true,currentPage:path,pageViews:totalViews,totalSeconds:(Number(old.totalSeconds)||0)+seconds,pages:merged,device,browser,os,city:location.city,region:location.region,country:location.country})
           publishStatus({state:'connected',message:'Visitor session is being recorded directly in Firebase.',backend:'firebase'})
         }
         await write(initial,false)
