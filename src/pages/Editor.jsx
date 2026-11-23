@@ -97,7 +97,7 @@ const download=async()=>{
    const driveStatus=driveError?`Drive save failed: ${driveError.message||driveError}`:'saved to Drive/Quotation';
    setStatus(`PDF downloaded. ${countStatus}; ${driveStatus}.`);
   })();
-  await showGenerationResult({icon:'success',title:'PDF downloaded',text:`${name} is downloading. The generated-PDF count and Drive/Quotation save are continuing in the background.`});
+  await showGenerationResult({icon:'success',title:'PDF downloaded',text:'Your quotation is ready! 💛 Your PDF is downloading now. We’re taking care of the remaining saves in the background.'});
  }catch(e){console.error(e);await showGenerationResult({icon:'error',title:'PDF generation failed',text:e?.message||'Please try again.'})}
  finally{exportStage?.remove();setBusy(false)}
 }
