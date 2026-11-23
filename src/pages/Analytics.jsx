@@ -1,20 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Clock3,
+  ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Clock3,
   Download, FileJson, FileText, Image as ImageIcon,
-  RefreshCw, Sparkles, Users, Zap
+  RefreshCw, Sparkles, Zap
 } from 'lucide-react'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend } from 'chart.js'
 import { getApmlDatabase, ensureApmlAnalyticsStructure } from '../lib/firebase'
-import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Analytics.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend)
 
 const TZ = 'Asia/Kolkata'
 const nf = new Intl.NumberFormat('en-IN')
-const formatBytes = value => { const bytes = Number(value); if (!Number.isFinite(bytes) || bytes < 0) return ''; if (bytes === 0) return '0 B'; const units = ['B', 'KB', 'MB', 'GB']; const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return (bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + units[i] }
 const number = value => nf.format(Number(value) || 0)
 const dateKey = date => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
 const shiftKey = (key, offset) => { const d = new Date(key + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + offset); return d.toISOString().slice(0, 10) }
@@ -46,14 +44,9 @@ export default function Analytics() {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [customOpen, setCustomOpen] = useState(false)
-  const [activity, setActivity] = useState([])
-  const [activityStatus, setActivityStatus] = useState('Waiting for admin access')
-  const [activityError, setActivityError] = useState('')
-  const [activityFilter, setActivityFilter] = useState('All')
   const [visitorStats, setVisitorStats] = useState(null)
   const [visitorError, setVisitorError] = useState('')
   const [visitorConnection, setVisitorConnection] = useState(() => window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for the first browser heartbeat…' })
-  const { admin } = useApmlAdminAuth()
 
   const load = useCallback(async () => {
     setBusy(true); setError('')
@@ -204,8 +197,6 @@ export default function Analytics() {
   }, [logs])
   const heatmapWeeks = heatmap.weeks
   const maxHeat = Math.max(1, ...heatmapWeeks.flat().filter(Boolean).map(day => day.total))
-  const modules = ['All', ...new Set(activity.map(row => row.module).filter(Boolean).sort())]
-  const filteredActivity = activityFilter === 'All' ? activity : activity.filter(row => row.module === activityFilter)
   const chartData = {
     labels: selected.map(row => labelDate(row.key)),
     datasets: [
@@ -247,7 +238,7 @@ export default function Analytics() {
         <p>A clearer view of portal activity, document generation and shared-file engagement.</p>
         <div className="an-hero-meta"><span><i className="an-live-dot" /> Live Firebase data</span><span><Clock3 size={13} /> {updated ? 'Synced ' + updated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Connecting to data'}</span></div>
       </div>
-      <div className="an-hero-side"><div className="an-hero-symbol"><BarChart3 size={35} strokeWidth={1.3} /></div><div><small>REPORTING TIMEZONE</small><b>India Standard Time</b><span>UTC +05:30</span>{admin && <a className="an-audit-jump" href="#an-audit-trail">View Recent Activity ↓</a>}</div></div>
+      <div className="an-hero-side"><div className="an-hero-symbol"><BarChart3 size={35} strokeWidth={1.3} /></div><div><small>REPORTING TIMEZONE</small><b>India Standard Time</b><span>UTC +05:30</span></div></div>
     </section>
 
     <section className="an-controlbar">
@@ -321,7 +312,7 @@ export default function Analytics() {
     </section>}
     </div>
 
-    <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Recent Activity shows the latest 50 instrumented actions, not every click or page view.</p></footer>
+    <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Visitor intelligence uses approximate Cloudflare data; activity metrics reflect recorded PDFs and Drive/Gallery downloads.</p></footer>
   </main>
 }
 
