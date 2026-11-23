@@ -1976,9 +1976,8 @@ async function handlePublicAnalytics(request) {
 
 async function handleNovaAnalytics(request, env) {
   const url = new URL(request.url);
-  const now = Date.now();
-  const today = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-  const validKey = value => /^\d{4}-\d{2}-\d{2}$/.test(value || '');
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  const validKey = value => /^\\d{4}-\\d{2}-\\d{2}$/.test(value || '');
   let endKey = validKey(url.searchParams.get('end')) ? url.searchParams.get('end') : today;
   let startKey = validKey(url.searchParams.get('start')) ? url.searchParams.get('start') : '';
   if (endKey > today) endKey = today;
@@ -1990,187 +1989,47 @@ async function handleNovaAnalytics(request, env) {
   if (startKey > endKey) return json({ ok: false, error: 'Start date must be on or before end date.' }, 400);
   const rangeDays = Math.floor((Date.parse(endKey + 'T00:00:00Z') - Date.parse(startKey + 'T00:00:00Z')) / 86400000) + 1;
   if (rangeDays > 730) return json({ ok: false, error: 'Choose a date range of up to 730 days.' }, 400);
-  const cutoff = Date.parse(startKey + 'T00:00:00+05:30');
-  const rangeEnd = Date.parse(endKey + 'T23:59:59.999+05:30');
-  const previousEnd = new Date(cutoff - 1).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-  const previousStart = new Date(cutoff - rangeDays * 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
+  // This endpoint now serves only the two metrics displayed by Downloads Analytics.
+  // Do not enumerate visitor KV sessions or calculate visitor/performance intelligence here.
   const [dailyResult, pdfResult, mediaResult] = await Promise.all([
     fbRead('analytics/daily_logs'),
     fbRead(CONFIG.PDF_TOTAL_PATH),
     fbRead(CONFIG.MEDIA_TOTAL_PATH)
   ]);
-  let sessionsResult = { ok: true, value: {} };
-  try {
-    if (env.ANNOUNCE_KV) {
-      // Paginate KV keys instead of taking an arbitrary first 500. The previous
-      // cap could omit today's sessions depending on key ordering, making Visitor Trend appear empty.
-      const keys = [];
-      let cursor;
-      do {
-        const listed = await env.ANNOUNCE_KV.list({ prefix: 'visitor_session:', limit: 1000, ...(cursor ? { cursor } : {}) });
-        keys.push(...listed.keys);
-        cursor = listed.list_complete ? undefined : listed.cursor;
-      } while (cursor);
-      const pairs = await Promise.all(keys.map(async item => [item.name.slice('visitor_session:'.length), await env.ANNOUNCE_KV.get(item.name, 'json')]));
-      sessionsResult.value = Object.fromEntries(pairs.filter(([, value]) => value));
-    }
-  } catch { sessionsResult = { ok: false, value: {} }; }
-  if (!dailyResult.ok) return json({ ok: false, error: 'APML daily analytics could not be read. Check Firebase read permissions.' }, 502);
+  if (!dailyResult.ok) return json({ ok: false, error: 'APML download analytics could not be read. Check Firebase read permissions.' }, 502);
 
   const dailySource = dailyResult.value && typeof dailyResult.value === 'object' ? dailyResult.value : {};
-  const makeDaily = (from, to) => {
-    const keys = Object.keys(dailySource).filter(key => validKey(key) && key >= from && key <= to).sort();
-    const rows = [];
-    const cursor = new Date(from + 'T00:00:00Z');
-    const last = new Date(to + 'T00:00:00Z');
-    while (cursor <= last) {
-      const key = cursor.toISOString().slice(0, 10);
-      rows.push({ date: key, ...dailyFields(dailySource[key] || {}) });
-      cursor.setUTCDate(cursor.getUTCDate() + 1);
-    }
-    return rows;
-  };
-  const daily = makeDaily(startKey, endKey);
-  const previousDaily = makeDaily(previousStart, previousEnd);
-  const sumRows = rows => rows.reduce((acc, row) => {
-    acc.visitors += row.visitors; acc.pdf += row.pdf; acc.media += row.media;
-    acc.peakOnline = Math.max(acc.peakOnline, row.peak); return acc;
-  }, { visitors: 0, pdf: 0, media: 0, peakOnline: 0 });
-  const totals = sumRows(daily);
-  const previousTotals = sumRows(previousDaily);
-  const sessionSource = sessionsResult.ok && sessionsResult.value && typeof sessionsResult.value === 'object' ? sessionsResult.value : {};
-  const sessions = Object.values(sessionSource).filter(s => {
-    const stamp = Number(s && (s.startedAt || s.lastSeen) || 0);
-    return stamp >= cutoff && stamp <= rangeEnd;
-  });
-  const devices = {}, browsers = {}, cities = {}, pages = {}, pageSeconds = {}, hours = Array(24).fill(0);
-  const dropoffs = {}, deviceStats = {};
-  let pageViews = 0, totalSeconds = 0, performanceCount = 0, loadTotal = 0, domTotal = 0, ttfbTotal = 0;
-  let activeNow = 0;
-  const perfValues = [], perfByDay = {}, perfByPage = {};
-  let controlledCount = 0;
-
-  for (const session of sessions) {
-    if (!session || typeof session !== 'object') continue;
-    const device = String(session.device || 'Unknown').slice(0, 32);
-    const os = String(session.os || 'Unknown').slice(0, 32);
-    const browser = String(session.browser || 'Unknown').slice(0, 40);
-    const city = [session.city, session.region, session.country].filter(Boolean).join(', ') || 'Unknown';
-    devices[device] = (devices[device] || 0) + 1;
-    browsers[browser] = (browsers[browser] || 0) + 1;
-    cities[city] = (cities[city] || 0) + 1;
-    const startedAt = Number(session.startedAt) || 0;
-    if (startedAt) {
-      const day = new Date(startedAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-      const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', hourCycle: 'h23' }).format(new Date(startedAt)));
-      if (Number.isInteger(hour) && hour >= 0 && hour < 24) hours[hour]++;
-    }
-    if (Number(session.lastSeen || 0) > now - 60000) activeNow++;
-    pageViews += Math.max(0, Number(session.pageViews) || 0);
-    totalSeconds += Math.max(0, Number(session.totalSeconds) || 0);
-    const sessionPages = session.pages && typeof session.pages === 'object' ? session.pages : {};
-    for (const page of Object.values(sessionPages)) {
-      if (!page || typeof page !== 'object') continue;
-      const path = String(page.path || '/').slice(0, 120);
-      pages[path] = (pages[path] || 0) + Math.max(0, Number(page.views) || 0);
-      pageSeconds[path] = (pageSeconds[path] || 0) + Math.max(0, Number(page.seconds) || 0);
-    }
-    let lastPath = '';
-    if (Array.isArray(session.journey) && session.journey.length) lastPath = String(session.journey[session.journey.length - 1]?.path || '');
-    if (!lastPath) {
-      const latestPage = Object.values(sessionPages).filter(p => p && p.path).sort((a,b) => Number(b.lastSeen || 0) - Number(a.lastSeen || 0))[0];
-      lastPath = String(latestPage?.path || session.lastPage || session.firstPage || '');
-    }
-    if (lastPath) {
-      if (!dropoffs[lastPath]) dropoffs[lastPath] = { sessions: 0, views: 0 };
-      dropoffs[lastPath].sessions++;
-      dropoffs[lastPath].views += Math.max(0, Number(session.pageViews) || 0);
-    }
-    if (!deviceStats[device]) deviceStats[device] = { sessions: 0, seconds: 0, views: 0, loadTotal: 0, loadCount: 0 };
-    deviceStats[device].sessions++;
-    deviceStats[device].seconds += Math.max(0, Number(session.totalSeconds) || 0);
-    deviceStats[device].views += Math.max(0, Number(session.pageViews) || 0);
-
-    const measurements = Array.isArray(session.performance) ? session.performance : [];
-    for (const sample of measurements) {
-      const load = Number(sample.loadMs), dom = Number(sample.domMs), ttfb = Number(sample.ttfbMs);
-      if (![load, dom, ttfb].every(Number.isFinite)) continue;
-      loadTotal += load; domTotal += dom; ttfbTotal += ttfb; performanceCount++;
-      perfValues.push(load);
-      const measuredAt = Number(sample.measuredAt) || startedAt;
-      const day = measuredAt ? new Date(measuredAt).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) : '';
-      if (day) {
-        if (!perfByDay[day]) perfByDay[day] = { total: 0, count: 0 };
-        perfByDay[day].total += load; perfByDay[day].count++;
-      }
-      const path = String(sample.path || '/').slice(0, 120);
-      if (!perfByPage[path]) perfByPage[path] = { total: 0, count: 0 };
-      perfByPage[path].total += load; perfByPage[path].count++;
-      deviceStats[device].loadTotal += load; deviceStats[device].loadCount++;
-      if (sample.serviceWorkerControlled === true) controlledCount++;
-    }
+  const rows = [];
+  const cursor = new Date(startKey + 'T00:00:00Z');
+  const last = new Date(endKey + 'T00:00:00Z');
+  const totals = { pdf: 0, media: 0 };
+  while (cursor <= last) {
+    const date = cursor.toISOString().slice(0, 10);
+    const fields = dailyFields(dailySource[date] || {});
+    rows.push({ date, pdf: fields.pdf, media: fields.media });
+    totals.pdf += fields.pdf;
+    totals.media += fields.media;
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
-  const top = (map, limit = 8) => Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([name, count]) => ({ name, count }));
-  const topObjects = (map, limit = 10) => Object.entries(map).sort((a,b) => (b[1].views || b[1].sessions || 0) - (a[1].views || a[1].sessions || 0)).slice(0,limit).map(([name,value]) => ({ name, ...value }));
-  const sortedPerf = perfValues.slice().sort((a,b)=>a-b);
-  const p75 = sortedPerf.length ? sortedPerf[Math.min(sortedPerf.length-1, Math.ceil(sortedPerf.length*.75)-1)] : null;
-  const heatStart = new Date(Date.parse(today + 'T00:00:00Z') - 364 * 86400000).toISOString().slice(0,10);
-  const heatmap = makeDaily(heatStart, today);
-  const perfDaily = Object.entries(perfByDay).sort((a,b)=>a[0].localeCompare(b[0])).map(([date,v])=>({date,averageLoadMs:Math.round(v.total/v.count),samples:v.count}));
-  const perfPages = Object.entries(perfByPage).map(([name,v])=>({name,averageLoadMs:Math.round(v.total/v.count),samples:v.count})).sort((a,b)=>b.averageLoadMs-a.averageLoadMs).slice(0,10);
-  const deviceComparison = Object.entries(deviceStats).map(([name,v])=>({name,sessions:v.sessions,averageSeconds:v.sessions?Math.round(v.seconds/v.sessions):0,viewsPerSession:v.sessions?Number((v.views/v.sessions).toFixed(1)):0,averageLoadMs:v.loadCount?Math.round(v.loadTotal/v.loadCount):null})).sort((a,b)=>b.sessions-a.sessions);
-  const visitorPages = Object.entries(pages).map(([name,views])=>({name,views,seconds:pageSeconds[name]||0})).sort((a,b)=>b.views-a.views).slice(0,10);
-  const dropoffPages = topObjects(dropoffs,10).map(item=>({...item,share:sessions.length?Math.round(item.sessions/sessions.length*100):0,viewsPerSession:item.sessions?Number((item.views/item.sessions).toFixed(1)):0}));
-  const peakHours = hours.map((count,hour)=>({hour,label:String(hour).padStart(2,'0')+':00',count})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
-  const visitorDaily = [];
-  const visitorCursor = new Date(startKey + 'T00:00:00Z');
-  const visitorLast = new Date(endKey + 'T00:00:00Z');
-  let totalVisitors = 0;
-  while (visitorCursor <= visitorLast) {
-    const date = visitorCursor.toISOString().slice(0, 10);
-    const count = env.ANNOUNCE_KV ? Number(await env.ANNOUNCE_KV.get('visitor_daily:' + date) || 0) : 0;
-    visitorDaily.push({ date, visitors: count });
-    totalVisitors += count;
-    visitorCursor.setUTCDate(visitorCursor.getUTCDate() + 1);
-  }
-  const suggestions = [];
-  const topDrop = dropoffPages[0];
-  if (topDrop && topDrop.sessions >= 3 && topDrop.share >= 25) suggestions.push('Review ' + topDrop.name + ': it is the last recorded page in ' + topDrop.sessions + ' sessions (' + topDrop.share + '% of sessions with a recorded journey). This is a drop-off signal, not a confirmed exit.');
-  perfPages.filter(p=>p.samples>=3&&p.averageLoadMs>=3000).slice(0,2).forEach(p=>suggestions.push('Improve loading on ' + p.name + ': average recorded load is ' + p.averageLoadMs + ' ms across ' + p.samples + ' measurements.'));
-  const mobile = deviceComparison.find(x=>x.name.toLowerCase()==='mobile'), desktop = deviceComparison.find(x=>x.name.toLowerCase()==='desktop');
-  if (mobile && desktop && mobile.sessions>=3 && desktop.sessions>=3 && desktop.viewsPerSession>0 && mobile.viewsPerSession<desktop.viewsPerSession*.75) suggestions.push('Review mobile navigation: mobile sessions average ' + mobile.viewsPerSession + ' page views versus ' + desktop.viewsPerSession + ' on desktop.');
+  const sumLifetime = field => Object.entries(dailySource).reduce((sum, [key, value]) => {
+    if (!validKey(key)) return sum;
+    return sum + (Number(dailyFields(value || {})[field]) || 0);
+  }, 0);
+  const totalPdfsLifetime = pdfResult.ok && Number.isFinite(Number(pdfResult.value)) ? Number(pdfResult.value) : sumLifetime('pdf');
+  const totalMediaLifetime = mediaResult.ok && Number.isFinite(Number(mediaResult.value)) ? Number(mediaResult.value) : sumLifetime('media');
+
   return json({
-    ok: true, generatedAt: now, timezone: 'Asia/Kolkata', periodDays: rangeDays, startDate: startKey, endDate: endKey,
-    daily, previousDaily, heatmap,
-    totals: { ...totals,
-      totalPdfsLifetime: pdfResult.ok && Number.isFinite(Number(pdfResult.value)) ? Number(pdfResult.value) : Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).pdf : 0), 0),
-      totalMediaLifetime: mediaResult.ok && Number.isFinite(Number(mediaResult.value)) ? Number(mediaResult.value) : Object.entries(dailySource).reduce((sum, [key, value]) => sum + (validKey(key) ? dailyFields(value).media : 0), 0) },
-    previousTotals,
-    visitorIntelligence: {
-      visitors: totalVisitors,
-      visitorsToday: Number(env.ANNOUNCE_KV ? await env.ANNOUNCE_KV.get('visitor_daily:' + today) || 0 : 0),
-      sessions: sessions.length, activeNow, pageViews, averageSessionSeconds: sessions.length ? Math.round(totalSeconds/sessions.length) : 0,
-      devices: top(devices), browsers: top(browsers), cities: top(cities), topPages: visitorPages,
-      dailyVisitors: visitorDaily,
-      peakHours, dropoffPages, deviceComparison, suggestions
-    },
-    performance: {
-      samples: performanceCount, averageLoadMs: performanceCount ? Math.round(loadTotal/performanceCount) : null,
-      p75LoadMs: p75 === null ? null : Math.round(p75),
-      averageDomMs: performanceCount ? Math.round(domTotal/performanceCount) : null,
-      averageTtfbMs: performanceCount ? Math.round(ttfbTotal/performanceCount) : null,
-      serviceWorkerControlledPercent: performanceCount ? Math.round(controlledCount/performanceCount*100) : null,
-      daily: perfDaily, pages: perfPages
-    },
-    dataNotes: [
-      'Visitor totals count qualifying visits by a one-way IP fingerprint. The same fingerprint is counted again only after a 30-minute cooldown. Daily totals are retained for up to 400 days.',
-      'Raw IP addresses are not stored; only a keyed one-way fingerprint is used for the cooldown. IP-based counts can undercount shared networks and overcount people whose IP changes.',
-      'Last recorded pages are engagement signals, not confirmed visitor exits. Approximate location is aggregated.'
-    ]
+    ok: true,
+    generatedAt: Date.now(),
+    timezone: 'Asia/Kolkata',
+    periodDays: rangeDays,
+    startDate: startKey,
+    endDate: endKey,
+    daily: rows,
+    totals: { ...totals, totalPdfsLifetime, totalMediaLifetime }
   });
 }
-
 
 async function handleStorageAudit(request, env) {
   const admin = await getFirebaseAdminEmail(request);
