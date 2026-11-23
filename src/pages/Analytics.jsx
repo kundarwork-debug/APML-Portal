@@ -86,40 +86,6 @@ export default function Analytics() {
   }, [])
 
   useEffect(() => {
-    let query, handler, live = true
-    if (!admin) {
-      setActivity([])
-      setActivityStatus('Admin access required')
-      return () => { live = false }
-    }
-    setActivityStatus('Connecting to activity log…')
-    setActivityError('')
-    ; (async () => {
-      try {
-        const db = await getApmlDatabase()
-        if (!live) return
-        query = db.ref('Analytics page/recent_actions').orderByChild('timestamp').limitToLast(50)
-        handler = query.on('value', snapshot => {
-          if (!live) return
-          const rows = Object.entries(snapshot.val() || {}).map(([id, value]) => ({ id, ...value }))
-            .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-          setActivity(rows)
-          setActivityStatus(rows.length ? 'Live · latest 50 events' : 'Connected · no actions recorded yet')
-        }, err => {
-          if (!live) return
-          setActivityStatus('Read failed')
-          setActivityError(err.message || 'Could not read activity log.')
-        })
-      } catch (err) {
-        if (live) {
-          setActivityStatus('Unavailable')
-          setActivityError(err.message || 'Could not connect to activity log.')
-        }
-      }
-    })()
-    return () => { live = false; if (query && handler) query.off('value', handler) }
-  }, [admin])
-  useEffect(() => {
     const updateStatus = event => setVisitorConnection(event.detail || window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for browser heartbeat…' })
     window.addEventListener('apml:visitor-tracker-status', updateStatus)
     if (window.__apmlVisitorTrackerStatus) setVisitorConnection(window.__apmlVisitorTrackerStatus)
@@ -304,12 +270,7 @@ export default function Analytics() {
     </section>
 
 
-    {admin && <section id="an-audit-trail" className="an-section-block an-bento-audit">
-      <div className="an-section-heading"><div><span>05 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review file names, folders, file sizes, user labels and exact timestamps for recorded actions. Older entries may not contain every detail. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
-      <div className="an-audit-card"><div className="an-audit-toolbar"><span>{activityStatus} · time shown in India locale</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
-        {activityError ? <div className="an-empty an-audit-empty">{activityError}</div> : filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.fileName || row.item, row.folder ? 'Folder: ' + row.folder : '', row.details].filter(Boolean).join(' · ')}</span><div className="an-activity-meta"><small><Users size={11} /> {row.user || 'Guest'}</small>{row.fileSize != null && <small>{formatBytes(row.fileSize)}</small>}{row.fileType && <small>{row.fileType}</small>}</div></div><time title={row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'medium' }) : ''}>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
-      </div>
-    </section>}
+    }
     </div>
 
     <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Visitor intelligence uses approximate Cloudflare data; activity metrics reflect recorded PDFs and Drive/Gallery downloads.</p></footer>
