@@ -47,6 +47,8 @@ export default function Analytics() {
   const [customEnd, setCustomEnd] = useState('')
   const [customOpen, setCustomOpen] = useState(false)
   const [activity, setActivity] = useState([])
+  const [activityStatus, setActivityStatus] = useState('Waiting for admin access')
+  const [activityError, setActivityError] = useState('')
   const [activityFilter, setActivityFilter] = useState('All')
   const [visitorStats, setVisitorStats] = useState(null)
   const [visitorError, setVisitorError] = useState('')
@@ -91,20 +93,39 @@ export default function Analytics() {
   }, [])
 
   useEffect(() => {
-    let ref, handler, live = true
+    let query, handler, live = true
+    if (!admin) {
+      setActivity([])
+      setActivityStatus('Admin access required')
+      return () => { live = false }
+    }
+    setActivityStatus('Connecting to activity log…')
+    setActivityError('')
     ; (async () => {
       try {
         const db = await getApmlDatabase()
         if (!live) return
-        ref = db.ref('Analytics page/recent_actions')
-        handler = ref.orderByChild('timestamp').limitToLast(50).on('value', snapshot => {
+        query = db.ref('Analytics page/recent_actions').orderByChild('timestamp').limitToLast(50)
+        handler = query.on('value', snapshot => {
           if (!live) return
-          setActivity(Object.entries(snapshot.val() || {}).map(([id, value]) => ({ id, ...value })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)))
-        }, err => console.warn('Activity log listener:', err.message))
-      } catch (err) { console.warn('Activity log unavailable:', err.message) }
+          const rows = Object.entries(snapshot.val() || {}).map(([id, value]) => ({ id, ...value }))
+            .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+          setActivity(rows)
+          setActivityStatus(rows.length ? 'Live · latest 50 events' : 'Connected · no actions recorded yet')
+        }, err => {
+          if (!live) return
+          setActivityStatus('Read failed')
+          setActivityError(err.message || 'Could not read activity log.')
+        })
+      } catch (err) {
+        if (live) {
+          setActivityStatus('Unavailable')
+          setActivityError(err.message || 'Could not connect to activity log.')
+        }
+      }
     })()
-    return () => { live = false; if (ref && handler) ref.off('value', handler) }
-  }, [])
+    return () => { live = false; if (query && handler) query.off('value', handler) }
+  }, [admin])
   useEffect(() => {
     const updateStatus = event => setVisitorConnection(event.detail || window.__apmlVisitorTrackerStatus || { state: 'connecting', message: 'Waiting for browser heartbeat…' })
     window.addEventListener('apml:visitor-tracker-status', updateStatus)
@@ -271,7 +292,8 @@ export default function Analytics() {
     {error && <div className="an-error"><b>Unable to load analytics</b><span>{error}</span><button onClick={load}>Retry</button></div>}
     {busy && !logs && <div className="an-loading"><i /><i /><i /><i /></div>}
 
-    <section className="an-section-block">
+    <div className="an-dashboard-bento">
+    <section className="an-section-block an-bento-snapshot">
       <div className="an-section-heading"><div><span>01 / PERFORMANCE SNAPSHOT</span><h2>The numbers that matter</h2></div><p>{selected.length} calendar days · {activeDays} active days</p></div>
       <div className="an-stats-grid">
         <StatCard icon={Zap} label="Total recorded actions" value={number(combined)} detail={number(average) + ' average actions per day'} tone="total" trend="IN THIS PERIOD" />
@@ -280,7 +302,7 @@ export default function Analytics() {
       </div>
     </section>
 
-    <section className="an-section-block">
+    <section className="an-section-block an-bento-trends">
       <div className="an-section-heading"><div><span>02 / ACTIVITY TRENDS</span><h2>Usage over time</h2></div><div className="an-peak-chip"><TrendingIcon /> {peak && peak.pdf + peak.media ? 'Peak · ' + fullDate(peak.key) : 'Waiting for activity'}</div></div>
       <div className="an-chart-card"><div className="an-chart-top"><div><b>Portal activity &amp; visits</b><span>Visits, quotation PDFs and Drive/Gallery downloads · visitor data shown where recorded</span></div><span className="an-chart-total">{number(combined)} <small>PDFs + downloads</small></span></div><div className="an-chart">{selected.length ? <Line data={chartData} options={{ ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
       <div className="an-insight-strip">
@@ -290,7 +312,7 @@ export default function Analytics() {
       </div>
     </section>
 
-    <section className="an-section-block an-intelligence-block">
+    <section className="an-section-block an-intelligence-block an-bento-intelligence">
       <div className="an-section-heading"><div><span>03 / VISITOR INTELLIGENCE</span><h2>Understand your audience</h2></div><span className="an-planned-label">{visitorConnection.state === 'connected' ? 'COLLECTOR REACHED' : visitorConnection.state === 'error' ? 'COLLECTOR ERROR' : 'CONNECTING'}</span></div>
       <div className="an-visitor-overview">
                 <div className="an-visitor-data">
@@ -316,18 +338,19 @@ export default function Analytics() {
       </div>
     </section>
 
-    <section className="an-section-block">
+    <section className="an-section-block an-bento-calendar">
       <div className="an-section-heading"><div><span>04 / ACTIVITY CALENDAR</span><h2>Your year in activity</h2></div><p>Daily activity intensity · last 365 days</p></div>
       <div className="an-heat-card"><div className="an-heat-legend"><span>Less</span><i /><i /><i /><i /><span>More</span></div><div className="an-heat-scroll"><div className="an-heat-calendar"><div className="an-heat-days"><span /><span>Mon</span><span /><span>Wed</span><span /><span>Fri</span><span /></div><div className="an-heat-months">{heatmap.monthLabels.map((month, index) => <span key={index}>{month}</span>)}</div><div className="an-heat-grid">{heatmapWeeks.map((week, wi) => <div className="an-heat-week" key={wi}>{week.map((day, di) => day ? <span key={day.key} className="an-heat-cell" style={{ '--level': day.total ? Math.max(.14, day.total / maxHeat) : 0 }} title={fullDate(day.key) + ': ' + day.pdf + ' PDFs · ' + day.media + ' downloads'} /> : <span key={'blank-' + wi + '-' + di} className="an-heat-cell an-heat-blank" />)}</div>)}</div></div></div><div className="an-heat-foot"><span>365 days</span><span>Each square represents one day</span></div></div>
     </section>
 
 
-    <section id="an-audit-trail" className="an-section-block">
+    {admin && <section id="an-audit-trail" className="an-section-block an-bento-audit">
       <div className="an-section-heading"><div><span>05 / ADMIN AUDIT TRAIL</span><h2>Recent Activity &amp; Audit Logs</h2><p>Review file names, folders, file sizes, user labels and exact timestamps for recorded actions. Older entries may not contain every detail. This is an action log, not a complete record of every click or visit.</p></div><span className="an-audit-count">{activity.length} / 50 events</span></div>
-      <div className="an-audit-card"><div className="an-audit-toolbar"><span>Latest recorded actions · time shown in India locale</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
-        {filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.fileName || row.item, row.folder ? 'Folder: ' + row.folder : '', row.details].filter(Boolean).join(' · ')}</span><div className="an-activity-meta"><small><Users size={11} /> {row.user || 'Guest'}</small>{row.fileSize != null && <small>{formatBytes(row.fileSize)}</small>}{row.fileType && <small>{row.fileType}</small>}</div></div><time title={row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'medium' }) : ''}>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
+      <div className="an-audit-card"><div className="an-audit-toolbar"><span>{activityStatus} · time shown in India locale</span><select value={activityFilter} onChange={event => setActivityFilter(event.target.value)}>{modules.map(module => <option key={module} value={module}>{module === 'All' ? 'All modules' : module}</option>)}</select></div>
+        {activityError ? <div className="an-empty an-audit-empty">{activityError}</div> : filteredActivity.length ? <div className="an-activity-list">{filteredActivity.map(row => <article className="an-activity-row" key={row.id}><span className="an-activity-mark"><Activity size={15} /></span><div className="an-activity-copy"><b>{row.action || 'Activity recorded'}</b><span>{[row.module, row.fileName || row.item, row.folder ? 'Folder: ' + row.folder : '', row.details].filter(Boolean).join(' · ')}</span><div className="an-activity-meta"><small><Users size={11} /> {row.user || 'Guest'}</small>{row.fileSize != null && <small>{formatBytes(row.fileSize)}</small>}{row.fileType && <small>{row.fileType}</small>}</div></div><time title={row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'medium' }) : ''}>{row.timestamp ? new Date(row.timestamp).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}</time></article>)}</div> : <div className="an-empty an-audit-empty">No recorded actions yet.</div>}
       </div>
-    </section>
+    </section>}
+    </div>
 
     <footer className="an-footer"><span>APML PORTAL <i>·</i> ANALYTICS</span><p>Metrics are sourced from Firebase. PDF generation and Drive/Gallery downloads are counted separately. Recent Activity shows the latest 50 instrumented actions, not every click or page view.</p></footer>
   </main>
