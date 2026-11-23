@@ -361,7 +361,7 @@ export default function Gallery() {
   }
   async function move(item, folder) {
     try {
-      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder })
+      await window.firebase.database().ref(`apml_ranked_gallery/${item.key}`).update({ folder, trashedAt: folder === 'deleted' ? Date.now() : null })
       void logApmlAction({action:folder==='deleted'?'Media moved to trash':'Media moved',module:'Gallery',item:item.name||'Media',details:folder})
       await driveToast(folder === 'deleted' ? 'Media moved to trash' : 'Media moved')
     } catch (error) { await driveAlert('Could not move media', error.message, 'error') }
