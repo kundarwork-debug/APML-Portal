@@ -364,39 +364,31 @@ async function purgeExpiredTrash(env) {
     if (failed) throw new Error(failed.error || `Cloudinary deletion failed (HTTP ${failed.status}); expired records were retained.`);
   }
 
-  // Persist legacy timestamps and only remove metadata after Cloudinary confirms
-  // deletion (or the asset is an external/non-Cloudinary URL).
-  const patchCollection = async (path, patch) => {
-    if (!Object.keys(patch).length) return;
-    const response = await fetch(`${base}/${path}.json`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch)
-    });
-    if (!response.ok) throw new Error(`Could not update Firebase ${path} (HTTP ${response.status}).`);
+  // Apply all timestamp and deletion changes in one atomic Firebase multi-path PATCH.
+  // Metadata is only removed after the Cloudinary deletion above succeeds.
+  const rootPatch = {};
+  const addCollectionPatch = (path, values) => {
+    if (!Object.keys(values).length) return;
+    rootPatch[path] = values;
   };
-  const deleteCollection = async (path, keys) => {
-    if (!keys.size) return;
-    const patch = {};
-    keys.forEach(key => { patch[key] = null; });
-    const response = await fetch(`${base}/${path}.json`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patch)
-    });
-    if (!response.ok) throw new Error(`Could not purge Firebase ${path} (HTTP ${response.status}).`);
-  };
+  const folderPatch = { ...folderStamps };
+  const filePatch = { ...fileStamps };
+  const galleryPatch = { ...galleryStamps };
+  folderDeletes.forEach(key => { folderPatch[key] = null; });
+  fileDeletes.forEach(key => { filePatch[key] = null; });
+  galleryDeletes.forEach(key => { galleryPatch[key] = null; });
+  addCollectionPatch('catbox_gdrive_folders', folderPatch);
+  addCollectionPatch('catbox_gdrive_files', filePatch);
+  addCollectionPatch('apml_ranked_gallery', galleryPatch);
 
-  await Promise.all([
-    patchCollection('catbox_gdrive_folders', folderStamps),
-    patchCollection('catbox_gdrive_files', fileStamps),
-    patchCollection('apml_ranked_gallery', galleryStamps)
-  ]);
-  await Promise.all([
-    deleteCollection('catbox_gdrive_folders', folderDeletes),
-    deleteCollection('catbox_gdrive_files', fileDeletes),
-    deleteCollection('apml_ranked_gallery', galleryDeletes)
-  ]);
+  if (Object.keys(rootPatch).length) {
+    const response = await fetch(`${base}/.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rootPatch)
+    });
+    if (!response.ok) throw new Error(`Could not apply Trash retention changes in Firebase (HTTP ${response.status}).`);
+  }
 
   return {
     driveFoldersDeleted: folderDeletes.size,
