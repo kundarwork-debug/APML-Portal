@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Line } from 'react-chartjs-2'
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
 import { FileText, Download, RefreshCw } from 'lucide-react'
 import './Analytics.css'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
 const API_URL = 'https://apml-drive-api.kundar-work.workers.dev/nova/analytics'
 const fmt = value => new Intl.NumberFormat('en-IN').format(Number(value) || 0)
@@ -36,6 +40,52 @@ export default function Analytics() {
 
   const totals = data?.totals || {}
   const daily = (data?.daily || []).slice().reverse()
+  const chartData = {
+    labels: daily.map(row => new Date(row.date + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })),
+    datasets: [
+      {
+        label: 'PDF generated',
+        data: daily.map(row => Number(row.pdf) || 0),
+        borderColor: '#b4232c',
+        backgroundColor: 'rgba(180, 35, 44, 0.10)',
+        pointBackgroundColor: '#b4232c',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: daily.length > 45 ? 0 : 3,
+        pointHoverRadius: 6,
+        borderWidth: 2.8,
+        tension: 0.42,
+        fill: true
+      },
+      {
+        label: 'Media downloaded',
+        data: daily.map(row => Number(row.media) || 0),
+        borderColor: '#3977c8',
+        backgroundColor: 'rgba(57, 119, 200, 0.08)',
+        pointBackgroundColor: '#3977c8',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: daily.length > 45 ? 0 : 3,
+        pointHoverRadius: 6,
+        borderWidth: 2.8,
+        tension: 0.42,
+        fill: true
+      }
+    ]
+  }
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'top', align: 'end', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7, padding: 18, color: '#746f69', font: { family: 'Plus Jakarta Sans, sans-serif', size: 11, weight: '600' } } },
+      tooltip: { backgroundColor: '#242424', padding: 12, cornerRadius: 9, titleFont: { size: 11, weight: '700' }, bodyFont: { size: 11 }, displayColors: true }
+    },
+    scales: {
+      x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8a837c', maxTicksLimit: 8, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
+      y: { beginAtZero: true, border: { display: false, dash: [3, 4] }, grid: { color: 'rgba(120, 110, 100, 0.10)' }, ticks: { precision: 0, color: '#8a837c', padding: 9, font: { size: 10 } } }
+    }
+  }
 
   return <main className="analytics-page analytics-simple">
     <header className="analytics-head">
@@ -72,6 +122,15 @@ export default function Analytics() {
         <strong>{fmt(totals.media)}</strong>
         <small>{fmt(totals.totalMediaLifetime)} lifetime downloaded</small>
       </article>
+    </section>
+
+    <section className="analytics-panel analytics-chart-panel">
+      <div className="analytics-panel-head">
+        <div><h2>Download activity</h2><p>Daily trend across the selected period, with smooth curves for both metrics.</p></div>
+      </div>
+      <div className="analytics-chart-wrap">
+        {daily.length ? <Line data={chartData} options={chartOptions} /> : <div className="analytics-chart-empty">No download activity recorded in this period.</div>}
+      </div>
     </section>
 
     <section className="analytics-panel">
