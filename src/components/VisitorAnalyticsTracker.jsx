@@ -1,22 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { getApmlPresenceServices } from '../lib/firebase'
 
-const makeId = () => window.crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2))
+const VISITOR_API = 'https://apml-drive-api.kundar-work.workers.dev/visitor/collect'
+const makeId = () => {
+  const value = window.crypto?.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2))
+  return value.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80)
+}
 const safePage = value => String(value || '/').split('?')[0].split('#')[0].slice(0, 120) || '/'
-const pageKey = page => encodeURIComponent(page).replace(/\//g, '%2F').replace(/\./g, '%2E')
-const dateKey = () => {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
-  const values = Object.fromEntries(parts.map(part => [part.type, part.value]))
-  return values.year + '-' + values.month + '-' + values.day
-}
-const browserInfo = () => {
-  const ua = navigator.userAgent || ''
-  const browser = /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Other'
-  const os = /Android/.test(ua) ? 'Android' : /iPhone|iPad|iPod/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac OS/.test(ua) ? 'macOS' : /CrOS/.test(ua) ? 'ChromeOS' : /Linux/.test(ua) ? 'Linux' : 'Other'
-  const device = /iPad|Tablet/.test(ua) ? 'Tablet' : /Mobi|Android|iPhone/.test(ua) ? 'Mobile' : 'Desktop'
-  return { browser, os, device }
-}
 function publishStatus(detail) {
   const status = { ...detail, checkedAt: Date.now() }
   window.__apmlVisitorTrackerStatus = status
@@ -25,97 +15,104 @@ function publishStatus(detail) {
 
 export default function VisitorAnalyticsTracker() {
   const location = useLocation()
-  const service = useRef(null)
   const sessionRef = useRef(null)
-  const lastPage = useRef('')
-  const lastTick = useRef(Date.now())
+  const lastSentAt = useRef(Date.now())
   const ready = useRef(false)
+  const lastPage = useRef('')
 
   useEffect(() => {
     let active = true
     let heartbeat = null
-    const start = async () => {
+    let sessionId
+    let startedAt
+    try {
+      sessionId = sessionStorage.getItem('apml-cloudflare-visitor-session')
+      if (!sessionId) {
+        sessionId = makeId()
+        sessionStorage.setItem('apml-cloudflare-visitor-session', sessionId)
+      }
+      const savedStart = Number(sessionStorage.getItem('apml-cloudflare-visitor-started-at'))
+      startedAt = savedStart > 0 ? savedStart : Date.now()
+      sessionStorage.setItem('apml-cloudflare-visitor-started-at', String(startedAt))
+    } catch {
+      sessionId = makeId()
+      startedAt = Date.now()
+    }
+    sessionRef.current = { sessionId, startedAt }
+
+    const send = async (page, pageView, seconds = 0) => {
+      if (!active || !sessionRef.current) return
       try {
-        publishStatus({ state: 'sending', message: 'Connecting to Firebase visitor records…' })
-        const presence = await getApmlPresenceServices()
-        if (!active) return
-        service.current = presence
-        let sessionId
-        try { sessionId = sessionStorage.getItem('apml-firebase-visitor-session') } catch {}
-        if (!sessionId) {
-          sessionId = makeId()
-          try { sessionStorage.setItem('apml-firebase-visitor-session', sessionId) } catch {}
-        }
-        const startedAt = Date.now()
-        const info = browserInfo()
-        sessionRef.current = presence.database.ref('visitor_intelligence/sessions/' + presence.user.uid + '/' + sessionId)
-        await sessionRef.current.onDisconnect().update({ online: false, lastSeen: window.firebase.database.ServerValue.TIMESTAMP })
-        const dailyRef = presence.database.ref('visitor_intelligence/daily/' + dateKey() + '/' + presence.user.uid)
-        const VISIT_LOCK_MS = 30 * 60 * 1000
-        const visitNow = Date.now()
-        await dailyRef.transaction(value => {
-          const previous = value && typeof value === 'object' ? value : {}
-          const lastCountedAt = Number(previous.lastCountedAt) || 0
-          const visits = Number(previous.visits) || (value === true ? 1 : 0)
-          if (visitNow - lastCountedAt < VISIT_LOCK_MS && lastCountedAt > 0) return previous
-          return { visits: visits + 1, lastCountedAt: visitNow, firstSeenAt: Number(previous.firstSeenAt) || visitNow }
+        const response = await fetch(VISITOR_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: sessionRef.current.sessionId,
+            startedAt: sessionRef.current.startedAt,
+            page: safePage(page),
+            pageView: !!pageView,
+            seconds: Math.min(120, Math.max(0, Math.floor(seconds)))
+          }),
+          cache: 'no-store',
+          keepalive: true
         })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok || result.ok !== true) throw new Error(result.error || 'Cloudflare visitor collection failed (' + response.status + ').')
+        if (!active) return
         ready.current = true
-        lastTick.current = Date.now()
-        publishStatus({ state: 'connected', message: 'Firebase visitor collection is active.', backend: 'firebase' })
-        const updatePage = async page => {
-          if (!ready.current || !sessionRef.current) return
-          const now = Date.now()
-          await sessionRef.current.transaction(current => ({
-            startedAt: Number(current?.startedAt) || startedAt,
-            lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
-            online: true,
-            currentPage: page,
-            pageViews: (Number(current?.pageViews) || 0) + 1,
-            pages: { ...(current?.pages || {}), [pageKey(page)]: (Number(current?.pages?.[pageKey(page)]) || 0) + 1 },
-            totalSeconds: Number(current?.totalSeconds) || 0,
-            ...info
-          }))
-          lastPage.current = page
-          lastTick.current = now
-          publishStatus({ state: 'connected', message: 'Visitor session saved to Firebase.', backend: 'firebase' })
-        }
-        window.__apmlRecordVisitorPage = updatePage
-        const initialPage = safePage(window.location.pathname)
-        await updatePage(initialPage)
-        heartbeat = window.setInterval(async () => {
-          if (!ready.current || !sessionRef.current) return
-          const now = Date.now()
-          const elapsed = Math.min(90, Math.max(0, Math.round((now - lastTick.current) / 1000)))
-          lastTick.current = now
-          try {
-            await sessionRef.current.transaction(current => current ? {
-              ...current,
-              lastSeen: window.firebase.database.ServerValue.TIMESTAMP,
-              online: true,
-              totalSeconds: (Number(current.totalSeconds) || 0) + elapsed
-            } : current)
-          } catch (error) {
-            publishStatus({ state: 'error', message: error?.message || 'Firebase heartbeat could not be saved.' })
-          }
-        }, 30000)
+        lastSentAt.current = Date.now()
+        lastPage.current = safePage(page)
+        publishStatus({
+          state: 'connected',
+          message: result.ignored ? 'Automated or unidentified client excluded from visitor totals.' : 'Cloudflare visitor collection is active; approximate location is derived at the edge.',
+          backend: 'cloudflare',
+          ignored: result.ignored || null
+        })
       } catch (error) {
-        publishStatus({ state: 'error', message: error?.message || 'Firebase visitor collection failed.' })
+        if (active) publishStatus({ state: 'error', message: error?.message || 'Cloudflare visitor collection failed.' })
       }
     }
-    start()
+
+    const initialPage = safePage(window.location.pathname)
+    publishStatus({ state: 'sending', message: 'Connecting to privacy-preserving visitor collection…' })
+    send(initialPage, true, 0)
+    heartbeat = window.setInterval(() => {
+      if (!active) return
+      const now = Date.now()
+      const elapsed = Math.min(120, Math.max(0, Math.floor((now - lastSentAt.current) / 1000)))
+      send(lastPage.current || safePage(window.location.pathname), false, elapsed)
+    }, 30000)
+
     return () => {
       active = false
       ready.current = false
       if (heartbeat) window.clearInterval(heartbeat)
-      delete window.__apmlRecordVisitorPage
     }
   }, [])
 
   useEffect(() => {
     const page = safePage(location.pathname)
     if (page === lastPage.current) return
-    if (window.__apmlRecordVisitorPage) window.__apmlRecordVisitorPage(page).catch(error => publishStatus({ state: 'error', message: error?.message || 'Could not save page view.' }))
+    if (sessionRef.current) {
+      const elapsed = Math.min(120, Math.max(0, Math.floor((Date.now() - lastSentAt.current) / 1000)))
+      // The first route is sent by the session bootstrap effect.
+      if (lastPage.current) {
+        const sessionId = sessionRef.current.sessionId
+        fetch(VISITOR_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, startedAt: sessionRef.current.startedAt, page, pageView: true, seconds: elapsed }),
+          cache: 'no-store',
+          keepalive: true
+        }).then(async response => {
+          const result = await response.json().catch(() => ({}))
+          if (!response.ok || result.ok !== true) throw new Error(result.error || 'Could not save visitor page view.')
+          lastSentAt.current = Date.now()
+          lastPage.current = page
+          publishStatus({ state: 'connected', message: 'Visitor session and approximate location saved by Cloudflare.', backend: 'cloudflare' })
+        }).catch(error => publishStatus({ state: 'error', message: error?.message || 'Could not save visitor page view.' }))
+      }
+    }
   }, [location.pathname])
 
   return null
