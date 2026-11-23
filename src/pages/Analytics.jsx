@@ -78,7 +78,7 @@ export default function Analytics() {
   useEffect(() => { loadReport() }, [loadReport])
 
   const totals = data?.totals || {}
-  const daily = (data?.daily || []).slice().reverse()
+  const daily = data?.daily || []
   const chartData = {
     labels: daily.map(row => new Date(row.date + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })),
     datasets: [
@@ -139,7 +139,7 @@ export default function Analytics() {
       tooltip: { backgroundColor: '#242424', padding: 12, cornerRadius: 9, titleFont: { size: 11, weight: '700' }, bodyFont: { size: 11 }, displayColors: true }
     },
     scales: {
-      x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8a837c', maxTicksLimit: 8, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
+      x: { type: 'category', reverse: false, grid: { display: false }, border: { display: false }, ticks: { color: '#8a837c', maxTicksLimit: 8, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
       y: { beginAtZero: true, border: { display: false, dash: [3, 4] }, grid: { color: 'rgba(120, 110, 100, 0.10)' }, ticks: { precision: 0, color: '#8a837c', padding: 9, font: { size: 10 } } }
     }
   }
