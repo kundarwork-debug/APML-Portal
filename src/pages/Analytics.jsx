@@ -49,7 +49,7 @@
           if(!live)return
           const all=[]
           Object.entries(sessions||{}).forEach(([uid,rows])=>Object.entries(rows||{}).forEach(([id,row])=>all.push({...row,uid,id})))
-          const cutoff=Date.now()-90*86400000, recent=all.filter(row=>Number(row.startedAt)>=cutoff)
+          const recent=all.filter(row=>Number(row.startedAt)>=Date.now()-90*86400000)
           const today=Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())
           const unique=new Set(recent.map(row=>row.uid)), visitorsToday=Object.keys(daily?.[today]||{}).length
           const pageMap={}, deviceMap={}, browserMap={}, hours=Array.from({length:24},(_,hour)=>({hour,count:0})), dayMap={}
