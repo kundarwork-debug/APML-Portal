@@ -2402,13 +2402,6 @@ export default {
 
     if (request.method === 'GET' && path === '/storage-audit') return await handleStorageAudit(request, env);
 
-    if (request.method === 'POST' && path === '/visitor/location') {
-      const origin = request.headers.get('Origin') || '';
-      if (origin && !CONFIG.ALLOWED_ORIGINS.includes(origin)) return json({ ok: false, error: 'Origin not allowed' }, 403);
-      const cf = request.cf || {};
-      const clean = value => String(value || '').replace(/[\\u0000-\\u001f\\u007f]/g, '').trim().slice(0, 80);
-      return json({ ok: true, city: clean(cf.city), region: clean(cf.region), country: clean(cf.country).slice(0, 2), approximate: true });
-    }
     if (request.method === 'POST' && path === '/visitor/collect') return await handleVisitorCollect(request, env);
 
     if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
