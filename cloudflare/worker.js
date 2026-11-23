@@ -265,6 +265,148 @@ async function trimQuotations(env) {
 
 }
 
+
+const TRASH_RETENTION_MS = 60 * 24 * 60 * 60 * 1000;
+
+// Hourly retention sweep for APML Drive and Gallery Trash Archive.
+// Missing trashedAt values are stamped on first sweep so legacy trash receives
+// a full 60-day grace period after this feature is deployed.
+async function purgeExpiredTrash(env) {
+  const base = CONFIG.FIREBASE_DB_URL;
+  const now = Date.now();
+  const cutoff = now - TRASH_RETENTION_MS;
+  const [folderResponse, fileResponse, galleryResponse] = await Promise.all([
+    fetch(`${base}/catbox_gdrive_folders.json`),
+    fetch(`${base}/catbox_gdrive_files.json`),
+    fetch(`${base}/apml_ranked_gallery.json`)
+  ]);
+  if (!folderResponse.ok || !fileResponse.ok || !galleryResponse.ok) {
+    throw new Error('Could not read all Drive and Gallery records; nothing was purged.');
+  }
+  const folders = (await folderResponse.json()) || {};
+  const files = (await fileResponse.json()) || {};
+  const gallery = (await galleryResponse.json()) || {};
+
+  const folderStamps = {};
+  const fileStamps = {};
+  const galleryStamps = {};
+  const folderDeletes = new Set();
+  const fileDeletes = new Set();
+  const galleryDeletes = new Set();
+  const cloudinaryUrls = [];
+
+  // A trashed folder owns its complete nested tree. Descendants that were
+  // independently moved to Trash are connected through prevParentId.
+  for (const [key, folder] of Object.entries(folders)) {
+    if (!folder || folder.parentId !== 'deleted') continue;
+    const trashedAt = Number(folder.trashedAt) || 0;
+    if (!trashedAt) {
+      folderStamps[key] = { trashedAt: now };
+      continue;
+    }
+    if (trashedAt > cutoff) continue;
+
+    const tree = new Set([key]);
+    const queue = [key];
+    while (queue.length) {
+      const parentKey = queue.pop();
+      for (const [childKey, child] of Object.entries(folders)) {
+        if (!child || tree.has(childKey)) continue;
+        const belongs = child.parentId === parentKey ||
+          (child.parentId === 'deleted' && child.prevParentId === parentKey);
+        if (belongs) {
+          tree.add(childKey);
+          queue.push(childKey);
+        }
+      }
+    }
+    tree.forEach(folderKey => folderDeletes.add(folderKey));
+    for (const [fileKey, file] of Object.entries(files)) {
+      if (!file) continue;
+      const parentKey = file.parentId === 'deleted' ? file.prevParentId : file.parentId;
+      if (tree.has(parentKey || 'root')) {
+        fileDeletes.add(fileKey);
+        if (file.fileId) cloudinaryUrls.push(file.fileId);
+      }
+    }
+  }
+
+  // Individual Drive files in Trash are aged from the time they were moved,
+  // never from their original upload timestamp.
+  for (const [key, file] of Object.entries(files)) {
+    if (!file || file.parentId !== 'deleted' || fileDeletes.has(key)) continue;
+    const trashedAt = Number(file.trashedAt) || 0;
+    if (!trashedAt) fileStamps[key] = { trashedAt: now };
+    else if (trashedAt <= cutoff) {
+      fileDeletes.add(key);
+      if (file.fileId) cloudinaryUrls.push(file.fileId);
+    }
+  }
+
+  // Gallery media uses the same 60-day Trash policy.
+  for (const [key, item] of Object.entries(gallery)) {
+    if (!item || item.folder !== 'deleted') continue;
+    const trashedAt = Number(item.trashedAt) || 0;
+    if (!trashedAt) galleryStamps[key] = { trashedAt: now };
+    else if (trashedAt <= cutoff) {
+      galleryDeletes.add(key);
+      if (item.url) cloudinaryUrls.push(item.url);
+    }
+  }
+
+  const parsedAssets = cloudinaryUrls.map(parseCloudinaryUrl).filter(Boolean);
+  if (parsedAssets.length && (!env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET)) {
+    throw new Error('Cloudinary credentials are missing; expired records were retained safely.');
+  }
+  if (parsedAssets.length) {
+    const results = await cloudinaryDelete(env, parsedAssets);
+    const failed = results.find(result => !result.ok);
+    if (failed) throw new Error(failed.error || `Cloudinary deletion failed (HTTP ${failed.status}); expired records were retained.`);
+  }
+
+  // Persist legacy timestamps and only remove metadata after Cloudinary confirms
+  // deletion (or the asset is an external/non-Cloudinary URL).
+  const patchCollection = async (path, patch) => {
+    if (!Object.keys(patch).length) return;
+    const response = await fetch(`${base}/${path}.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    });
+    if (!response.ok) throw new Error(`Could not update Firebase ${path} (HTTP ${response.status}).`);
+  };
+  const deleteCollection = async (path, keys) => {
+    if (!keys.size) return;
+    const patch = {};
+    keys.forEach(key => { patch[key] = null; });
+    const response = await fetch(`${base}/${path}.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    });
+    if (!response.ok) throw new Error(`Could not purge Firebase ${path} (HTTP ${response.status}).`);
+  };
+
+  await Promise.all([
+    patchCollection('catbox_gdrive_folders', folderStamps),
+    patchCollection('catbox_gdrive_files', fileStamps),
+    patchCollection('apml_ranked_gallery', galleryStamps)
+  ]);
+  await Promise.all([
+    deleteCollection('catbox_gdrive_folders', folderDeletes),
+    deleteCollection('catbox_gdrive_files', fileDeletes),
+    deleteCollection('apml_ranked_gallery', galleryDeletes)
+  ]);
+
+  return {
+    driveFoldersDeleted: folderDeletes.size,
+    driveFilesDeleted: fileDeletes.size,
+    galleryItemsDeleted: galleryDeletes.size,
+    legacyTrashItemsStamped: Object.keys(folderStamps).length + Object.keys(fileStamps).length + Object.keys(galleryStamps).length,
+    cloudinaryAssetsRequested: parsedAssets.length
+  };
+}
+
 const TG_EMOJI = { pdf: '🧾', drive: '📥', gallery: '🖼️', visit: '🟢', bug: '🚨', error: '🧯' };
 
 
@@ -2376,7 +2518,20 @@ export default {
       return;
     }
 
-    // Existing hourly analytics summary.
+    // Hourly Trash retention sweep; keep the existing analytics summary.
+    if (event.cron === '0 * * * *') {
+      ctx.waitUntil((async () => {
+        try {
+          const result = await purgeExpiredTrash(env);
+          console.log('60-day Trash cleanup:', JSON.stringify(result));
+        } catch (error) {
+          console.error('60-day Trash cleanup failed:', error);
+        }
+        await sendHourlyAnalyticsSummary(env);
+      })());
+      return;
+    }
+
     ctx.waitUntil(sendHourlyAnalyticsSummary(env));
 
   },
