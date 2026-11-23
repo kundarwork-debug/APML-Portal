@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Line } from 'react-chartjs-2'
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js'
+import ReactApexChart from 'react-apexcharts'
 import { FileText, Download, RefreshCw } from 'lucide-react'
 import { getApmlDatabase } from '../lib/firebase'
 import './Analytics.css'
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
 const fmt = value => new Intl.NumberFormat('en-IN').format(Number(value) || 0)
 const dateKey = date => {
@@ -19,6 +16,7 @@ const getRangeStart = (days, endKey) => {
   return date.toISOString().slice(0, 10)
 }
 const dateLabel = value => new Date(value + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+const shortDateLabel = value => new Date(value + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })
 
 export default function Analytics() {
   const [data, setData] = useState(null)
@@ -79,70 +77,83 @@ export default function Analytics() {
 
   const totals = data?.totals || {}
   const daily = data?.daily || []
-  const chartData = {
-    labels: daily.map(row => new Date(row.date + 'T12:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })),
-    datasets: [
-      {
-        label: 'PDF generated',
-        data: daily.map(row => Number(row.pdf) || 0),
-        borderColor: '#b4232c',
-        backgroundColor: context => {
-          const { ctx, chartArea } = context.chart
-          if (!chartArea) return 'rgba(180, 35, 44, 0.08)'
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
-          gradient.addColorStop(0, 'rgba(180, 35, 44, 0.20)')
-          gradient.addColorStop(1, 'rgba(180, 35, 44, 0.005)')
-          return gradient
-        },
-        pointBackgroundColor: '#b4232c',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: daily.length > 45 ? 0 : 3,
-        pointHoverRadius: 6,
-        borderWidth: 2.8,
-        tension: 0.42,
-        cubicInterpolationMode: 'monotone',
-        spanGaps: true,
-        fill: true
-      },
-      {
-        label: 'Media downloaded',
-        data: daily.map(row => Number(row.media) || 0),
-        borderColor: '#3977c8',
-        backgroundColor: context => {
-          const { ctx, chartArea } = context.chart
-          if (!chartArea) return 'rgba(57, 119, 200, 0.07)'
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
-          gradient.addColorStop(0, 'rgba(57, 119, 200, 0.16)')
-          gradient.addColorStop(1, 'rgba(57, 119, 200, 0.005)')
-          return gradient
-        },
-        pointBackgroundColor: '#3977c8',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: daily.length > 45 ? 0 : 3,
-        pointHoverRadius: 6,
-        borderWidth: 2.8,
-        tension: 0.42,
-        fill: true
-      }
-    ]
-  }
   const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: { duration: 650, easing: 'easeOutQuart' },
-    layout: { padding: { top: 4, right: 8, bottom: 0, left: 2 } },
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { position: 'top', align: 'end', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7, boxHeight: 7, padding: 18, color: '#746f69', font: { family: 'Plus Jakarta Sans, sans-serif', size: 11, weight: '600' } } },
-      tooltip: { backgroundColor: '#242424', padding: 12, cornerRadius: 9, titleFont: { size: 11, weight: '700' }, bodyFont: { size: 11 }, displayColors: true }
+    chart: {
+      type: 'area',
+      height: '100%',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      fontFamily: 'Plus Jakarta Sans, DM Sans, sans-serif',
+      foreColor: '#8a837c',
+      animations: { enabled: true, easing: 'easeinout', speed: 650 }
     },
-    scales: {
-      x: { type: 'category', reverse: false, grid: { display: false }, border: { display: false }, ticks: { color: '#8a837c', maxTicksLimit: 8, maxRotation: 0, autoSkip: true, font: { size: 10 } } },
-      y: { beginAtZero: true, border: { display: false, dash: [3, 4] }, grid: { color: 'rgba(120, 110, 100, 0.10)' }, ticks: { precision: 0, color: '#8a837c', padding: 9, font: { size: 10 } } }
-    }
+    colors: ['#b4232c', '#3977c8'],
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 3, lineCap: 'round' },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shadeIntensity: 0.35,
+        opacityFrom: 0.20,
+        opacityTo: 0.015,
+        stops: [0, 90, 100]
+      }
+    },
+    markers: {
+      size: daily.length > 45 ? 0 : 3,
+      strokeWidth: 2,
+      strokeColors: '#fff',
+      hover: { size: 6 }
+    },
+    legend: {
+      show: true,
+      position: 'top',
+      horizontalAlign: 'right',
+      fontSize: '11px',
+      fontWeight: 600,
+      markers: { width: 8, height: 8, radius: 8 },
+      itemMargin: { horizontal: 10, vertical: 4 }
+    },
+    grid: {
+      borderColor: 'rgba(120, 110, 100, 0.12)',
+      strokeDashArray: 4,
+      padding: { top: 2, right: 8, bottom: 0, left: 4 }
+    },
+    xaxis: {
+      categories: daily.map(row => shortDateLabel(row.date)),
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      tickAmount: 8,
+      labels: { rotate: 0, hideOverlappingLabels: true, style: { fontSize: '10px' } },
+      tooltip: { enabled: false }
+    },
+    yaxis: {
+      min: 0,
+      forceNiceScale: true,
+      decimalsInFloat: 0,
+      labels: { formatter: value => Math.round(value), style: { fontSize: '10px' } }
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      x: { formatter: (_, { dataPointIndex }) => daily[dataPointIndex] ? dateLabel(daily[dataPointIndex].date) : '' },
+      y: { formatter: value => fmt(value) }
+    },
+    noData: { text: 'No download activity recorded in this period.' },
+    responsive: [{
+      breakpoint: 650,
+      options: {
+        chart: { toolbar: { show: false } },
+        legend: { position: 'bottom', horizontalAlign: 'left' },
+        grid: { padding: { left: -4, right: 0 } },
+        xaxis: { tickAmount: 5 }
+      }
+    }]
   }
+  const chartSeries = [
+    { name: 'PDF generated', data: daily.map(row => Number(row.pdf) || 0) },
+    { name: 'Media downloaded', data: daily.map(row => Number(row.media) || 0) }
+  ]
 
   return <main className="analytics-page analytics-simple">
     <header className="analytics-head">
@@ -186,19 +197,19 @@ export default function Analytics() {
         <div><h2>Download activity</h2><p>Daily trend across the selected period, with smooth curves for both metrics.</p></div>
       </div>
       <div className="analytics-chart-wrap">
-        {daily.length ? <Line data={chartData} options={chartOptions} /> : <div className="analytics-chart-empty">No download activity recorded in this period.</div>}
+        {daily.length ? <ReactApexChart options={chartOptions} series={chartSeries} type="area" height="100%" /> : <div className="analytics-chart-empty">No download activity recorded in this period.</div>}
       </div>
     </section>
 
     <section className="analytics-panel">
       <div className="analytics-panel-head">
-        <div><h2>Daily downloads</h2><p>Only PDF generation and Drive / Gallery media downloads are included.</p></div>
+        <div><h2>Daily downloads</h2><p>Newest dates appear first. Only PDF generation and Drive / Gallery media downloads are included.</p></div>
       </div>
       <div className="analytics-table-wrap">
         <table>
           <thead><tr><th>Date</th><th>PDF generated</th><th>Media downloaded</th></tr></thead>
           <tbody>
-            {daily.length ? daily.map(row => <tr key={row.date}><td>{dateLabel(row.date)}</td><td>{fmt(row.pdf)}</td><td>{fmt(row.media)}</td></tr>) : <tr><td colSpan="3" className="analytics-empty-cell">No download activity recorded in this period.</td></tr>}
+            {daily.length ? [...daily].reverse().map(row => <tr key={row.date}><td>{dateLabel(row.date)}</td><td>{fmt(row.pdf)}</td><td>{fmt(row.media)}</td></tr>) : <tr><td colSpan="3" className="analytics-empty-cell">No download activity recorded in this period.</td></tr>}
           </tbody>
         </table>
       </div>
