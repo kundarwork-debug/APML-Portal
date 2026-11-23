@@ -237,11 +237,9 @@ export default function Analytics() {
   const maxHeat = Math.max(1, ...heatmapWeeks.flat().filter(Boolean).map(day => day.total))
   const modules = ['All', ...new Set(activity.map(row => row.module).filter(Boolean).sort())]
   const filteredActivity = activityFilter === 'All' ? activity : activity.filter(row => row.module === activityFilter)
-  const visitorDailyLookup = Object.fromEntries((visitorStats?.dailyVisitors || []).map(row => [row.date, Number(row.visitors) || 0]))
   const chartData = {
     labels: selected.map(row => labelDate(row.key)),
     datasets: [
-      { label: 'Visits', data: selected.map(row => Object.prototype.hasOwnProperty.call(visitorDailyLookup, row.key) ? visitorDailyLookup[row.key] : null), borderColor: '#a12a40', backgroundColor: 'rgba(161,42,64,.10)', tension: .36, fill: true, borderWidth: 2.5, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5, spanGaps: false },
       { label: 'PDFs generated', data: selected.map(row => row.pdf), borderColor: '#c58a43', backgroundColor: 'rgba(197,138,67,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 },
       { label: 'Drive/Gallery downloads', data: selected.map(row => row.media), borderColor: '#4387c9', backgroundColor: 'rgba(67,135,201,.08)', tension: .36, fill: false, borderWidth: 2, pointRadius: selected.length > 60 ? 0 : 2, pointHoverRadius: 5 }
     ]
@@ -304,7 +302,7 @@ export default function Analytics() {
 
     <section className="an-section-block an-bento-trends">
       <div className="an-section-heading"><div><span>02 / ACTIVITY TRENDS</span><h2>Usage over time</h2></div><div className="an-peak-chip"><TrendingIcon /> {peak && peak.pdf + peak.media ? 'Peak · ' + fullDate(peak.key) : 'Waiting for activity'}</div></div>
-      <div className="an-chart-card"><div className="an-chart-top"><div><b>Portal activity &amp; visits</b><span>Visits, quotation PDFs and Drive/Gallery downloads · visitor data shown where recorded</span></div><span className="an-chart-total">{number(combined)} <small>PDFs + downloads</small></span></div><div className="an-chart">{selected.length ? <Line data={chartData} options={{ ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
+      <div className="an-chart-card"><div className="an-chart-top"><div><b>PDFs &amp; Drive/Gallery downloads</b><span>Daily quotation PDFs generated and shared-file downloads</span></div><span className="an-chart-total">{number(combined)} <small>PDFs + downloads</small></span></div><div className="an-chart">{selected.length ? <Line data={chartData} options={{ ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: false }, y: { ...chartOptions.scales.y, beginAtZero: true } } }} /> : <div className="an-empty">No activity is recorded in this reporting window.</div>}</div></div>
       <div className="an-insight-strip">
         <div><span className="an-insight-icon"><ArrowUpRight size={16} /></span><small>BUSIEST DAY</small><b>{peak && peak.pdf + peak.media ? fullDate(peak.key) : '—'}</b></div>
         <div><span className="an-insight-icon blue"><Activity size={16} /></span><small>DAILY AVERAGE</small><b>{number(average)} actions</b></div>
