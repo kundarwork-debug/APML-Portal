@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Filler, Tooltip, Legend } from 'chart.js'
-import { getApmlDatabase, getApmlPresenceServices, ensureApmlAnalyticsStructure } from '../lib/firebase'
+import { getApmlDatabase, ensureApmlAnalyticsStructure } from '../lib/firebase'
 import { useApmlAdminAuth } from '../lib/firebaseAuth'
 import './Analytics.css'
 
@@ -138,64 +138,33 @@ export default function Analytics() {
     let interval
     const refreshVisitors = async () => {
       try {
-        const { database } = await getApmlPresenceServices()
-        const [dailySnap, sessionsSnap] = await Promise.all([
-          database.ref('visitor_intelligence/daily').once('value'),
-          database.ref('visitor_intelligence/sessions').once('value')
-        ])
-        const daily = dailySnap.val() || {}
-        const sessionsByUser = sessionsSnap.val() || {}
-        const end = new Date()
-        const start = new Date(end.getTime() - 89 * 86400000)
-        const dayKeys = Array.from({ length: 90 }, (_, index) => {
-          const day = new Date(start.getTime() + index * 86400000)
-          return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(day)
-        })
-        const dailyVisitCount = date => Object.values(daily[date] || {}).reduce((total, record) => total + (typeof record === 'object' && record !== null ? (Number(record.visits) || 0) : (record ? 1 : 0)), 0)
-        const dailyVisitors = dayKeys.map(date => ({ date, visitors: dailyVisitCount(date) }))
-        const totalVisits = dayKeys.reduce((total, date) => total + dailyVisitCount(date), 0)
-        const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
-        const todayCount = dailyVisitCount(today)
-        const sessions = Object.values(sessionsByUser).flatMap(userSessions => Object.values(userSessions || {}))
-        const now = Date.now()
-        const recentSessions = sessions.filter(session => Number(session.startedAt) >= start.getTime())
-        const activeNow = sessions.filter(session => session.online === true && now - Number(session.lastSeen) < 90000).length
-        const countBy = key => {
-          const counts = {}
-          recentSessions.forEach(session => { const name = session[key] || 'Other'; counts[name] = (counts[name] || 0) + 1 })
-          return Object.entries(counts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count)
-        }
-        const pages = {}
-        recentSessions.forEach(session => Object.entries(session.pages || {}).forEach(([pageKey, count]) => { let page = pageKey; try { page = decodeURIComponent(pageKey) } catch {} pages[page] = (pages[page] || 0) + (Number(count) || 0) }))
-        const topPages = Object.entries(pages).map(([name, views]) => ({ name, views })).sort((a, b) => b.views - a.views)
-        const pageViews = recentSessions.reduce((total, session) => total + (Number(session.pageViews) || 0), 0)
-        const averageSessionSeconds = recentSessions.length ? recentSessions.reduce((total, session) => total + (Number(session.totalSeconds) || 0), 0) / recentSessions.length : 0
-        const hourlyCounts = Array.from({ length: 24 }, (_, hour) => ({ hour, count: 0 }))
-        recentSessions.forEach(session => {
-          const timestamp = Number(session.startedAt)
-          if (!Number.isFinite(timestamp) || timestamp <= 0) return
-          const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hourCycle: 'h23' }).format(new Date(timestamp)))
-          if (Number.isInteger(hour) && hourlyCounts[hour]) hourlyCounts[hour].count += 1
+        const response = await fetch('https://apml-drive-api.kundar-work.workers.dev/nova/analytics?days=90', { cache: 'no-store' })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok || result.ok !== true) throw new Error(result.error || 'Cloudflare visitor analytics could not be loaded.')
+        const data = result.visitorIntelligence || {}
+        const hours = Array.from({ length: 24 }, (_, hour) => {
+          const match = (data.peakHours || []).find(item => Number(item.hour) === hour)
+          return { hour, count: Number(match?.count) || 0 }
         })
         if (live) {
           setVisitorStats({
-            visitors: totalVisits,
-            visitorsToday: todayCount,
-            activeNow,
-            pageViews,
-            sessionCount: recentSessions.length,
-            averageSessionSeconds,
-            dailyVisitors,
-            devices: countBy('device'),
-            browsers: countBy('browser'),
-            topPages,
-            hourlyActivity: hourlyCounts,
-            cities: []
+            visitors: Number(data.visitors) || 0,
+            visitorsToday: Number(data.visitorsToday) || 0,
+            activeNow: Number(data.activeNow) || 0,
+            pageViews: Number(data.pageViews) || 0,
+            sessionCount: Number(data.sessions) || 0,
+            averageSessionSeconds: Number(data.averageSessionSeconds) || 0,
+            dailyVisitors: data.dailyVisitors || [],
+            devices: data.devices || [],
+            browsers: data.browsers || [],
+            topPages: data.topPages || [],
+            hourlyActivity: hours,
+            cities: data.cities || []
           })
           setVisitorError('')
         }
       } catch (error) {
-        if (live) setVisitorError(error.message || 'Could not read visitor records from Firebase.')
+        if (live) setVisitorError(error.message || 'Could not read visitor intelligence from Cloudflare.')
       }
     }
     refreshVisitors()
@@ -253,6 +222,7 @@ export default function Analytics() {
   const visitorDaily = visitorStats?.dailyVisitors || []
   const pageRows = (visitorStats?.topPages || []).slice(0, 8)
   const browserRows = (visitorStats?.browsers || []).slice(0, 7)
+  const locationRows = (visitorStats?.cities || []).slice(0, 8)
   const deviceRows = visitorStats?.devices || []
   const hourlyRows = visitorStats?.hourlyActivity || []
   const visitorBarOptions = { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: chartOptions.plugins.tooltip }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(145,155,170,.12)' }, ticks: { color: '#8b929e', precision: 0 } }, y: { grid: { display: false }, ticks: { color: 'var(--text-muted)', autoSkip: false } } } }
@@ -324,8 +294,9 @@ export default function Analytics() {
             <div><b>Top devices</b>{visitorStats?.devices?.length ? visitorStats.devices.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for device data</small>}</div>
             <div><b>Browsers</b>{visitorStats?.browsers?.length ? visitorStats.browsers.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>Waiting for browser data</small>}</div>
             <div><b>Popular pages</b>{visitorStats?.topPages?.length ? visitorStats.topPages.slice(0,5).map(item=><span key={item.name}>{item.name}<strong>{number(item.views)}</strong></span>) : <small>Waiting for page data</small>}</div>
+            <div><b>Approx. locations</b>{locationRows.length ? locationRows.map(item=><span key={item.name}>{item.name}<strong>{number(item.count)}</strong></span>) : <small>No location records yet</small>}</div>
           </div>
-          <p className="an-visitor-footnote">Estimated browser traffic · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec · refreshed every 30 seconds.</p>
+          <p className="an-visitor-footnote">Approximate IP-derived location · raw IP addresses are not stored · {number(visitorStats?.pageViews || 0)} page views · average session {Math.round(visitorStats?.averageSessionSeconds || 0)} sec.</p>
         </div>
       </div>
       <div className="an-visitor-charts an-bento-charts">
