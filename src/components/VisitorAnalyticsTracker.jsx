@@ -51,7 +51,15 @@ export default function VisitorAnalyticsTracker() {
         sessionRef.current = presence.database.ref('visitor_intelligence/sessions/' + presence.user.uid + '/' + sessionId)
         await sessionRef.current.onDisconnect().update({ online: false, lastSeen: window.firebase.database.ServerValue.TIMESTAMP })
         const dailyRef = presence.database.ref('visitor_intelligence/daily/' + dateKey() + '/' + presence.user.uid)
-        await dailyRef.transaction(value => value || true)
+        const VISIT_LOCK_MS = 30 * 60 * 1000
+        const visitNow = Date.now()
+        await dailyRef.transaction(value => {
+          const previous = value && typeof value === 'object' ? value : {}
+          const lastCountedAt = Number(previous.lastCountedAt) || 0
+          const visits = Number(previous.visits) || (value === true ? 1 : 0)
+          if (visitNow - lastCountedAt < VISIT_LOCK_MS && lastCountedAt > 0) return previous
+          return { visits: visits + 1, lastCountedAt: visitNow, firstSeenAt: Number(previous.firstSeenAt) || visitNow }
+        })
         ready.current = true
         lastTick.current = Date.now()
         publishStatus({ state: 'connected', message: 'Firebase visitor collection is active.', backend: 'firebase' })
