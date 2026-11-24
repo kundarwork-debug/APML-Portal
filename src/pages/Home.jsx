@@ -152,7 +152,7 @@ function OperationalTelemetry(){
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
-    const presenceRef=db.ref('presence');refs.push(presenceRef)
+    const presenceRef=db.ref('analytics/active_sessions');refs.push(presenceRef)
     presenceRef.on('value',snap=>{
      const cutoff=Date.now()-90000
      let online=0
@@ -167,9 +167,9 @@ function OperationalTelemetry(){
     },error=>console.warn('APML live presence count unavailable',error))
     let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
     const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
-    const dailyRef=db.ref('analytics/daily_logs');refs.push(dailyRef)
-    dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,day)=>total+(Number(day?.pdf)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
-    const lifetimeRef=db.ref('analytics/totalPdfDownloads');refs.push(lifetimeRef)
+    const dailyRef=db.ref('analytics/pdf_generation/daily');refs.push(dailyRef)
+    dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,value)=>total+(Number(value)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
+    const lifetimeRef=db.ref('analytics/pdf_generation/lifetime');refs.push(lifetimeRef)
     lifetimeRef.on('value',snap=>{lifetimePdfTotal=Number(snap.val())||0;publishPdfTotal()},error=>console.warn('APML lifetime PDF telemetry unavailable',error))
     const foldersRef=db.ref('catbox_gdrive_folders');const filesRef=db.ref('catbox_gdrive_files');refs.push(foldersRef,filesRef)
     let quotationFolderIds=new Set(),quotationFiles={}
