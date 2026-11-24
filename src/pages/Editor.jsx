@@ -16,16 +16,56 @@ const calc=d=>{const subtotal=d.costItems.reduce((s,x)=>s+(Number(x.amount)||0),
 
 async function editorAlert(options){return apmlDialog(options)}
 async function editorDatabase(){const {database}=await getApmlPresenceServices();return database}
+const portalDriveConfig={
+ apiKey:'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
+ authDomain:'portalapml.firebaseapp.com',
+ databaseURL:'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',
+ projectId:'portalapml',
+ storageBucket:'portalapml.firebasestorage.app',
+ messagingSenderId:'461187970356',
+ appId:'1:461187970356:web:e9dfc58a502fd3e04d2161',
+ measurementId:'G-GXLWXXBT7P'
+}
+const originalDriveConfig={
+ apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VZuA-nQ0zM3aF8',
+ authDomain:'apml-portal.firebaseapp.com',
+ databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',
+ projectId:'apml-portal',
+ storageBucket:'apml-portal.firebasestorage.app',
+ messagingSenderId:'479017159240',
+ appId:'1:479017159240:web:0853422718e6195b74a67d'
+}
+async function loadEditorFirebaseScript(src,ready){
+ if(ready())return
+ await new Promise((resolve,reject)=>{
+  const existing=[...document.scripts].find(script=>script.src===src)
+  if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return}
+  const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=()=>reject(Error('Could not load Firebase database services.'));document.head.append(script)
+ })
+ if(!ready())throw Error('Firebase database services did not initialise.')
+}
+async function getBranchDriveDatabase(){
+ await loadEditorFirebaseScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',()=>!!window.firebase?.apps)
+ await loadEditorFirebaseScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',()=>!!window.firebase?.database)
+ if(!window.firebase.apps.some(app=>app.name==='portalapml-drive'))window.firebase.initializeApp(portalDriveConfig,'portalapml-drive')
+ if(!window.firebase.apps.some(app=>app.name==='apml-drive-source'))window.firebase.initializeApp(originalDriveConfig,'apml-drive-source')
+ const db=window.firebase.database(window.firebase.app('portalapml-drive'))
+ const sourceDb=window.firebase.database(window.firebase.app('apml-drive-source'))
+ // Match the new Drive's one-time migration: copy each original node only
+ // when its destination is empty, and never modify the original database.
+ const foldersRef=db.ref('catbox_gdrive_folders'),filesRef=db.ref('catbox_gdrive_files')
+ const [oldFolders,newFolders,oldFiles,newFiles]=await Promise.all([
+  sourceDb.ref('catbox_gdrive_folders').once('value'),foldersRef.once('value'),
+  sourceDb.ref('catbox_gdrive_files').once('value'),filesRef.once('value')
+ ])
+ const hasData=snapshot=>snapshot.exists()&&snapshot.val()&&Object.keys(snapshot.val()).length>0
+ if(!hasData(newFolders)&&hasData(oldFolders))await foldersRef.set(oldFolders.val())
+ if(!hasData(newFiles)&&hasData(oldFiles))await filesRef.set(oldFiles.val())
+ return db
+}
 async function saveQuotationToDrive(blob,fileName){
  if(!blob||blob.size>10*1024*1024)throw Error('Quotation PDF exceeds the 10 MB Drive limit.')
- const {database:db,user}=await getApmlPresenceServices(),form=new FormData()
- if(!user?.uid)throw Error('Sign in anonymously before saving the quotation.')
- form.append('file',blob,fileName)
- form.append('upload_preset','apml_drive')
- form.append('folder','apml-drive')
- const response=await fetch('https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload',{method:'POST',body:form})
- const data=await response.json().catch(()=>({}))
- if(!response.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed')
+ const db=await getBranchDriveDatabase()
  const folderRef=db.ref('catbox_gdrive_folders')
  const folders=await folderRef.once('value'),all=folders.val()||{}
  let folderId=Object.keys(all).find(key=>all[key]?.parentId==='root'&&String(all[key]?.name||'').trim().toLowerCase()==='quotation')
@@ -36,7 +76,14 @@ async function saveQuotationToDrive(blob,fileName){
   folderId=newFolderRef.key
   await newFolderRef.set({name:'Quotation',parentId:'root',timestamp:Date.now()})
  }
- await db.ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:folderId,name:fileName,size:blob.size||0,timestamp:Date.now(),createdBy:user.uid})
+ const form=new FormData()
+ form.append('file',blob,fileName)
+ form.append('upload_preset','apml_drive')
+ form.append('folder','apml-drive')
+ const response=await fetch('https://api.cloudinary.com/v1_1/wbrmw2pm/auto/upload',{method:'POST',body:form})
+ const data=await response.json().catch(()=>({}))
+ if(!response.ok||!data.secure_url)throw Error(data.error?.message||'Cloudinary upload failed')
+ await db.ref('catbox_gdrive_files').push({fileId:data.secure_url,parentId:folderId,name:fileName,size:blob.size||0,timestamp:Date.now(),createdBy:'quotation-editor'})
  return true
 }
 
