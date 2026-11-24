@@ -76,7 +76,6 @@ export default function VisitorAnalyticsTracker() {
     let lastPage = safePage(window.location.pathname)
     let database
     let sessionRef
-    let trafficRef
     let visitorId
     const sessionId = getStoredId(SESSION_KEY, sessionStorage)
     const startedAt = Date.now()
@@ -151,7 +150,6 @@ export default function VisitorAnalyticsTracker() {
     const qualify = async () => {
       if (qualified || automation.suspected || activeSeconds < HUMAN_QUALIFY_SECONDS || !database) return
       qualified = true
-      await trafficRef.update({ status: 'likely_human', qualifiedAt: Date.now(), activeSeconds, interactionSeen, reason: 'engagement_threshold_met' })
       await send(lastPage, true)
       publishStatus({ state: 'connected', message: 'Qualified visitor activity is syncing to the new Firebase.', backend: 'portalapml Firebase', trafficClass: 'likely_human' })
     }
@@ -184,13 +182,6 @@ export default function VisitorAnalyticsTracker() {
         database = results[0].value
         if (results[1].status === 'fulfilled') geo = results[1].value
         const date = indiaDateKey()
-        trafficRef = database.ref('visitor_intelligence/traffic_sessions/' + date + '/' + visitorId + '/' + sessionId)
-        await trafficRef.set({
-          visitorId, sessionId, startedAt, lastSeen: Date.now(), status: automation.suspected ? 'suspected_bot' : 'unverified',
-          reasons: automation.reasons, activeSeconds: 0, interactionSeen: false,
-          city: geo.city, region: geo.region, country: geo.country, countryCode: geo.countryCode,
-          ...device
-        })
         if (automation.suspected) {
           publishStatus({ state: 'filtered', message: 'Automated traffic detected; excluded from visitor totals.', backend: 'portalapml Firebase', trafficClass: 'suspected_bot' })
           return
@@ -201,7 +192,6 @@ export default function VisitorAnalyticsTracker() {
         const tick = async () => {
           if (!active || qualified) return
           if (document.visibilityState === 'visible') activeSeconds += HEARTBEAT_MS / 1000
-          await trafficRef.update({ lastSeen: Date.now(), activeSeconds, interactionSeen, status: 'unverified' })
           await qualify()
         }
         heartbeat = window.setInterval(tick, HEARTBEAT_MS)
