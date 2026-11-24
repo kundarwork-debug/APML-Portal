@@ -48,3 +48,64 @@
 @media(max-width:1000px){.analytics-bento-grid .analytics-kpi{grid-column:span 6}.analytics-bento-grid .analytics-chart-panel{grid-column:span 8}.analytics-bento-grid .analytics-insights{grid-column:span 4}.analytics-bento-grid .analytics-daily-panel{grid-column:span 12}.analytics-bento-grid .analytics-activity-panel{grid-column:span 12}}
 @media(max-width:700px){.analytics-dashboard{padding:18px 13px 40px}.analytics-dashboard .analytics-hero{padding:21px;border-radius:19px}.analytics-dashboard .analytics-hero-actions{width:100%}.analytics-bento-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.analytics-bento-grid .analytics-kpi{grid-column:span 1;min-height:132px;padding:13px;border-radius:15px}.analytics-bento-grid .analytics-kpi-top{align-items:center;font-size:9px}.analytics-bento-grid .analytics-kpi>strong{font-size:29px}.analytics-bento-grid .analytics-kpi>small{font-size:8px}.analytics-bento-grid .analytics-chart-panel,.analytics-bento-grid .analytics-insights,.analytics-bento-grid .analytics-lower-grid>.analytics-panel,.analytics-bento-grid .analytics-daily-panel,.analytics-bento-grid .analytics-activity-panel{grid-column:1/-1;min-height:unset;padding:15px;border-radius:17px}.analytics-bento-grid .analytics-chart-wrap{height:255px;min-height:230px}.analytics-bento-grid .analytics-insights{min-height:280px}.analytics-dashboard .analytics-panel-head h2{font-size:14px}}
 @media(max-width:390px){.analytics-bento-grid .analytics-kpi{min-height:125px;padding:11px}.analytics-bento-grid .analytics-kpi-top{font-size:8px;gap:6px}.analytics-bento-grid .analytics-kpi-icon{width:27px;height:27px}.analytics-bento-grid .analytics-kpi>strong{font-size:25px}}
+
+
+/* Keep long analytics sections compact; scroll their contents internally. */
+.analytics-bento-grid>.analytics-daily-panel,
+.analytics-bento-grid>.analytics-activity-panel{
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  height:360px;
+  min-height:360px;
+  max-height:360px;
+  overflow:hidden;
+}
+.analytics-bento-grid .analytics-daily-panel .analytics-table-wrap{
+  flex:1;
+  min-height:0;
+  max-height:285px;
+  overflow:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:var(--analytics-muted) transparent;
+}
+.analytics-bento-grid .analytics-daily-panel .analytics-table-wrap thead th{
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+.analytics-bento-grid .analytics-activity-panel .analytics-activity-list{
+  flex:1;
+  min-height:0;
+  max-height:285px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:var(--analytics-muted) transparent;
+  padding-right:4px;
+}
+.analytics-bento-grid .analytics-daily-panel .analytics-panel-head,
+.analytics-bento-grid .analytics-activity-panel .analytics-panel-head{
+  flex:none;
+}
+@media(max-width:1000px){
+  .analytics-bento-grid>.analytics-daily-panel,
+  .analytics-bento-grid>.analytics-activity-panel{
+    height:360px;
+    min-height:360px;
+    max-height:360px;
+  }
+}
+@media(max-width:700px){
+  .analytics-bento-grid>.analytics-daily-panel,
+  .analytics-bento-grid>.analytics-activity-panel{
+    height:340px;
+    min-height:340px;
+    max-height:340px;
+  }
+  .analytics-bento-grid .analytics-daily-panel .analytics-table-wrap,
+  .analytics-bento-grid .analytics-activity-panel .analytics-activity-list{
+    max-height:265px;
+  }
+}
