@@ -72,7 +72,7 @@ export default function Directory(){
   const [rows,setRows]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('')
   const [query,setQuery]=useState(''),[busy,setBusy]=useState(false),[edit,setEdit]=useState(null)
   const [toast,setToast]=useState('')
-  const { admin, userEmail, signIn, signOut } = useApmlAdminAuth()
+  const { admin, userEmail, signIn, signOut } = usePortalAdminAuth()
   const [db,setDb]=useState(null)
   useEffect(()=>{
     let active=true,ref=null
