@@ -13,16 +13,6 @@ const firebaseConfig = {
  appId: '1:461187970356:web:e9dfc58a502fd3e04d2161',
  measurementId: 'G-GXLWXXBT7P'
 }
-const sourceFirebaseConfig = {
- apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
- authDomain: 'apml-portal.firebaseapp.com',
- databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
- projectId: 'apml-portal',
- storageBucket: 'apml-portal.firebasestorage.app',
- messagingSenderId: '479017159240',
- appId: '1:479017159240:web:0853422718e6195b74a67d',
- measurementId: 'G-4H1HT31DYB'
-}
 const ADMIN_EMAILS = new Set(['kundar701@gmail.com','kundar.work@gmail.com'])
 let firebasePromise
 function loadFirebase(){
@@ -35,7 +25,6 @@ function loadFirebase(){
   if(!window.firebase.database)await add('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
   if(!window.firebase.auth)await add('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
   if(!window.firebase.apps.some(app=>app.name==='portalapml-field-officer'))window.firebase.initializeApp(firebaseConfig,'portalapml-field-officer')
-  if(!window.firebase.apps.some(app=>app.name==='apml-field-officer-source'))window.firebase.initializeApp(sourceFirebaseConfig,'apml-field-officer-source')
   return window.firebase
  })()
  return firebasePromise
@@ -75,7 +64,7 @@ export default function FieldOfficer(){
  const [records,setRecords]=useState([]),[query,setQuery]=useState(''),[status,setStatus]=useState('Connecting to live officer directory…'),[busy,setBusy]=useState(false),[edit,setEdit]=useState(null),[toast,setToast]=useState('')
  const { admin, signIn, signOut } = usePortalAdminAuth()
  const [ref,setRef]=useState(null),[importing,setImporting]=useState(false),[statusFilter,setStatusFilter]=useState('All')
- useEffect(()=>{let active=true,dbRef=null,handler=null;(async()=>{try{const fb=await loadFirebase();if(!active)return;const db=fb.database(fb.app('portalapml-field-officer'));dbRef=db.ref('field_officers');setRef(dbRef);const sourceRef=fb.database(fb.app('apml-field-officer-source')).ref('field_officers');const [sourceSnapshot,targetSnapshot]=await Promise.all([sourceRef.once('value'),dbRef.once('value')]);if(!active)return;const targetData=targetSnapshot.val();const targetHasRecords=targetSnapshot.exists()&&targetData&&Object.keys(targetData).length>0;if(!targetHasRecords&&sourceSnapshot.exists())await dbRef.set(sourceSnapshot.val());if(!active)return;handler=snap=>{if(!active)return;const v=snap.val()||{};setRecords(Object.entries(v).map(([id,x])=>({...x,id})));setStatus('Live sync connected')};dbRef.on('value',handler,e=>{if(active)setStatus('Unable to load directory: '+e.message)})}catch(e){if(active)setStatus('Firebase connection unavailable. '+e.message)}})();return()=>{active=false;if(dbRef&&handler)dbRef.off('value',handler)}},[])
+ useEffect(()=>{let active=true,dbRef=null,handler=null;(async()=>{try{const fb=await loadFirebase();if(!active)return;const db=fb.database(fb.app('portalapml-field-officer'));dbRef=db.ref('field_officers');setRef(dbRef);handler=snap=>{if(!active)return;const v=snap.val()||{};setRecords(Object.entries(v).map(([id,x])=>({...x,id})));setStatus('Live sync connected')};dbRef.on('value',handler,e=>{if(active)setStatus('Unable to load directory: '+e.message)})}catch(e){if(active)setStatus('Firebase connection unavailable. '+e.message)}})();return()=>{active=false;if(dbRef&&handler)dbRef.off('value',handler)}},[])
  const activeRecords=records.filter(x=>!isDeleted(x)),activeCount=activeRecords.length
  const branchCount=new Set(activeRecords.map(x=>(x.branch||'').trim().toUpperCase()).filter(Boolean)).size
  const leaveCount=activeRecords.filter(x=>['leave','assco'].includes(String(x.status||'').toLowerCase())).length
