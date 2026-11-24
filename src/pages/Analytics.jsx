@@ -56,7 +56,7 @@ const unwrapSessions = value => Object.entries(value || {}).flatMap(([uid, sessi
 
 export default function Analytics() {
   const [range, setRange] = useState('30')
-  const [records, setRecords] = useState({ pdfDaily: {}, mediaDaily: {}, pdfLifetime: 0, mediaLifetime: 0, sessions: {}, visitors: {}, presence: {}, actions: {} })
+  const [records, setRecords] = useState({ pdfDaily: {}, mediaDaily: {}, pdfLifetime: 0, mediaLifetime: 0, sessions: {}, visitors: {}, trafficSessions: {}, presence: {}, actions: {} })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
@@ -72,6 +72,7 @@ export default function Analytics() {
       mediaLifetime: 'analytics/media_downloads/lifetime',
       sessions: 'visitor_intelligence/sessions',
       visitors: 'visitor_intelligence/daily',
+      trafficSessions: 'visitor_intelligence/traffic_sessions',
       presence: 'presence',
       actions: 'analytics/recent_actions'
     }
@@ -124,7 +125,7 @@ export default function Analytics() {
     const unique = new Set(), devices = {}, locations = {}, systems = {}, browsers = {}
     let visits = 0
     selected.forEach(([, visitors]) => Object.entries(visitors || {}).forEach(([visitorId, detail]) => {
-      if (!detail || typeof detail !== 'object') return
+      if (!detail || typeof detail !== 'object' || detail.trafficClass !== 'likely_human') return
       unique.add(visitorId)
       const count = Number(detail.visits) || 0
       visits += count
@@ -140,8 +141,36 @@ export default function Analytics() {
     return { visits, unique: unique.size, devices, locations, systems, browsers, days: selected.length }
   }, [records.visitors, startDate, endDate])
 
+  const trafficQuality = useMemo(() => {
+    const result = { likelyHuman: 0, suspectedBots: 0, unverified: 0, countries: {} }
+    Object.entries(records.trafficSessions || {}).forEach(([date, visitors]) => {
+      if (date < startDate || date > endDate) return
+      Object.values(visitors || {}).forEach(sessionsById => Object.values(sessionsById || {}).forEach(session => {
+        if (!session || typeof session !== 'object') return
+        if (session.status === 'likely_human') result.likelyHuman += 1
+        else if (session.status === 'suspected_bot') {
+          result.suspectedBots += 1
+          const country = session.country || 'Unknown location'
+          result.countries[country] = (result.countries[country] || 0) + 1
+        } else result.unverified += 1
+      }))
+    })
+    return result
+  }, [records.trafficSessions, startDate, endDate])
+
+  const legacyUnclassified = useMemo(() => {
+    let count = 0
+    Object.entries(records.visitors || {}).forEach(([date, visitors]) => {
+      if (date < startDate || date > endDate) return
+      Object.values(visitors || {}).forEach(detail => {
+        if (detail && typeof detail === 'object' && !detail.trafficClass) count += Number(detail.visits) || 0
+      })
+    })
+    return count
+  }, [records.visitors, startDate, endDate])
+
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
-  const activeSessions = sessions.filter(session => session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
+  const activeSessions = sessions.filter(session => session.trafficClass === 'likely_human' && session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
   const activePresence = useMemo(() => {
     const rows = []
     Object.entries(records.presence || {}).forEach(([uid, values]) => Object.values(values || {}).forEach(session => {
@@ -204,7 +233,7 @@ export default function Analytics() {
       <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(Math.max(activeSessions.length, activePresence))}</strong><small>Live sessions updated within 90 seconds</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><small>{fmt(lifetimePdf)} lifetime generated</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon blue"><Download size={18}/></span><span>Drive / Gallery downloads</span></div><strong>{fmt(totals.media)}</strong><small>{fmt(lifetimeMedia)} lifetime downloads</small></article>
-      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor visits</span></div><strong>{fmt(visitorRows.visits)}</strong><small>Repeat visits count again after 30 minutes · {fmt(visitorRows.unique)} unique browsers</small></article>
+      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor visits</span></div><strong>{fmt(visitorRows.visits)}</strong><small>Engaged, likely-human visits · {fmt(visitorRows.unique)} unique browsers</small></article>
     </section>
 
     <section className="analytics-insight-grid">
@@ -216,12 +245,13 @@ export default function Analytics() {
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Most viewed pages</h2><p>Page views accumulated across recorded visitor sessions</p></div></div>{topPages.length ? <div className="analytics-rank-list">{topPages.map(([name, count], index) => <div className="analytics-rank-row" key={name}><span className="analytics-rank-number">{index + 1}</span><span className="analytics-rank-name">{name}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Page-view details will appear as visitor sessions are recorded.</div>}</article>
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device type · operating system · browser</p></div></div>{Object.keys(visitorRows.devices).length ? <div className="analytics-device-list">{Object.entries(visitorRows.devices).sort((a,b)=>b[1]-a[1]).map(([device,count])=>{const Icon=device==='Mobile'?Smartphone:device==='Tablet'?Tablet:Monitor;const pct=Math.round(count/Math.max(1,Object.values(visitorRows.devices).reduce((a,b)=>a+b,0))*100);return <div className="analytics-device-row" key={device}><span className="analytics-device-icon"><Icon size={16}/></span><span className="analytics-device-name">{device}</span><div className="analytics-device-track"><i style={{width:pct+'%'}}/></div><strong>{pct}%</strong></div>})}<div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></div> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor locations</h2><p>Approximate location from network information</p></div></div>{Object.keys(visitorRows.locations).length ? <div className="analytics-rank-list">{Object.entries(visitorRows.locations).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([place,count],index)=><div className="analytics-rank-row" key={place}><span className="analytics-rank-number"><MapPin size={14}/></span><span className="analytics-rank-name">{place}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Location details will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel analytics-traffic-quality"><div className="analytics-panel-head"><div><h2>Traffic quality</h2><p>Automated traffic is separated from engaged visitor totals</p></div></div><div className="analytics-insight-row"><span>Likely human sessions</span><strong>{fmt(trafficQuality.likelyHuman)}</strong></div><div className="analytics-insight-row"><span>Suspected bots filtered</span><strong>{fmt(trafficQuality.suspectedBots)}</strong></div><div className="analytics-insight-row"><span>Unverified sessions</span><strong>{fmt(trafficQuality.unverified)}</strong></div><div className="analytics-insight-row"><span>Older unclassified visits</span><strong>{fmt(legacyUnclassified)}</strong></div><div className="analytics-insight-note">Top suspected-bot locations: {Object.entries(trafficQuality.countries).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([country,count])=>country+' ('+fmt(count)+')').join(' · ') || 'No suspected bots recorded yet.'}. Detection is heuristic, not proof; advanced bots can imitate browsers and genuine users can be misclassified.</div></article>
     </section>
 
     <section className="analytics-panel analytics-daily-panel"><div className="analytics-panel-head"><div><h2>Daily breakdown</h2><p>Newest dates first · counts are recorded in India Standard Time</p></div><span className="analytics-row-count">{daily.length} days</span></div><div className="analytics-table-wrap"><table><thead><tr><th>Date</th><th>PDF generated</th><th>Drive / Gallery</th><th>Total</th></tr></thead><tbody>{[...daily].reverse().map(row=><tr key={row.date}><td>{labelDate(row.date)}</td><td>{fmt(row.pdf)}</td><td>{fmt(row.media)}</td><td><strong>{fmt(row.pdf+row.media)}</strong></td></tr>)}</tbody></table></div></section>
 
     <section className="analytics-panel analytics-activity-panel"><div className="analytics-panel-head"><div><h2>Recent activity</h2><p>Latest recorded successful actions across supported modules</p></div><span className="analytics-row-count">{actions.length} events</span></div>{actions.length ? <div className="analytics-activity-list">{actions.map(item=><div className="analytics-activity-row" key={item.id}><span className="analytics-activity-icon"><Clock3 size={15}/></span><div className="analytics-activity-copy"><strong>{item.action || 'Activity'} <span>· {item.module || 'Portal'}</span></strong><small>{[item.item,item.details].filter(Boolean).join(' — ') || 'Action recorded'}</small></div><time>{item.timestamp ? new Date(Number(item.timestamp)).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—'}</time></div>)}</div> : <div className="analytics-empty compact">No recent actions are available in the new Firebase activity log.</div>}</section>
-    <footer className="analytics-footer-note">Source: new Firebase project <strong>portalapml</strong>. Visitor totals are estimates based on recorded browser sessions, not verified counts of individual people. Recent activity is a limited action log, not a complete clickstream.</footer>
+    <footer className="analytics-footer-note">Source: new Firebase project <strong>portalapml</strong>. Likely-human totals require visible engagement; bot detection is heuristic and cannot guarantee that every session is human. Recent activity is a limited action log, not a complete clickstream.</footer>
     </div>
   </main>
 }
