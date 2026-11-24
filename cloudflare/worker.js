@@ -385,7 +385,7 @@ async function liveStatsWithDaily() {
 
   const todayKey = getTodayIST();
 
-  const [presence, pdfsTotal, mediaTotal, todayLog] = await Promise.all([
+  const [presence, pdfsTotal, mediaTotal, todayPdf, todayMedia] = await Promise.all([
 
     fbRead(CONFIG.PRESENCE_PATH),
 
@@ -393,7 +393,9 @@ async function liveStatsWithDaily() {
 
     fbRead(CONFIG.MEDIA_TOTAL_PATH),
 
-    fbRead(`analytics/pdf_generation/daily/${todayKey}`)
+    fbRead(`analytics/pdf_generation/daily/${todayKey}`),
+
+    fbRead(`analytics/media_downloads/daily/${todayKey}`)
 
   ]);
 
@@ -403,8 +405,6 @@ async function liveStatsWithDaily() {
 
     : null;
 
-  const todayData = todayLog.ok && todayLog.value ? todayLog.value : {};
-
   return {
 
     online: online,
@@ -413,17 +413,17 @@ async function liveStatsWithDaily() {
 
     totalMedia: asCount(mediaTotal),
 
-    todayVisitors: Number(todayData.visitors) || 0,
+    todayVisitors: null,
 
-    todayPdfs: Number(todayData) || 0,
+    todayPdfs: todayPdf.ok ? (Number(todayPdf.value) || 0) : null,
 
-    todayMedia: null
+    todayMedia: todayMedia.ok ? (Number(todayMedia.value) || 0) : null
 
   };
 
 }
 
-const tgNum = (n) => Number(n).toLocaleString('en-IN');
+const tgNum = (n) => n === null || n === undefined ? '—' : Number(n).toLocaleString('en-IN');
 
 function tgStatsLines(st) {
 
