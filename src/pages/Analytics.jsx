@@ -190,6 +190,7 @@ export default function Analytics() {
     {error && <div className="analytics-error" role="alert">{error}</div>}
     {loading && <div className="analytics-loading"><span/> Syncing live Firebase data…</div>}
 
+    <div className="analytics-bento-grid">
     <section className="analytics-kpis">
       <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(Math.max(activeSessions.length, activePresence))}</strong><small>Live sessions updated within 90 seconds</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><small>{fmt(lifetimePdf)} lifetime generated</small></article>
@@ -211,5 +212,6 @@ export default function Analytics() {
 
     <section className="analytics-panel analytics-activity-panel"><div className="analytics-panel-head"><div><h2>Recent activity</h2><p>Latest recorded successful actions across supported modules</p></div><span className="analytics-row-count">{actions.length} events</span></div>{actions.length ? <div className="analytics-activity-list">{actions.map(item=><div className="analytics-activity-row" key={item.id}><span className="analytics-activity-icon"><Clock3 size={15}/></span><div className="analytics-activity-copy"><strong>{item.action || 'Activity'} <span>· {item.module || 'Portal'}</span></strong><small>{[item.item,item.details].filter(Boolean).join(' — ') || 'Action recorded'}</small></div><time>{item.timestamp ? new Date(Number(item.timestamp)).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—'}</time></div>)}</div> : <div className="analytics-empty compact">No recent actions are available in the new Firebase activity log.</div>}</section>
     <footer className="analytics-footer-note">Source: new Firebase project <strong>portalapml</strong>. Visitor totals are estimates based on recorded browser sessions, not verified counts of individual people. Recent activity is a limited action log, not a complete clickstream.</footer>
+    </div>
   </main>
 }
