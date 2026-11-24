@@ -86,7 +86,12 @@ export default function VisitorAnalyticsTracker() {
           lastSeen: now,
           lastCountedAt: countedVisit ? now : lastCountedAt,
           visitCount: (Number(prior.visitCount) || 0) + (countedVisit ? 1 : 0),
-          ...geo,
+          city: geo.city || prior.city || '',
+          region: geo.region || prior.region || '',
+          country: geo.country || prior.country || '',
+          countryCode: geo.countryCode || prior.countryCode || '',
+          timezone: geo.timezone || prior.timezone || '',
+          source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
           ...device
         }
       }, undefined, false)
@@ -101,12 +106,17 @@ export default function VisitorAnalyticsTracker() {
             firstSeen: Number(prior.firstSeen) || now,
             lastSeen: now,
             visits: (Number(prior.visits) || 0) + 1,
-            ...geo,
+            city: geo.city || prior.city || '',
+            region: geo.region || prior.region || '',
+            country: geo.country || prior.country || '',
+            countryCode: geo.countryCode || prior.countryCode || '',
+            timezone: geo.timezone || prior.timezone || '',
+            source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
             ...device
           }
         }, undefined, false)
       } else {
-        await database.ref('visitor_intelligence/daily/' + date + '/' + visitorId).update({ lastSeen: now, ...geo, ...device })
+        await database.ref('visitor_intelligence/daily/' + date + '/' + visitorId).update({ lastSeen: now, ...(geo.city || geo.region || geo.country ? geo : {}), ...device })
       }
 
       const pageKey = btoa(unescape(encodeURIComponent(page))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
@@ -123,7 +133,13 @@ export default function VisitorAnalyticsTracker() {
           lastSeen: now, online: true, currentPage: page,
           pageViews: (Number(prior.pageViews) || 0) + (pageView ? 1 : 0),
           totalSeconds: (Number(prior.totalSeconds) || 0) + elapsedSeconds,
-          ...geo, ...device
+          city: geo.city || prior.city || '',
+          region: geo.region || prior.region || '',
+          country: geo.country || prior.country || '',
+          countryCode: geo.countryCode || prior.countryCode || '',
+          timezone: geo.timezone || prior.timezone || '',
+          source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
+          ...device
         }
       }, undefined, false)
     }
