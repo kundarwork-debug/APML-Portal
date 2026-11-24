@@ -16,15 +16,6 @@ const firebaseConfig = {
   appId: '1:461187970356:web:e9dfc58a502fd3e04d2161',
   measurementId: 'G-GXLWXXBT7P'
 }
-const sourceFirebaseConfig = {
-  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
-  authDomain: 'apml-portal.firebaseapp.com',
-  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
-  projectId: 'apml-portal',
-  storageBucket: 'apml-portal.firebasestorage.app',
-  messagingSenderId: '479017159240',
-  appId: '1:479017159240:web:0853422718e6195b74a67d'
-}
 const ADMIN_EMAILS = new Set(['kundar.work@gmail.com', 'kundar701@gmail.com'])
 function getGalleryDb() { return window.firebase.database(window.firebase.app('portalapml-gallery')) }
 async function loadGalleryAuthSdk() {
@@ -177,14 +168,8 @@ export default function GalleryPortal() {
         await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
         await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
         if (!window.firebase.apps.some(app => app.name === 'portalapml-gallery')) window.firebase.initializeApp(firebaseConfig, 'portalapml-gallery')
-        if (!window.firebase.apps.some(app => app.name === 'apml-gallery-source')) window.firebase.initializeApp(sourceFirebaseConfig, 'apml-gallery-source')
         ref = getGalleryDb().ref('apml_ranked_gallery')
         dbRef.current = ref
-        const sourceRef = window.firebase.database(window.firebase.app('apml-gallery-source')).ref('apml_ranked_gallery')
-        const [sourceSnapshot, targetSnapshot] = await Promise.all([sourceRef.once('value'), ref.once('value')])
-        const targetData = targetSnapshot.val()
-        const targetHasRecords = targetSnapshot.exists() && targetData && Object.keys(targetData).length > 0
-        if (!targetHasRecords && sourceSnapshot.exists()) await ref.set(sourceSnapshot.val())
         if (!live) return
         handler = ref.on('value', snapshot => {
           if (!live) return
