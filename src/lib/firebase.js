@@ -105,7 +105,9 @@ async function migrateLegacyAnalytics(database) {
 export async function getApmlDatabase() {
   if (!databasePromise) databasePromise = (async () => {
     const core = await loadCore()
-    await migrateLegacyAnalytics(core.database)
+    await migrateLegacyAnalytics(core.database).catch(error => {
+      console.warn('Legacy analytics backup could not be copied. New Firebase analytics will continue:', error)
+    })
     return core.database
   })().catch(error => { databasePromise = null; throw error })
   return databasePromise
