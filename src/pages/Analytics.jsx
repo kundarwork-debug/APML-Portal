@@ -194,7 +194,7 @@ export default function Analytics() {
       <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(Math.max(activeSessions.length, activePresence))}</strong><small>Live sessions updated within 90 seconds</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><small>{fmt(lifetimePdf)} lifetime generated</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon blue"><Download size={18}/></span><span>Drive / Gallery downloads</span></div><strong>{fmt(totals.media)}</strong><small>{fmt(lifetimeMedia)} lifetime downloads</small></article>
-      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Unique visitors</span></div><strong>{fmt(visitorRows.unique)}</strong><small>Distinct Firebase user IDs in selected dates</small></article>
+      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor sessions</span></div><strong>{fmt(visitorRows.unique)}</strong><small>Distinct browser sessions across selected dates</small></article>
     </section>
 
     <section className="analytics-insight-grid">
