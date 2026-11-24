@@ -1864,6 +1864,49 @@ async function handleVisitorCollect(request, env) {
       firstPage: old.firstPage || page, lastPage: page, pages: pageMap, journey
     };
     await env.ANNOUNCE_KV.put(storageKey, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 * 90 });
+
+    // Persist IP-derived, pseudonymous visitor details in the new portalapml Firebase.
+    // The raw IP is never sent to Firebase or stored in KV.
+    const profileKey = 'visitor_profile:' + visitorId;
+    const previousProfile = await env.ANNOUNCE_KV.get(profileKey, 'json') || {};
+    const profile = {
+      visitorId,
+      firstSeen: Number(previousProfile.firstSeen) || now,
+      lastSeen: now,
+      lastCountedAt: countedVisit ? now : Number(previousProfile.lastCountedAt) || now,
+      visitCount: (Number(previousProfile.visitCount) || 0) + (countedVisit ? 1 : 0),
+      city, region, country, device, browser, os
+    };
+    await env.ANNOUNCE_KV.put(profileKey, JSON.stringify(profile), { expirationTtl: 60 * 60 * 24 * 400 });
+    const dailyProfileKey = 'visitor_daily_profile:' + visitDay + ':' + visitorId;
+    const previousDaily = await env.ANNOUNCE_KV.get(dailyProfileKey, 'json') || {};
+    const dailyProfile = {
+      visitorId,
+      firstSeen: Number(previousDaily.firstSeen) || now,
+      lastSeen: now,
+      visits: (Number(previousDaily.visits) || 0) + (countedVisit ? 1 : 0),
+      city, region, country, device, browser, os
+    };
+    await env.ANNOUNCE_KV.put(dailyProfileKey, JSON.stringify(dailyProfile), { expirationTtl: 60 * 60 * 24 * 400 });
+    const fbBase = CONFIG.FIREBASE_DB_URL + '/visitor_intelligence';
+    const fbWrites = await Promise.all([
+      fetch(fbBase + '/visitors/' + visitorId + '.json', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profile)
+      }),
+      fetch(fbBase + '/daily/' + visitDay + '/' + visitorId + '.json', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dailyProfile)
+      }),
+      fetch(fbBase + '/sessions/' + visitorId + '/' + sessionId + '.json', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId, startedAt: Number(old.startedAt) || startedAt, lastSeen: now, online: true,
+          currentPage: page, pageViews: record.pageViews, totalSeconds: record.totalSeconds,
+          pages: pageMap, device, browser, os, city, region, country
+        })
+      })
+    ]);
+    if (fbWrites.some(response => !response.ok)) console.warn('Visitor details could not be fully synced to portalapml Firebase.');
+
     if (shouldNotifyOnline && env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_ID) {
       const place = tgPlace(request);
       const lines = [
