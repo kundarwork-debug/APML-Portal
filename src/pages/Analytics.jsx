@@ -29,17 +29,14 @@ export default function Analytics() {
     setError('')
     try {
       const database = await getApmlDatabase()
-      const [dailySnapshot, lifetimeSnapshot, legacyDailySnapshot, legacyPdfSnapshot, legacyMediaSnapshot] = await Promise.all([
-        database.ref('Analytics page/daily_logs').once('value'),
-        database.ref('Analytics page/lifetime_totals').once('value'),
-        database.ref('analytics/daily_logs').once('value'),
-        database.ref('analytics/totalPdfDownloads').once('value'),
-        database.ref('analytics/totalMediaDownloads').once('value')
+      const [pdfDailySnapshot, pdfLifetimeSnapshot, mediaDailySnapshot, mediaLifetimeSnapshot] = await Promise.all([
+        database.ref('analytics/pdf_generation/daily').once('value'),
+        database.ref('analytics/pdf_generation/lifetime').once('value'),
+        database.ref('analytics/media_downloads/daily').once('value'),
+        database.ref('analytics/media_downloads/lifetime').once('value')
       ])
-      const canonicalDaily = dailySnapshot.val() || {}
-      const legacyDaily = legacyDailySnapshot.val() || {}
-      const allDaily = Object.keys(canonicalDaily).length ? canonicalDaily : legacyDaily
-      const lifetime = lifetimeSnapshot.val() || {}
+      const pdfDaily = pdfDailySnapshot.val() || {}
+      const mediaDaily = mediaDailySnapshot.val() || {}
       const endDate = dateKey(new Date())
       const startDate = getRangeStart(Number(range), endDate)
       const rows = []
@@ -48,9 +45,8 @@ export default function Analytics() {
       const totals = { pdf: 0, media: 0 }
       while (cursor <= last) {
         const date = cursor.toISOString().slice(0, 10)
-        const entry = allDaily[date] || {}
-        const pdf = Number(entry.pdf) || 0
-        const media = Number(entry.media) || 0
+        const pdf = Number(pdfDaily[date]) || 0
+        const media = Number(mediaDaily[date]) || 0
         rows.push({ date, pdf, media })
         totals.pdf += pdf
         totals.media += media
@@ -62,8 +58,8 @@ export default function Analytics() {
         daily: rows,
         totals: {
           ...totals,
-          totalPdfsLifetime: Number(lifetime.pdfGenerated ?? legacyPdfSnapshot.val()) || 0,
-          totalMediaLifetime: Number(lifetime.mediaDownloads ?? legacyMediaSnapshot.val()) || 0
+          totalPdfsLifetime: Number(pdfLifetimeSnapshot.val()) || 0,
+          totalMediaLifetime: Number(mediaLifetimeSnapshot.val()) || 0
         }
       })
     } catch (err) {
