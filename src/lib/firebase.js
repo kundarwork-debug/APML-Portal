@@ -9,16 +9,6 @@ const config = {
   measurementId: 'G-GXLWXXBT7P'
 }
 
-const legacyConfig = {
-  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
-  authDomain: 'apml-portal.firebaseapp.com',
-  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
-  projectId: 'apml-portal',
-  storageBucket: 'apml-portal.firebasestorage.app',
-  messagingSenderId: '479017159240',
-  appId: '1:479017159240:web:0853422718e6195b74a67d'
-}
-
 const scriptLoads = new Map()
 function loadFirebaseScript(src, ready) {
   if (ready()) return Promise.resolve()
@@ -39,7 +29,6 @@ function loadFirebaseScript(src, ready) {
 
 let databasePromise
 let authPromise
-let migrationPromise
 let presencePromise
 const ANALYTICS_ROOT = 'analytics'
 
@@ -52,64 +41,11 @@ async function loadCore() {
   return { firebase, app, database: firebase.database(app) }
 }
 
-async function migrateLegacyAnalytics(database) {
-  if (migrationPromise) return migrationPromise
-  migrationPromise = (async () => {
-    const firebase = window.firebase
-    const sourceName = 'apml-analytics-source'
-    const sourceApp = firebase.apps.find(item => item.name === sourceName) || firebase.initializeApp(legacyConfig, sourceName)
-    const source = firebase.database(sourceApp)
-    const read = async path => (await source.ref(path).once('value')).val()
-    const target = async (path, value) => {
-      if (value === null || value === undefined) return
-      const ref = database.ref(ANALYTICS_ROOT + '/' + path)
-      const snap = await ref.once('value')
-      if (!snap.exists()) await ref.set(value)
-    }
-    const [oldActivity, oldPresence, oldDaily, oldLifetime, legacyDaily, legacyPdf, legacyMedia] = await Promise.all([
-      read('Analytics page/recent_actions'),
-      read('presence'),
-      read('Analytics page/daily_logs'),
-      read('Analytics page/lifetime_totals'),
-      read('analytics/daily_logs'),
-      read('analytics/totalPdfDownloads'),
-      read('analytics/totalMediaDownloads')
-    ])
-    await target('recent_actions', oldActivity)
-    const flattenedPresence = {}
-    Object.entries(oldPresence || {}).forEach(([owner, sessions]) => {
-      if (sessions && typeof sessions === 'object' && sessions.online === true) flattenedPresence[owner] = sessions
-      else Object.entries(sessions || {}).forEach(([sessionId, session]) => {
-        if (session && typeof session === 'object') flattenedPresence[sessionId] = session
-      })
-    })
-    await target('active_sessions', flattenedPresence)
-    const combined = oldDaily && Object.keys(oldDaily).length ? oldDaily : (legacyDaily || {})
-    const pdfDaily = {}, mediaDaily = {}
-    Object.entries(combined).forEach(([day, row]) => {
-      const pdf = Number(row?.pdf) || 0
-      const media = Number(row?.media) || 0
-      if (pdf) pdfDaily[day] = pdf
-      if (media) mediaDaily[day] = media
-    })
-    await target('pdf_generation/daily', pdfDaily)
-    await target('media_downloads/daily', mediaDaily)
-    const pdfTotal = Number(oldLifetime?.pdfGenerated ?? legacyPdf) || 0
-    const mediaTotal = Number(oldLifetime?.mediaDownloads ?? legacyMedia) || 0
-    await target('pdf_generation/lifetime', pdfTotal)
-    await target('media_downloads/lifetime', mediaTotal)
-  })().catch(error => { migrationPromise = null; throw error })
-  return migrationPromise
-}
-
 export async function getApmlDatabase() {
-  if (!databasePromise) databasePromise = (async () => {
-    const core = await loadCore()
-    await migrateLegacyAnalytics(core.database).catch(error => {
-      console.warn('Legacy analytics backup could not be copied. New Firebase analytics will continue:', error)
-    })
-    return core.database
-  })().catch(error => { databasePromise = null; throw error })
+  if (!databasePromise) databasePromise = loadCore().then(core => core.database).catch(error => {
+    databasePromise = null
+    throw error
+  })
   return databasePromise
 }
 
