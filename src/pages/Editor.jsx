@@ -4,6 +4,7 @@ import './Editor.css'
 import { getApmlPresenceServices, incrementApmlPdfGenerated } from '../lib/firebase'
 import { apmlDialog } from '../lib/sweetalert'
 import { logApmlAction } from '../lib/apmlActivity'
+import legacyDriveExport from '../data/legacyDriveExport.json'
 const dateNow=()=>{const d=new Date(),n=d.getDate(),s=n%10===1&&n!==11?'st':n%10===2&&n!==12?'nd':n%10===3&&n!==13?'rd':'th';return n+s+' '+d.toLocaleDateString('en-IN',{month:'short'})+' '+d.getFullYear()}
 const sharedDefault=()=>({date:dateNow(),custName:'',custCompany:'Unregistered',custGst:'GST Exempted',fromCity:'',toCity:''})
 const mk=(items)=>items.map(([label,amount=0])=>({label,amount}))
@@ -26,15 +27,6 @@ const portalDriveConfig={
  appId:'1:461187970356:web:e9dfc58a502fd3e04d2161',
  measurementId:'G-GXLWXXBT7P'
 }
-const originalDriveConfig={
- apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
- authDomain:'apml-portal.firebaseapp.com',
- databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',
- projectId:'apml-portal',
- storageBucket:'apml-portal.firebasestorage.app',
- messagingSenderId:'479017159240',
- appId:'1:479017159240:web:0853422718e6195b74a67d'
-}
 async function loadEditorFirebaseScript(src,ready){
  if(ready())return
  await new Promise((resolve,reject)=>{
@@ -48,19 +40,25 @@ async function getBranchDriveDatabase(){
  await loadEditorFirebaseScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',()=>!!window.firebase?.apps)
  await loadEditorFirebaseScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',()=>!!window.firebase?.database)
  if(!window.firebase.apps.some(app=>app.name==='portalapml-drive'))window.firebase.initializeApp(portalDriveConfig,'portalapml-drive')
- if(!window.firebase.apps.some(app=>app.name==='apml-drive-source'))window.firebase.initializeApp(originalDriveConfig,'apml-drive-source')
  const db=window.firebase.database(window.firebase.app('portalapml-drive'))
- const sourceDb=window.firebase.database(window.firebase.app('apml-drive-source'))
- // Match the new Drive's one-time migration: copy each original node only
- // when its destination is empty, and never modify the original database.
- const foldersRef=db.ref('catbox_gdrive_folders'),filesRef=db.ref('catbox_gdrive_files')
- const [oldFolders,newFolders,oldFiles,newFiles]=await Promise.all([
-  sourceDb.ref('catbox_gdrive_folders').once('value'),foldersRef.once('value'),
-  sourceDb.ref('catbox_gdrive_files').once('value'),filesRef.once('value')
+ // Merge the supplied legacy export by original Firebase keys. Existing target
+ // records win, while missing fields from the export are filled without
+ // replacing newer target values. The old Firebase is no longer contacted.
+ const mergeNode=async(path,records)=>{
+  const entries=Object.entries(records||{})
+  await Promise.all(entries.map(([key,value])=>db.ref(path+'/'+key).transaction(current=>{
+   if(current===null)return value
+   if(current&&typeof current==='object'&&!Array.isArray(current)&&value&&typeof value==='object'&&!Array.isArray(value)){
+    const merged={...value,...current}
+    return Object.keys(merged).every(field=>merged[field]===current[field])?undefined:merged
+   }
+   return undefined
+  })))
+ }
+ await Promise.all([
+  mergeNode('catbox_gdrive_folders',legacyDriveExport.folders),
+  mergeNode('catbox_gdrive_files',legacyDriveExport.files)
  ])
- const hasData=snapshot=>snapshot.exists()&&snapshot.val()&&Object.keys(snapshot.val()).length>0
- if(!hasData(newFolders)&&hasData(oldFolders))await foldersRef.set(oldFolders.val())
- if(!hasData(newFiles)&&hasData(oldFiles))await filesRef.set(oldFiles.val())
  return db
 }
 async function saveQuotationToDrive(blob,fileName){
@@ -91,7 +89,7 @@ function Field({label,children}){return <label className="editor-field"><span>{l
 function Preview({company,d,s}){const t=calc(d);return <div className={'quote-document '+company}><div className="doc-letterhead"><p className="doc-company">{d.companyName}</p>{company==='exact'?<p className="doc-cin">{d.cin}</p>:<p className="doc-sub">{d.cin} · Regd. Office: {d.addr}<br/>Phone: {d.phone}{d.showEmail?' · Email: '+d.email:''}</p>}</div><div className="doc-body"><div className="doc-meta"><span>{company==='exact'?'Date: '+s.date:d.gstLabel+': '+d.gstNo}</span><span>{company==='exact'?d.docNoLabel+': '+d.docNo:'Date: '+s.date}</span></div><div className="doc-customer">{company==='exact'&&<>GST No: {d.gstNo}<br/></>}{company==='exact'?'MR. / MS.: ':'TO: '}<b>{s.custName}</b><br/>Company Name: {s.custCompany}<br/>GST No: {s.custGst}{company==='maxcare'&&<><br/>{d.docNoLabel}: {d.docNo}</>}</div><p className="doc-quotation">QUOTATION</p><p className="doc-intro">{company==='exact'?<>Dear Sir / Mam,<br/><br/>Below are our best prices for moving your <b>{s.fromCity} to {s.toCity}</b>. We hope you will find our price competitive enough &amp; will give us an opportunity to service you.</>:<>We thank you for your inquiry to move your household goods from <b>{s.fromCity} to {s.toCity}</b>. We have pleasure in quoting our charges as follows:</>}</p><table className="doc-table"><thead><tr>{company==='maxcare'&&<th>S.No</th>}<th>{company==='exact'?'Cost Item':'Particulars'}</th><th className="amt">Amount (INR)</th></tr></thead><tbody>{d.costItems.map((x,i)=><tr key={i}>{company==='maxcare'&&<td>{i+1}</td>}<td>{x.label}</td><td className="amt">{money(x.amount)}</td></tr>)}<tr className="total-row">{company==='maxcare'&&<td>{d.costItems.length+1}</td>}<td>Total</td><td className="amt">{money(t.subtotal)}</td></tr><tr>{company==='maxcare'&&<td>{d.costItems.length+2}</td>}<td>GST Charges @ {Number(d.gstPercent)||0}%</td><td className="amt">{money(t.gst)}</td></tr><tr className="grand-row">{company==='maxcare'&&<td/>}<td>Total with GST</td><td className="amt">{money(t.grand)}</td></tr></tbody></table><p className="doc-terms-title">TERMS &amp; CONDITION:</p><ol className="doc-terms">{d.terms.map((x,i)=><li key={i}>{x}</li>)}</ol>{company==='exact'?<div className="doc-footer"><b>{d.addrLabel}:</b> {d.addr}<br/><b>Phone:</b> {d.phone}</div>:<div className="doc-footer">Thanking you and looking forward to rendering our service to you.<br/>With Regards,<div className="doc-sign">M/s {d.companyName}</div></div>}</div></div>}
 export default function EditorPage(){
 const [company,setCompany]=useState('exact'),[forms,setForms]=useState(()=>clone(DEFAULTS)),[shared,setShared]=useState(sharedDefault),[totalAmount,setTotalAmount]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),preview=useRef(null),d=forms[company],t=useMemo(()=>calc(d),[d])
-useEffect(()=>{editorDatabase().catch(()=>{})},[])
+useEffect(()=>{editorDatabase().catch(error=>console.warn('Editor analytics/presence unavailable:',error));getBranchDriveDatabase().catch(error=>console.warn('Legacy Drive export migration could not finish:',error))},[])
 const patch=(k,v)=>setForms(o=>({...o,[company]:{...o[company],[k]:v}})),ps=(k,v)=>setShared(o=>({...o,[k]:v}))
 const applyTotal=()=>{const total=Number(totalAmount)||0,matches=d.costItems.map((x,i)=>({i,p:SPLITS[company][x.label.trim().toLowerCase()]})).filter(x=>x.p>0);if(total<=0){editorAlert({icon:'warning',title:'Enter total amount',text:'Please fill in a valid total amount before applying the price split.'});return}if(!matches.length){editorAlert({icon:'error',title:'Unable to split amount',text:'No standard cost items are available to apply the amount. Add or restore a supported cost item.'});return}let used=0;patch('costItems',d.costItems.map((x,i)=>{const m=matches.find(y=>y.i===i);if(!m)return x;const pos=matches.indexOf(m),amount=pos===matches.length-1?Math.round(total-used):Math.round(total*m.p/100);if(pos!==matches.length-1)used+=amount;return{...x,amount}}))}
 const carIndex=d.costItems.findIndex(x=>x.label.toLowerCase().includes('car'))
