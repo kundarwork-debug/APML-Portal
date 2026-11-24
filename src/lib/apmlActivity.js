@@ -1,17 +1,15 @@
-import { getApmlAuth, getApmlDatabase, getApmlPresenceServices } from './firebase'
+import { getApmlAuth, getApmlDatabase } from './firebase'
 
-const ACTIVITY_PATH = 'Analytics page/recent_actions'
+const ACTIVITY_PATH = 'analytics/recent_actions'
 const ACTIVITY_LIMIT = 50
 
 export async function logApmlAction({ action, module, item = '', details = '', fileName = '', folder = '', fileSize = null, fileType = '' } = {}) {
   if (!action || !module) return false
   try {
-    // Guest event creation uses the dedicated anonymous Firebase identity.
-    // The default app supplies the signed-in user's label and admin pruning.
-    const [auth, presence] = await Promise.all([getApmlAuth(), getApmlPresenceServices()])
+    const [auth, database] = await Promise.all([getApmlAuth(), getApmlDatabase()])
     const authUser = auth.currentUser
     const user = authUser?.displayName || authUser?.email || 'Guest'
-    const ref = presence.database.ref(ACTIVITY_PATH)
+    const ref = database.ref(ACTIVITY_PATH)
     const key = ref.push().key
     if (!key) return false
     await ref.child(key).set({
@@ -26,19 +24,15 @@ export async function logApmlAction({ action, module, item = '', details = '', f
       user: String(user).slice(0, 100),
       timestamp: Date.now()
     })
-    const isAdmin = authUser?.emailVerified && ['kundar.work@gmail.com', 'kundar701@gmail.com'].includes(authUser.email)
+    const isAdmin = authUser?.emailVerified && ['kundar.work@gmail.com', 'kundar701@gmail.com'].includes(String(authUser.email || '').toLowerCase())
     if (isAdmin) {
-      const adminDatabase = await getApmlDatabase()
-      const adminRef = adminDatabase.ref(ACTIVITY_PATH)
-      const snapshot = await adminRef.once('value')
-      const entries = Object.entries(snapshot.val() || {}).sort(
-        (a, b) => Number(b[1]?.timestamp || 0) - Number(a[1]?.timestamp || 0)
-      )
+      const snapshot = await ref.once('value')
+      const entries = Object.entries(snapshot.val() || {}).sort((a, b) => Number(b[1]?.timestamp || 0) - Number(a[1]?.timestamp || 0))
       const stale = entries.slice(ACTIVITY_LIMIT)
       if (stale.length) {
         const updates = {}
         stale.forEach(([entryKey]) => { updates[entryKey] = null })
-        await adminRef.update(updates)
+        await ref.update(updates)
       }
     }
     return true
