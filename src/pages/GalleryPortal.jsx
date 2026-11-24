@@ -27,11 +27,17 @@ const sourceFirebaseConfig = {
 }
 const ADMIN_EMAILS = new Set(['kundar.work@gmail.com', 'kundar701@gmail.com'])
 function getGalleryDb() { return window.firebase.database(window.firebase.app('portalapml-gallery')) }
+async function loadGalleryAuthSdk() {
+  await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
+  if (!window.firebase.apps.some(app => app.name === 'portalapml-gallery')) window.firebase.initializeApp(firebaseConfig, 'portalapml-gallery')
+  await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
+  return window.firebase
+}
 function usePortalAdminAuth() {
   const [user, setUser] = useState(null)
   useEffect(() => {
     let active = true, unsubscribe = null
-    loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js').then(() => {
+    loadGalleryAuthSdk().then(() => {
       if (!active) return
       const auth = window.firebase.auth(window.firebase.app('portalapml-gallery'))
       auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).then(() => {
@@ -48,13 +54,14 @@ function usePortalAdminAuth() {
   }, [])
   const email = String(user?.email || '').toLowerCase().trim()
   const signIn = async () => {
-    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
+    await loadGalleryAuthSdk()
     const auth = window.firebase.auth(window.firebase.app('portalapml-gallery'))
     const provider = new window.firebase.auth.GoogleAuthProvider()
     provider.setCustomParameters({ prompt: 'select_account' })
     await auth.signInWithPopup(provider)
   }
   const signOut = async () => {
+    await loadGalleryAuthSdk()
     const auth = window.firebase.auth(window.firebase.app('portalapml-gallery'))
     await auth.signOut()
   }
@@ -152,11 +159,13 @@ export default function GalleryPortal() {
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(FOLDER_STORAGE_KEY) || 'null')
+      const savedValue = localStorage.getItem(FOLDER_STORAGE_KEY) || localStorage.getItem('apml_unlimited_gallery_folders_v7')
+      const saved = JSON.parse(savedValue || 'null')
       if (Array.isArray(saved)) {
         const merged = [...saved]
         for (const folder of DEFAULT_FOLDERS) if (!merged.some(item => item.id === folder.id)) merged.push(folder)
         setFolders(merged)
+        if (!localStorage.getItem(FOLDER_STORAGE_KEY)) localStorage.setItem(FOLDER_STORAGE_KEY, JSON.stringify(merged))
       }
     } catch {}
     try { const cachedItems = JSON.parse(localStorage.getItem(MEDIA_CACHE_KEY) || '[]'); setItems(cachedItems); if (cachedItems.length) setLoading(false) } catch {}
