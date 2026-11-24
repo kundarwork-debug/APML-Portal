@@ -1995,7 +1995,7 @@ async function handleStorageAudit(request, env) {
   let galleryItems = {};
   try {
     const paths = ['catbox_gdrive_files', 'catbox_gdrive_folders', 'apml_ranked_gallery'];
-    const responses = await Promise.all(paths.map(path => fetch(CONFIG.FIREBASE_DB_URL + '/' + path + '.json')));
+    const responses = await Promise.all(paths.map(path => fetch('https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app/' + path + '.json')));
     const failed = responses.find(response => !response.ok);
     if (failed) return json({ ok: false, error: 'Firebase file-reference scan failed with HTTP ' + failed.status + '. No deleted-file classifications were generated.' }, 502);
     const [filesData, foldersData, galleryData] = await Promise.all(responses.map(response => response.json()));

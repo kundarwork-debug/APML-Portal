@@ -9,7 +9,7 @@ export default function InfoPage(){
  const [support,setSupport]=useState(false),[seconds,setSeconds]=useState(5)
  useEffect(()=>{if(!support)return;setSeconds(5);const end=Date.now()+5000;const timer=setInterval(()=>setSeconds(Math.max(0,Math.ceil((end-Date.now())/1000))),200);const redirect=setTimeout(()=>{window.open(sponsorUrl,'_blank','noopener,noreferrer');setSupport(false)},5000);return()=>{clearInterval(timer);clearTimeout(redirect)}},[support])
  const repoGroups=[
-  {icon:'public',title:'React pages',desc:'The screens and tools people use across the portal.',files:['src/pages/','Home.jsx','Editor.jsx','Drive.jsx','Gallery.jsx']},
+  {icon:'public',title:'React pages',desc:'The screens and tools people use across the portal.',files:['src/pages/','Home.jsx','Editor.jsx','DirectoryPortal.jsx','FieldOfficerPortal.jsx','DrivePortal.jsx','GalleryPortal.jsx']},
   {icon:'layers',title:'Shared experience',desc:'Reusable layout, routing and shared styles.',files:['src/components/','Shell.jsx','src/styles.css']},
   {icon:'cloud',title:'Service integrations',desc:'API endpoints and connected service workflows.',files:['api/','system-health.js','public/notify.js','Firebase','Cloudinary']},
   {icon:'smartphone',title:'Assets & PWA',desc:'Brand identity and installable web-app configuration.',files:['public/logo.svg','manifest.webmanifest','sw.js','pwa icons']},
