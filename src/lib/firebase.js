@@ -76,7 +76,14 @@ async function migrateLegacyAnalytics(database) {
       read('analytics/totalMediaDownloads')
     ])
     await target('recent_actions', oldActivity)
-    await target('active_sessions', oldPresence)
+    const flattenedPresence = {}
+    Object.entries(oldPresence || {}).forEach(([owner, sessions]) => {
+      if (sessions && typeof sessions === 'object' && sessions.online === true) flattenedPresence[owner] = sessions
+      else Object.entries(sessions || {}).forEach(([sessionId, session]) => {
+        if (session && typeof session === 'object') flattenedPresence[sessionId] = session
+      })
+    })
+    await target('active_sessions', flattenedPresence)
     const combined = oldDaily && Object.keys(oldDaily).length ? oldDaily : (legacyDaily || {})
     const pdfDaily = {}, mediaDaily = {}
     Object.entries(combined).forEach(([day, row]) => {
