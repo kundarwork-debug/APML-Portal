@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowDown, ArrowUpRight, Pencil, Grid2X2, Activity, FileText, Cloud, Images, MapPinned, Users, Calculator, Truck, ChevronRight } from 'lucide-react'
 import { modules } from '../data/modules'
-import { getApmlDatabase } from '../lib/firebase'
+import { getApmlPresenceServices } from '../lib/firebase'
 
 const homeTools = [
   { id:'editor', title:'Quotation Drafting Studio', description:'Create official quotations with freight formulas, GST calculations and A4 PDF preview.', label:'Documentation', tags:['A4 PDF Export','Freight Matrix','GST Calculation'], image:'https://3dicons.sgp1.cdn.digitaloceanspaces.com/v1/dynamic/color/pencil-dynamic-color.png', wide:true },
@@ -146,7 +146,7 @@ function OperationalTelemetry(){
   let active=true,db=null,refs=[]
   const start=async()=>{
    try{
-    db=await getApmlDatabase()
+    const services=await getApmlPresenceServices();db=services.database
     if(!active)return
     const listen=(path,key,transform=snap=>Number(snap.val())||0)=>{
      const ref=db.ref(path);refs.push(ref)
@@ -155,28 +155,16 @@ function OperationalTelemetry(){
     const presenceRef=db.ref('analytics/active_sessions');refs.push(presenceRef)
     presenceRef.on('value',snap=>{
      const cutoff=Date.now()-90000
-     let online=0
-     Object.values(snap.val()||{}).forEach(sessions=>{
-      if(!sessions||typeof sessions!=='object')return
-      Object.values(sessions).forEach(session=>{
-       const timestamp=session?.timestamp
-       if(session?.online===true&&typeof timestamp==='number'&&Number.isFinite(timestamp)&&timestamp>=cutoff)online++
-      })
-     })
+     const online=Object.values(snap.val()||{}).filter(session=>session?.online===true&&typeof session.timestamp==='number'&&Number.isFinite(session.timestamp)&&session.timestamp>=cutoff).length
      if(active)setCounts(prev=>({...prev,users:online}))
     },error=>console.warn('APML live presence count unavailable',error))
-    let dailyPdfTotal=0,archivePdfTotal=0,lifetimePdfTotal=0
-    const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,archivePdfTotal,lifetimePdfTotal)}))}
+    let dailyPdfTotal=0,lifetimePdfTotal=0
+    const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,lifetimePdfTotal)}))}
     const dailyRef=db.ref('analytics/pdf_generation/daily');refs.push(dailyRef)
     dailyRef.on('value',snap=>{dailyPdfTotal=Object.values(snap.val()||{}).reduce((total,value)=>total+(Number(value)||0),0);publishPdfTotal()},error=>console.warn('APML daily PDF telemetry unavailable',error))
     const lifetimeRef=db.ref('analytics/pdf_generation/lifetime');refs.push(lifetimeRef)
     lifetimeRef.on('value',snap=>{lifetimePdfTotal=Number(snap.val())||0;publishPdfTotal()},error=>console.warn('APML lifetime PDF telemetry unavailable',error))
-    const foldersRef=db.ref('catbox_gdrive_folders');const filesRef=db.ref('catbox_gdrive_files');refs.push(foldersRef,filesRef)
-    let quotationFolderIds=new Set(),quotationFiles={}
-    const updateArchiveCount=()=>{archivePdfTotal=Object.values(quotationFiles).filter(file=>file&&quotationFolderIds.has(String(file.parentId||''))).length;publishPdfTotal()}
-    foldersRef.on('value',snap=>{const folders=snap.val()||{};quotationFolderIds=new Set(Object.keys(folders).filter(id=>folders[id]?.parentId==='root'&&String(folders[id]?.name||'').trim().toLowerCase()==='quotation'));updateArchiveCount()},error=>console.warn('APML quotation folder telemetry unavailable',error))
-    filesRef.on('value',snap=>{quotationFiles=snap.val()||{};updateArchiveCount()},error=>console.warn('APML quotation archive telemetry unavailable',error))
-    listen('analytics/totalMediaDownloads','media')
+    listen('analytics/media_downloads/lifetime','media')
    }catch(error){console.warn('APML homepage telemetry could not connect',error)}
   }
   start()
