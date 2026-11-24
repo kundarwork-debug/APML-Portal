@@ -173,26 +173,32 @@ async function cloudinaryDelete(env, items) {
 }
 
 async function getFirebaseAdminEmail(request) {
-  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\\s+/i, '').trim();
   if (!token) return null;
 
-  try {
-    const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + CONFIG.FIREBASE_API_KEY, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken: token })
-    });
-    if (!response.ok) return null;
+  // Accept approved administrator ID tokens from the original APML project
+  // and the isolated portalapml project used by the branch Gallery.
+  const apiKeys = [...new Set([CONFIG.FIREBASE_API_KEY, 'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM'].filter(Boolean))];
+  for (const apiKey of apiKeys) {
+    try {
+      const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + apiKey, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: token })
+      });
+      if (!response.ok) continue;
 
-    const data = await response.json();
-    const user = Array.isArray(data.users) ? data.users[0] : null;
-    if (!user || user.emailVerified !== true) return null;
+      const data = await response.json();
+      const user = Array.isArray(data.users) ? data.users[0] : null;
+      if (!user || user.emailVerified !== true) continue;
 
-    const email = String(user.email || '').trim().toLowerCase();
-    return CONFIG.ADMIN_EMAILS.map((item) => item.toLowerCase()).includes(email) ? email : null;
-  } catch {
-    return null;
+      const email = String(user.email || '').trim().toLowerCase();
+      return CONFIG.ADMIN_EMAILS.map((item) => item.toLowerCase()).includes(email) ? email : null;
+    } catch {
+      // Try the next configured Firebase project.
+    }
   }
+  return null;
 }
 
 async function trimQuotations(env) {
