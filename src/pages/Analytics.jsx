@@ -137,6 +137,14 @@ export default function Analytics() {
     return rows
   }, [records.pdfDaily, records.mediaDaily, startDate, range])
   const totals = useMemo(() => daily.reduce((sum, row) => ({ pdf: sum.pdf + row.pdf, media: sum.media + row.media }), { pdf: 0, media: 0 }), [daily])
+  const visitorDaily = useMemo(() => daily.map(row => {
+    const entries = Object.values(records.visitors?.[row.date] || {})
+    const visits = entries.reduce((sum, detail) => sum + (detail?.trafficClass === 'likely_human' ? Number(detail.visits) || 0 : 0), 0)
+    return { date: row.date, visits }
+  }), [daily, records.visitors])
+  const visitorDailyTotal = visitorDaily.reduce((sum, row) => sum + row.visits, 0)
+  const visitorPeak = visitorDaily.reduce((peak, row) => row.visits > peak.visits ? row : peak, { date: '', visits: 0 })
+
 
   const visitorRows = useMemo(() => {
     const selected = Object.entries(records.visitors || {}).filter(([date]) => date >= startDate && date <= endDate)
@@ -207,6 +215,14 @@ export default function Analytics() {
     responsive: [{ breakpoint: 650, options: { legend: { position: 'bottom', horizontalAlign: 'left' }, xaxis: { tickAmount: 5 } } }]
   }
   const chartSeries = [{ name: 'PDF generated', data: daily.map(row => row.pdf) }, { name: 'Drive / Gallery downloads', data: daily.map(row => row.media) }]
+  const visitorChartOptions = {
+    ...chartOptions,
+    colors: ['#8b5cf6'],
+    xaxis: { ...chartOptions.xaxis, categories: visitorDaily.map(row => shortDate(row.date)) },
+    tooltip: { shared: false, intersect: false, x: { formatter: (_, opts) => visitorDaily[opts.dataPointIndex] ? labelDate(visitorDaily[opts.dataPointIndex].date) : '' }, y: { formatter: fmt } }
+  }
+  const visitorChartSeries = [{ name: 'Likely-human visits', data: visitorDaily.map(row => row.visits) }]
+
 
   const exportCsv = useCallback(() => {
     const lines = [['Date', 'PDF generated', 'Drive/Gallery downloads', 'Total'], ...[...daily].reverse().map(row => [row.date, row.pdf, row.media, row.pdf + row.media])]
@@ -239,6 +255,7 @@ export default function Analytics() {
 
     <section className="analytics-insight-grid">
       <article className="analytics-panel analytics-chart-panel"><div className="analytics-panel-head"><div><h2>Portal activity</h2><p>Daily PDF generation and Drive / Gallery downloads</p></div><span className="analytics-live-label"><i/> LIVE SYNC</span></div><div className="analytics-chart-wrap">{daily.length ? <ReactApexChart options={chartOptions} series={chartSeries} type="area" height="100%"/> : <div className="analytics-empty">No activity in this period.</div>}</div></article>
+      <article className="analytics-panel analytics-visitors-chart"><div className="analytics-panel-head"><div><h2>Daily visitors</h2><p>Day-wise engaged, likely-human visits · India Standard Time</p></div><span className="analytics-row-count">{fmt(visitorDailyTotal)} visits</span></div><div className="analytics-chart-wrap"><ReactApexChart options={visitorChartOptions} series={visitorChartSeries} type="area" height="100%"/></div><div className="analytics-visitor-summary"><span>Daily average <strong>{fmt(visitorDailyTotal / Math.max(1, visitorDaily.length))}</strong></span><span>Peak day <strong>{visitorPeak.visits ? labelDate(visitorPeak.date) + ' · ' + fmt(visitorPeak.visits) : '—'}</strong></span></div></article>
       <article className="analytics-panel analytics-insights"><div className="analytics-panel-head"><div><h2>Period insights</h2><p>Summary for the selected date range</p></div></div><div className="analytics-insight-row"><span>Total tracked downloads</span><strong>{fmt(combined)}</strong></div><div className="analytics-insight-row"><span>Average per day</span><strong>{fmt(combined / Math.max(1, daily.length))}</strong></div><div className="analytics-insight-row"><span>Visitor-days recorded</span><strong>{fmt(visitorRows.days)}</strong></div><div className="analytics-insight-row"><span>Busiest activity date</span><strong>{busiest && busiest.pdf + busiest.media ? shortDate(busiest.date) : '—'}</strong></div><div className="analytics-insight-note">Generated PDFs are counted separately from downloads. A PDF is not counted as a Drive/Gallery download unless it is downloaded from there separately.</div></article>
     </section>
 
