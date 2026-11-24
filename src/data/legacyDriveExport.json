@@ -1,0 +1,103 @@
+{
+  "folders": {
+    "-P36NxE3NpNj4Ohka7QQ": {
+      "name": "PRASAD",
+      "parentId": "root",
+      "timestamp": 1791125344663
+    },
+    "-P3tVqS7YS18Dgpo4etX": {
+      "name": "APML QR CODE",
+      "parentId": "root",
+      "timestamp": 1791966274866
+    },
+    "-P62xES9ETF90XgUPaQB": {
+      "name": "Asset",
+      "parentId": "-P36NxE3NpNj4Ohka7QQ",
+      "timestamp": 1794288971305
+    },
+    "quotation_folder": {
+      "name": "Quotation",
+      "parentId": "root",
+      "timestamp": 1791368388160
+    }
+  },
+  "files": {
+    "-P5CHSngCiTp_Q805e7_": {
+      "trashedAt": 1795449603460
+    },
+    "-P6SJpznUYXfpNxuWmmB": {
+      "trashedAt": 1795449603460
+    },
+    "-P6SJvI5xLlBtRvQ4gNi": {
+      "trashedAt": 1795449603460
+    },
+    "-P6SL-VLWQ_dabNXB4pM": {
+      "trashedAt": 1795449603460
+    },
+    "-P6SL0VyqKGOW58NP-A-": {
+      "trashedAt": 1795449603460
+    },
+    "-P6T7thRVGW6V4Sy3Hsb": {
+      "trashedAt": 1795449603460
+    },
+    "-P6TZGTIQRvr1f_CIRp6": {
+      "trashedAt": 1795449603460
+    },
+    "-P6TZeCmZiZS2k060DgM": {
+      "trashedAt": 1795449603460
+    },
+    "-P6U-B37njosDTs25AIf": {
+      "trashedAt": 1795449603460
+    },
+    "-P6XpGUp8ukVbyyZAKNg": {
+      "trashedAt": 1795449603460
+    },
+    "-P6XsnhlB2xuXCgoKbYZ": {
+      "trashedAt": 1795449603460
+    },
+    "-P6iAU0g-TjsHIzDX3Ff": {
+      "trashedAt": 1795449603460
+    },
+    "-P6x04wT1mpNSURFkIae": {
+      "trashedAt": 1795449603460
+    },
+    "-P783JWhI2fVTjadRKoP": {
+      "trashedAt": 1795449603460
+    },
+    "-P783xOFY0_XsvHg8Kz1": {
+      "trashedAt": 1795449603460
+    },
+    "-P788T9IAf6oCZ2oa4Zt": {
+      "createdBy": "ghKrT4O80qfQZag57zAvyBdov4F3",
+      "fileId": "https://res.cloudinary.com/wbrmw2pm/image/upload/v1795449806/apml-drive/vh0p1omorqql8nudtsdy.pdf",
+      "name": "ANNU RAG_Exact Container Logistics.pdf",
+      "parentId": "quotation_folder",
+      "size": 495990,
+      "timestamp": 1795449806794
+    },
+    "-P788VklpKpKtI0L7hl4": {
+      "createdBy": "ghKrT4O80qfQZag57zAvyBdov4F3",
+      "fileId": "https://res.cloudinary.com/wbrmw2pm/image/upload/v1795449817/apml-drive/nfinqtjhoanemid7zwjg.pdf",
+      "name": "ANNU RAG_Maxcare Packers and Movers Pvt Ltd.pdf",
+      "parentId": "quotation_folder",
+      "size": 601373,
+      "timestamp": 1795449817448
+    },
+    "-P788cr6b2FjNlvd0Jnu": {
+      "createdBy": "ghKrT4O80qfQZag57zAvyBdov4F3",
+      "fileId": "https://res.cloudinary.com/wbrmw2pm/image/upload/v1795449850/apml-drive/r3lrmvwynousgcvky4ax.pdf",
+      "name": "ANNU RAG_Exact Container Logistics.pdf",
+      "parentId": "quotation_folder",
+      "size": 493578,
+      "timestamp": 1795449850621
+    },
+    "-P78CLChzXkNDD6ZNAKo": {
+      "createdBy": "ghKrT4O80qfQZag57zAvyBdov4F3",
+      "fileId": "https://res.cloudinary.com/wbrmw2pm/image/upload/v1795450822/apml-drive/emfkiwsqso3v8p1wdhsj.pdf",
+      "name": "ANNU RAG_Exact Container Logistics.pdf",
+      "parentId": "quotation_folder",
+      "size": 490905,
+      "timestamp": 1795450822773
+    }
+  }
+}
