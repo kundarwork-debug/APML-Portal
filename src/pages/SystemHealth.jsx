@@ -3,7 +3,7 @@ import { Activity, CheckCircle2, AlertTriangle, CloudOff, RefreshCw, Globe, Serv
 import './SystemHealth.css'
 
 const WORKER_HEALTH='https://apml-drive-api.kundar-work.workers.dev/health'
-const FIREBASE_HEALTH='https://apml-portal-default-rtdb.firebaseio.com/analytics/daily_logs.json?shallow=true'
+const FIREBASE_HEALTH='https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app/analytics/pdf_generation/daily.json?shallow=true'
 const assets=[import.meta.env.BASE_URL+'logo.svg',import.meta.env.BASE_URL+'other/logo.svg',import.meta.env.BASE_URL+'notify.js',import.meta.env.BASE_URL+'manifest.webmanifest',import.meta.env.BASE_URL+'pwa-192.svg',import.meta.env.BASE_URL+'pwa-512.svg',import.meta.env.BASE_URL+'sw.js']
 const services=[
  {id:'portal',name:'Portal frontend',icon:Globe,detail:'Testing this page and static site assets.'},
