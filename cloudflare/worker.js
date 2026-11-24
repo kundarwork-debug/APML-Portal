@@ -12,9 +12,9 @@ const CONFIG = {
 
   CLOUD_NAME: 'wbrmw2pm',
 
-  FIREBASE_DB_URL: 'https://apml-portal-default-rtdb.firebaseio.com',
+  FIREBASE_DB_URL: 'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',
 
-  FIREBASE_API_KEY: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
+  FIREBASE_API_KEY: 'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
 
   ADMIN_EMAILS: ['kundar.work@gmail.com', 'kundar701@gmail.com'],
 
@@ -42,7 +42,7 @@ const CONFIG = {
 
   VISITOR_LOCATION: 'region',
 
-  PRESENCE_PATH: 'presence',
+  PRESENCE_PATH: 'analytics/active_sessions',
 
   ANNOUNCE_DEFAULT_HOURS: 12,
 
@@ -50,9 +50,9 @@ const CONFIG = {
 
   ANNOUNCE_MAX_CHARS: 280,
 
-  PDF_TOTAL_PATH: 'analytics/totalPdfDownloads',
+  PDF_TOTAL_PATH: 'analytics/pdf_generation/lifetime',
 
-  MEDIA_TOTAL_PATH: 'analytics/totalMediaDownloads',
+  MEDIA_TOTAL_PATH: 'analytics/media_downloads/lifetime',
 
   STATS_TIMEOUT_MS: 2500,
 
@@ -178,7 +178,7 @@ async function getFirebaseAdminEmail(request) {
 
   // Accept approved administrator ID tokens from the original APML project
   // and the isolated portalapml project used by the branch Gallery.
-  const apiKeys = [...new Set([CONFIG.FIREBASE_API_KEY, 'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM'].filter(Boolean))];
+  const apiKeys = [CONFIG.FIREBASE_API_KEY].filter(Boolean);
   for (const apiKey of apiKeys) {
     try {
       const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + apiKey, {
@@ -393,7 +393,7 @@ async function liveStatsWithDaily() {
 
     fbRead(CONFIG.MEDIA_TOTAL_PATH),
 
-    fbRead(`analytics/daily_logs/${todayKey}`)
+    fbRead(`analytics/pdf_generation/daily/${todayKey}`)
 
   ]);
 
@@ -415,9 +415,9 @@ async function liveStatsWithDaily() {
 
     todayVisitors: Number(todayData.visitors) || 0,
 
-    todayPdfs: Number(todayData.pdf) || 0,
+    todayPdfs: Number(todayData) || 0,
 
-    todayMedia: Number(todayData.media) || 0
+    todayMedia: null
 
   };
 
