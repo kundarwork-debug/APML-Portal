@@ -204,3 +204,7 @@ html[data-theme="dark"] .fo-loading strong{color:#edf1f5}
 html[data-theme="dark"] .fo-loading small{color:#a8b5c7}
 html[data-theme="dark"] .fo-fallback-toast{background:#edf1f5;color:#151a21}
 @media(prefers-reduced-motion:reduce){.fo-contact-row,.fo-action{transition:none!important}}
+
+/* Ensure officer editor always renders above page-level effects and global form styles. */
+.fo-modal-backdrop{position:fixed!important;inset:0!important;z-index:10000!important;display:grid!important;place-items:center!important;isolation:isolate!important;}
+.fo-modal-backdrop>.fo-modal{position:relative!important;z-index:1!important;display:block!important;visibility:visible!important;opacity:1!important;transform:none!important;flex:none!important;max-height:90vh!important;overflow:auto!important;background:#fff!important;color:#202124!important;}
