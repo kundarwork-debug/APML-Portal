@@ -27,7 +27,7 @@ const portalDriveConfig={
  measurementId:'G-GXLWXXBT7P'
 }
 const originalDriveConfig={
- apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VZuA-nQ0zM3aF8',
+ apiKey:'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
  authDomain:'apml-portal.firebaseapp.com',
  databaseURL:'https://apml-portal-default-rtdb.firebaseio.com',
  projectId:'apml-portal',
