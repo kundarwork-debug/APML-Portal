@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import ReactApexChart from 'react-apexcharts'
-import { Activity, Users, FileText, Download, Eye, RefreshCw, ArrowUpRight, Monitor, Smartphone, Tablet, Clock3, FileDown } from 'lucide-react'
+import { Activity, Users, FileText, Download, Eye, RefreshCw, ArrowUpRight, Monitor, Smartphone, Tablet, Clock3, FileDown, MapPin } from 'lucide-react'
 import './Analytics.css'
 
 const FIREBASE_CONFIG = {
@@ -121,14 +121,23 @@ export default function Analytics() {
 
   const visitorRows = useMemo(() => {
     const selected = Object.entries(records.visitors || {}).filter(([date]) => date >= startDate && date <= endDate)
-    const unique = new Set()
-    const devices = {}
-    selected.forEach(([, users]) => Object.entries(users || {}).forEach(([uid, detail]) => {
-      unique.add(uid)
-      const device = detail?.device || 'Other'
-      devices[device] = (devices[device] || 0) + 1
+    const unique = new Set(), devices = {}, locations = {}, systems = {}, browsers = {}
+    let visits = 0
+    selected.forEach(([, visitors]) => Object.entries(visitors || {}).forEach(([visitorId, detail]) => {
+      if (!detail || typeof detail !== 'object') return
+      unique.add(visitorId)
+      const count = Number(detail.visits) || 0
+      visits += count
+      const device = detail.device || 'Other'
+      devices[device] = (devices[device] || 0) + count
+      const os = detail.os || 'Other'
+      systems[os] = (systems[os] || 0) + count
+      const browser = detail.browser || 'Other'
+      browsers[browser] = (browsers[browser] || 0) + count
+      const place = [detail.city, detail.region, detail.country].filter(Boolean).join(', ') || 'Unknown location'
+      locations[place] = (locations[place] || 0) + count
     }))
-    return { unique: unique.size, devices, days: selected.length }
+    return { visits, unique: unique.size, devices, locations, systems, browsers, days: selected.length }
   }, [records.visitors, startDate, endDate])
 
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
@@ -195,7 +204,7 @@ export default function Analytics() {
       <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(Math.max(activeSessions.length, activePresence))}</strong><small>Live sessions updated within 90 seconds</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><small>{fmt(lifetimePdf)} lifetime generated</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon blue"><Download size={18}/></span><span>Drive / Gallery downloads</span></div><strong>{fmt(totals.media)}</strong><small>{fmt(lifetimeMedia)} lifetime downloads</small></article>
-      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor sessions</span></div><strong>{fmt(visitorRows.unique)}</strong><small>Distinct browser sessions across selected dates</small></article>
+      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor visits</span></div><strong>{fmt(visitorRows.visits)}</strong><small>Repeat visits count again after 30 minutes · {fmt(visitorRows.unique)} unique browsers</small></article>
     </section>
 
     <section className="analytics-insight-grid">
@@ -205,7 +214,8 @@ export default function Analytics() {
 
     <section className="analytics-lower-grid">
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Most viewed pages</h2><p>Page views accumulated across recorded visitor sessions</p></div></div>{topPages.length ? <div className="analytics-rank-list">{topPages.map(([name, count], index) => <div className="analytics-rank-row" key={name}><span className="analytics-rank-number">{index + 1}</span><span className="analytics-rank-name">{name}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Page-view details will appear as visitor sessions are recorded.</div>}</article>
-      <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device categories from daily visitor records</p></div></div>{Object.keys(visitorRows.devices).length ? <div className="analytics-device-list">{Object.entries(visitorRows.devices).sort((a,b)=>b[1]-a[1]).map(([device,count])=>{const Icon=device==='Mobile'?Smartphone:device==='Tablet'?Tablet:Monitor;const pct=Math.round(count/Math.max(1,Object.values(visitorRows.devices).reduce((a,b)=>a+b,0))*100);return <div className="analytics-device-row" key={device}><span className="analytics-device-icon"><Icon size={16}/></span><span className="analytics-device-name">{device}</span><div className="analytics-device-track"><i style={{width:pct+'%'}}/></div><strong>{pct}%</strong></div>})}</div> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device type · operating system · browser</p></div></div>{Object.keys(visitorRows.devices).length ? <div className="analytics-device-list">{Object.entries(visitorRows.devices).sort((a,b)=>b[1]-a[1]).map(([device,count])=>{const Icon=device==='Mobile'?Smartphone:device==='Tablet'?Tablet:Monitor;const pct=Math.round(count/Math.max(1,Object.values(visitorRows.devices).reduce((a,b)=>a+b,0))*100);return <div className="analytics-device-row" key={device}><span className="analytics-device-icon"><Icon size={16}/></span><span className="analytics-device-name">{device}</span><div className="analytics-device-track"><i style={{width:pct+'%'}}/></div><strong>{pct}%</strong></div>})}<div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></div> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor locations</h2><p>Approximate location from network information</p></div></div>{Object.keys(visitorRows.locations).length ? <div className="analytics-rank-list">{Object.entries(visitorRows.locations).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([place,count],index)=><div className="analytics-rank-row" key={place}><span className="analytics-rank-number"><MapPin size={14}/></span><span className="analytics-rank-name">{place}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Location details will appear as visitor records arrive.</div>}</article>
     </section>
 
     <section className="analytics-panel analytics-daily-panel"><div className="analytics-panel-head"><div><h2>Daily breakdown</h2><p>Newest dates first · counts are recorded in India Standard Time</p></div><span className="analytics-row-count">{daily.length} days</span></div><div className="analytics-table-wrap"><table><thead><tr><th>Date</th><th>PDF generated</th><th>Drive / Gallery</th><th>Total</th></tr></thead><tbody>{[...daily].reverse().map(row=><tr key={row.date}><td>{labelDate(row.date)}</td><td>{fmt(row.pdf)}</td><td>{fmt(row.media)}</td><td><strong>{fmt(row.pdf+row.media)}</strong></td></tr>)}</tbody></table></div></section>
