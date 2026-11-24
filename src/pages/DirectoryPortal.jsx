@@ -87,7 +87,7 @@ export default function Directory(){
   const [db,setDb]=useState(null)
   useEffect(()=>{
     let active=true,ref=null
-    loadScript().then(fb=>{
+    loadScript().then(async fb=>{
       if(!active)return
       const database=fb.database(fb.app('portalapml-directory')),directoryRef=database.ref('directory')
       setDb(directoryRef)
