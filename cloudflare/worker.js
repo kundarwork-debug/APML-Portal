@@ -196,75 +196,9 @@ async function getFirebaseAdminEmail(request) {
 }
 
 async function trimQuotations(env) {
-
-  const base = CONFIG.FIREBASE_DB_URL;
-
-  const [fr, fl] = await Promise.all([
-
-    fetch(`${base}/catbox_gdrive_folders.json`),
-
-    fetch(`${base}/catbox_gdrive_files.json`),
-
-  ]);
-
-  const folders = (await fr.json()) || {};
-
-  const files = (await fl.json()) || {};
-
-  let folderKey = null;
-
-  for (const [key, f] of Object.entries(folders)) {
-
-    if (!f) continue;
-
-    const nameMatch =
-
-      (f.parentId || 'root') === 'root' &&
-
-      CONFIG.QUOTATION_FOLDER_NAMES.includes(String(f.name || '').trim().toLowerCase());
-
-    if (CONFIG.QUOTATION_FOLDER_KEYS.includes(key) || nameMatch) { folderKey = key; break; }
-
-  }
-
-  if (!folderKey) return { trimmed: 0, note: 'no quotation folder' };
-
-  const inFolder = Object.entries(files)
-
-    .filter(([, f]) => f && f.parentId === folderKey)
-
-    .map(([key, f]) => ({ key, ...f }))
-
-    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-
-  const excess = inFolder.length - CONFIG.QUOTATION_CAP;
-
-  if (excess <= 0) return { trimmed: 0, count: inFolder.length };
-
-  const oldest = inFolder.slice(0, excess);
-
-  const parsed = oldest.map((f) => parseCloudinaryUrl(f.fileId)).filter(Boolean);
-
-  if (parsed.length) {
-
-    const results = await cloudinaryDelete(env, parsed);
-
-    const failed = results.find((r) => !r.ok);
-
-    if (failed) return { trimmed: 0, error: failed.error || `HTTP ${failed.status}` };
-
-  }
-
-  for (const f of oldest) {
-
-    await fetch(`${base}/catbox_gdrive_files/${f.key}.json`, { method: 'DELETE' });
-
-  }
-
-  return { trimmed: oldest.length, count: CONFIG.QUOTATION_CAP };
-
+  // Automatic quotation deletion has been disabled. No files or Cloudinary assets are removed.
+  return { trimmed: 0, disabled: true, note: 'Quotation cleanup is disabled.' };
 }
-
 
 const TRASH_RETENTION_MS = 60 * 24 * 60 * 60 * 1000;
 
@@ -272,131 +206,8 @@ const TRASH_RETENTION_MS = 60 * 24 * 60 * 60 * 1000;
 // Missing trashedAt values are stamped on first sweep so legacy trash receives
 // a full 60-day grace period after this feature is deployed.
 async function purgeExpiredTrash(env) {
-  const base = CONFIG.FIREBASE_DB_URL;
-  const now = Date.now();
-  const cutoff = now - TRASH_RETENTION_MS;
-  const [folderResponse, fileResponse, galleryResponse] = await Promise.all([
-    fetch(`${base}/catbox_gdrive_folders.json`),
-    fetch(`${base}/catbox_gdrive_files.json`),
-    fetch(`${base}/apml_ranked_gallery.json`)
-  ]);
-  if (!folderResponse.ok || !fileResponse.ok || !galleryResponse.ok) {
-    throw new Error('Could not read all Drive and Gallery records; nothing was purged.');
-  }
-  const folders = (await folderResponse.json()) || {};
-  const files = (await fileResponse.json()) || {};
-  const gallery = (await galleryResponse.json()) || {};
-
-  const folderStamps = {};
-  const fileStamps = {};
-  const galleryStamps = {};
-  const folderDeletes = new Set();
-  const fileDeletes = new Set();
-  const galleryDeletes = new Set();
-  const cloudinaryUrls = [];
-
-  // A trashed folder owns its complete nested tree. Descendants that were
-  // independently moved to Trash are connected through prevParentId.
-  for (const [key, folder] of Object.entries(folders)) {
-    if (!folder || folder.parentId !== 'deleted') continue;
-    const trashedAt = Number(folder.trashedAt) || 0;
-    if (!trashedAt) {
-      folderStamps[key] = { trashedAt: now };
-      continue;
-    }
-    if (trashedAt > cutoff) continue;
-
-    const tree = new Set([key]);
-    const queue = [key];
-    while (queue.length) {
-      const parentKey = queue.pop();
-      for (const [childKey, child] of Object.entries(folders)) {
-        if (!child || tree.has(childKey)) continue;
-        const belongs = child.parentId === parentKey ||
-          (child.parentId === 'deleted' && child.prevParentId === parentKey);
-        if (belongs) {
-          tree.add(childKey);
-          queue.push(childKey);
-        }
-      }
-    }
-    tree.forEach(folderKey => folderDeletes.add(folderKey));
-    for (const [fileKey, file] of Object.entries(files)) {
-      if (!file) continue;
-      const parentKey = file.parentId === 'deleted' ? file.prevParentId : file.parentId;
-      if (tree.has(parentKey || 'root')) {
-        fileDeletes.add(fileKey);
-        if (file.fileId) cloudinaryUrls.push(file.fileId);
-      }
-    }
-  }
-
-  // Individual Drive files in Trash are aged from the time they were moved,
-  // never from their original upload timestamp.
-  for (const [key, file] of Object.entries(files)) {
-    if (!file || file.parentId !== 'deleted' || fileDeletes.has(key)) continue;
-    const trashedAt = Number(file.trashedAt) || 0;
-    if (!trashedAt) fileStamps[key] = { trashedAt: now };
-    else if (trashedAt <= cutoff) {
-      fileDeletes.add(key);
-      if (file.fileId) cloudinaryUrls.push(file.fileId);
-    }
-  }
-
-  // Gallery media uses the same 60-day Trash policy.
-  for (const [key, item] of Object.entries(gallery)) {
-    if (!item || item.folder !== 'deleted') continue;
-    const trashedAt = Number(item.trashedAt) || 0;
-    if (!trashedAt) galleryStamps[key] = { trashedAt: now };
-    else if (trashedAt <= cutoff) {
-      galleryDeletes.add(key);
-      if (item.url) cloudinaryUrls.push(item.url);
-    }
-  }
-
-  const parsedAssets = cloudinaryUrls.map(parseCloudinaryUrl).filter(Boolean);
-  if (parsedAssets.length && (!env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET)) {
-    throw new Error('Cloudinary credentials are missing; expired records were retained safely.');
-  }
-  if (parsedAssets.length) {
-    const results = await cloudinaryDelete(env, parsedAssets);
-    const failed = results.find(result => !result.ok);
-    if (failed) throw new Error(failed.error || `Cloudinary deletion failed (HTTP ${failed.status}); expired records were retained.`);
-  }
-
-  // Apply all timestamp and deletion changes in one atomic Firebase multi-path PATCH.
-  // Metadata is only removed after the Cloudinary deletion above succeeds.
-  const rootPatch = {};
-  const addCollectionPatch = (path, values) => {
-    if (!Object.keys(values).length) return;
-    rootPatch[path] = values;
-  };
-  const folderPatch = { ...folderStamps };
-  const filePatch = { ...fileStamps };
-  const galleryPatch = { ...galleryStamps };
-  folderDeletes.forEach(key => { folderPatch[key] = null; });
-  fileDeletes.forEach(key => { filePatch[key] = null; });
-  galleryDeletes.forEach(key => { galleryPatch[key] = null; });
-  addCollectionPatch('catbox_gdrive_folders', folderPatch);
-  addCollectionPatch('catbox_gdrive_files', filePatch);
-  addCollectionPatch('apml_ranked_gallery', galleryPatch);
-
-  if (Object.keys(rootPatch).length) {
-    const response = await fetch(`${base}/.json`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rootPatch)
-    });
-    if (!response.ok) throw new Error(`Could not apply Trash retention changes in Firebase (HTTP ${response.status}).`);
-  }
-
-  return {
-    driveFoldersDeleted: folderDeletes.size,
-    driveFilesDeleted: fileDeletes.size,
-    galleryItemsDeleted: galleryDeletes.size,
-    legacyTrashItemsStamped: Object.keys(folderStamps).length + Object.keys(fileStamps).length + Object.keys(galleryStamps).length,
-    cloudinaryAssetsRequested: parsedAssets.length
-  };
+  // Automatic Trash retention deletion has been disabled. No files or Cloudinary assets are removed.
+  return { disabled: true, note: 'Automatic Trash deletion is disabled.' };
 }
 
 const TG_EMOJI = { pdf: '🧾', drive: '📥', gallery: '🖼️', visit: '🟢', bug: '🚨', error: '🧯' };
@@ -2497,33 +2308,7 @@ export default {
 
   async scheduled(event, env, ctx) {
 
-    // Daily quotation cleanup at 00:30 IST (19:00 UTC).
-    if (event.cron === '30 19 * * *') {
-      ctx.waitUntil((async () => {
-        try {
-          const result = await trimQuotations(env);
-          console.log('Daily quotation cleanup:', JSON.stringify(result));
-        } catch (error) {
-          console.error('Daily quotation cleanup failed:', error);
-        }
-      })());
-      return;
-    }
-
-    // Hourly Trash retention sweep; keep the existing analytics summary.
-    if (event.cron === '0 * * * *') {
-      ctx.waitUntil((async () => {
-        try {
-          const result = await purgeExpiredTrash(env);
-          console.log('60-day Trash cleanup:', JSON.stringify(result));
-        } catch (error) {
-          console.error('60-day Trash cleanup failed:', error);
-        }
-        await sendHourlyAnalyticsSummary(env);
-      })());
-      return;
-    }
-
+    // All automatic quotation and Trash deletion schedules are disabled.
     ctx.waitUntil(sendHourlyAnalyticsSummary(env));
 
   },
