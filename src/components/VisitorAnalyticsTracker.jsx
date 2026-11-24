@@ -115,11 +115,17 @@ export default function VisitorAnalyticsTracker() {
         const prior = current && typeof current === 'object' ? current : {}
         return { name: page, views: (Number(prior.views) || 0) + (pageView ? 1 : 0), seconds: (Number(prior.seconds) || 0) + elapsedSeconds, lastSeen: now }
       }, undefined, false)
-      await sessionRef.update({
-        visitorId, startedAt, lastSeen: now, online: true, currentPage: page,
-        pageViews: pageView ? 1 : 0, totalSeconds: elapsedSeconds,
-        ...geo, ...device
-      })
+      await sessionRef.transaction(current => {
+        const prior = current && typeof current === 'object' ? current : {}
+        return {
+          ...prior,
+          visitorId, startedAt: Number(prior.startedAt) || startedAt,
+          lastSeen: now, online: true, currentPage: page,
+          pageViews: (Number(prior.pageViews) || 0) + (pageView ? 1 : 0),
+          totalSeconds: (Number(prior.totalSeconds) || 0) + elapsedSeconds,
+          ...geo, ...device
+        }
+      }, undefined, false)
     }
 
     const send = async (path, pageView = false) => {
