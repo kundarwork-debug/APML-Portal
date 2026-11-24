@@ -14,6 +14,16 @@ const firebaseConfig = {
   appId: '1:461187970356:web:e9dfc58a502fd3e04d2161',
   measurementId: 'G-GXLWXXBT7P'
 }
+const sourceFirebaseConfig = {
+  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
+  authDomain: 'apml-portal.firebaseapp.com',
+  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
+  projectId: 'apml-portal',
+  storageBucket: 'apml-portal.firebasestorage.app',
+  messagingSenderId: '479017159240',
+  appId: '1:479017159240:web:0853422718e6195b74a67d',
+  measurementId: 'G-4H1HT31DYB'
+}
 const CITIES = ['Mumbai','Pune','Gurgaon','Ahmedabad','Delhi','Bangalore','Kolkata','Hyderabad','Chennai','Indore','Jaipur','Nagpur','Surat','Lucknow']
 const EMPTY = { category:'', location:'', region:'', designation:'', name:'', contact:'', address:'', isDeleted:false }
 let firebasePromise
@@ -29,6 +39,7 @@ function loadScript(src) {
     if (!window.firebase.database) await add('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
     if (!window.firebase.auth) await add('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
     if (!window.firebase.apps.some(app => app.name === 'portalapml-directory')) window.firebase.initializeApp(firebaseConfig, 'portalapml-directory')
+    if (!window.firebase.apps.some(app => app.name === 'apml-directory-source')) window.firebase.initializeApp(sourceFirebaseConfig, 'apml-directory-source')
     return window.firebase
   })()
   return firebasePromise
@@ -81,13 +92,22 @@ export default function Directory(){
       const database=fb.database(fb.app('portalapml-directory')),directoryRef=database.ref('directory')
       setDb(directoryRef)
       ref=directoryRef
-      const unsubscribe=directoryRef.on('value',snapshot=>{
+      // One-time, non-destructive migration: copy the original directory only when the new one is empty.
+      const sourceRef=fb.database(fb.app('apml-directory-source')).ref('directory')
+      const [sourceSnapshot,targetSnapshot]=await Promise.all([sourceRef.once('value'),directoryRef.once('value')])
+      if(!active)return
+      const targetData=targetSnapshot.val()
+      const targetHasRecords=targetSnapshot.exists() && targetData && Object.keys(targetData).length>0
+      if(!targetHasRecords && sourceSnapshot.exists()){
+        await directoryRef.set(sourceSnapshot.val())
+      }
+      if(!active)return
+      directoryRef.on('value',snapshot=>{
         if(!active)return
         const data=snapshot.val()||{}
         setRows(Object.entries(data).map(([id,item])=>({id,...(item||{})})))
         setLoading(false);setError('')
       },err=>{if(active){setError(err.message||'Unable to load directory.');setLoading(false)}})
-      return unsubscribe
     }).catch(err=>{if(active){setError(err.message);setLoading(false)}})
     return ()=>{active=false;if(ref)ref.off('value')}
   },[])
