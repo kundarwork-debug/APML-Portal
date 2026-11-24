@@ -30,7 +30,7 @@ export default function VisitorAnalyticsTracker(){
       try{
         const services=await getApmlPresenceServices()
         if(!live)return
-        db=services.database; uid=services.user.uid
+        db=services.database; uid=services.auth?.currentUser?.uid || sessionId
         const ua=navigator.userAgent||'', device=getDevice(ua), browser=getBrowser(ua), os=getOS(ua)
         let location={city:'',region:'',country:''}
         try {
