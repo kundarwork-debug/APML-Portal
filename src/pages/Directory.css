@@ -186,3 +186,7 @@ html[data-theme="dark"] .directory-empty,
 html[data-theme="dark"] .directory-loading{color:#a8b5c7}
 html[data-theme="dark"] .directory-error{color:#ff9298}
 @media(prefers-reduced-motion:reduce){.directory-btn,.directory-admin,.directory-record,.directory-row-actions button{transition:none!important}}
+
+/* Ensure contact editor always renders above page-level effects and global form styles. */
+.directory-modal-backdrop{position:fixed!important;inset:0!important;z-index:10000!important;display:grid!important;place-items:center!important;isolation:isolate!important;}
+.directory-modal-backdrop>.directory-modal{position:relative!important;z-index:1!important;display:block!important;visibility:visible!important;opacity:1!important;transform:none!important;flex:none!important;max-height:90vh!important;overflow:auto!important;background:var(--surface,#fff)!important;color:var(--text,#202124)!important;}
