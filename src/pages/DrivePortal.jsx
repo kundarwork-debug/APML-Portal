@@ -51,46 +51,6 @@ const cloud='wbrmw2pm',preset='apml_drive',base='https://apml-drive-api.kundar-w
 const isProtectedFolderName=name=>['prasad','quotation'].includes(String(name||'').trim().toLowerCase());
 const isImage=x=>/\.(png|jpe?g|gif|webp|avif|svg)$/i.test((x.name||'')+' '+(x.fileId||''));const isVideo=x=>/\.(mp4|mov|webm|m4v)$/i.test((x.name||'')+' '+(x.fileId||''))
 function script(src){return new Promise((ok,no)=>{let s=[...document.scripts].find(x=>x.src===src);const ready=()=>src.includes('firebase-auth')?!!window.firebase?.auth:src.includes('firebase-database')?!!window.firebase?.database:src.includes('firebase-app')?!!window.firebase?.apps:!!s?.dataset.loaded;if(ready()){ok();return}if(s){s.addEventListener('load',ok,{once:true});s.addEventListener('error',no,{once:true});return}s=document.createElement('script');s.src=src;s.onload=()=>{s.dataset.loaded='1';ok()};s.onerror=no;document.head.append(s)})}
-const ADMIN_EMAILS=new Set(['kundar.work@gmail.com','kundar701@gmail.com'])
-function getPortalDriveDb(){return window.firebase.database(window.firebase.app('portalapml-drive'))}
-async function loadPortalDriveFirebase(){
- await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js')
- await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js')
- if(!window.firebase.apps.some(app=>app.name==='portalapml-drive'))window.firebase.initializeApp(cfg,'portalapml-drive')
- await script('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js')
- return window.firebase
-}
-function usePortalDriveAdminAuth(){
- const [user,setUser]=useState(null)
- useEffect(()=>{
-  let active=true,unsubscribe=null
-  loadPortalDriveFirebase().then(firebase=>{
-   if(!active)return
-   const auth=firebase.auth(firebase.app('portalapml-drive'))
-   auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>{
-    if(!active)return
-    unsubscribe=auth.onAuthStateChanged(async next=>{
-     if(!active)return
-     const email=String(next?.email||'').toLowerCase().trim()
-     if(next&&!ADMIN_EMAILS.has(email)){await auth.signOut();if(active)setUser(null);return}
-     setUser(next||null)
-    })
-   })
-  }).catch(error=>console.error('Drive admin authentication unavailable:',error))
-  return()=>{active=false;if(unsubscribe)unsubscribe()}
- },[])
- const email=String(user?.email||'').toLowerCase().trim()
- const signIn=async()=>{
-  const firebase=await loadPortalDriveFirebase()
-  const auth=firebase.auth(firebase.app('portalapml-drive'))
-  const provider=new firebase.auth.GoogleAuthProvider()
-  provider.setCustomParameters({prompt:'select_account'})
-  await auth.signInWithPopup(provider)
- }
- const signOut=async()=>{const firebase=await loadPortalDriveFirebase();await firebase.auth(firebase.app('portalapml-drive')).signOut()}
- return {admin:Boolean(user&&ADMIN_EMAILS.has(email)),signIn,signOut}
-}
-
 export default function DrivePortal(){const [folders,setFolders]=useState([]),[files,setFiles]=useState([]),[parent,setParent]=useState('root'),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[status,setStatus]=useState('Connecting to cloud drive…'),[page,setPage]=useState(1),[searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('');const input=useRef();const {admin,signIn,signOut}=usePortalDriveAdminAuth()
  const isQuotationFolder=(folder)=>{if(!folder)return false;let current=folder,seen=new Set();while(current&&current.key&&!seen.has(current.key)){if(isProtectedFolderName(current.name))return true;seen.add(current.key);current=folders.find(f=>f.key===(current.parentId||'root'))}return false};
  const isQuotationFile=(file)=>{if(!file)return false;let id=file.parentId||file.prevParentId||'root';if(id==='deleted')id=file.prevParentId||'root';let seen=new Set();while(id&&id!=='root'&&id!=='deleted'&&!seen.has(id)){seen.add(id);const folder=folders.find(f=>f.key===id);if(!folder)return false;if(isProtectedFolderName(folder.name))return true;id=folder.parentId||'root'}return false};
