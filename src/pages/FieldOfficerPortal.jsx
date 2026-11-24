@@ -1,4 +1,5 @@
 import {useEffect,useMemo,useState} from 'react'
+import {createPortal} from 'react-dom'
 import {Plus,Pencil,Trash2,RotateCcw,LogOut,Search,Phone,Upload,Users,MapPin,Clock3,BriefcaseBusiness,RefreshCw,LoaderCircle} from 'lucide-react'
 import {driveAlert,driveConfirm,driveToast} from '../lib/sweetalert'
 import './FieldOfficer.css'
@@ -143,10 +144,10 @@ export default function FieldOfficer(){
     {!filtered.length&&status.includes('Connecting')?<div className="fo-loading" role="status" aria-live="polite"><span className="fo-loader-ring"><LoaderCircle size={25}/></span><strong>Loading field officers</strong><small>Connecting to live APML records…</small></div>:!filtered.length&&<div className="fo-empty"><Users size={28}/><strong>{status.startsWith('Unable')||status.startsWith('Firebase')?'Unable to load field officers':'No matching field officers found'}</strong><span>Try another name, branch code or status filter.</span></div>}
    </div>
   </section>
-  {edit&&<div className="fo-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setEdit(null)}}><form className="fo-modal" onSubmit={e=>{e.preventDefault();save()}}><div className="fo-modal-head"><div><b>{edit.id?'Edit field officer':'Create field officer'}</b><small>Keep branch and contact information current</small></div><button type="button" onClick={()=>setEdit(null)} aria-label="Close">×</button></div><div className="fo-form-grid">
+  {edit&&createPortal(<div className="fo-modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setEdit(null)}}><form className="fo-modal" onSubmit={e=>{e.preventDefault();save()}}><div className="fo-modal-head"><div><b>{edit.id?'Edit field officer':'Create field officer'}</b><small>Keep branch and contact information current</small></div><button type="button" onClick={()=>setEdit(null)} aria-label="Close">×</button></div><div className="fo-form-grid">
    <label>Officer name *<input required value={edit.name||''} onChange={e=>setEdit(v=>({...v,name:e.target.value}))}/></label><label>Branch code *<input required value={edit.branch||''} onChange={e=>setEdit(v=>({...v,branch:e.target.value.toUpperCase()}))}/></label><label>APM code<input value={edit.apmCode||''} onChange={e=>setEdit(v=>({...v,apmCode:e.target.value}))}/></label><label>Mobile number *<input required value={edit.mobile||''} onChange={e=>setEdit(v=>({...v,mobile:e.target.value}))}/></label>
    <label>Designation<select value={edit.designation||'Marketing Executive'} onChange={e=>setEdit(v=>({...v,designation:e.target.value}))}><option>Marketing Executive</option><option>Branch Incharge</option></select></label><label>Status<select value={edit.status||'Active'} onChange={e=>setEdit(v=>({...v,status:e.target.value}))}><option>Active</option><option>Assco</option><option>Leave</option><option>Left</option></select></label>
-  </div><div className="fo-modal-actions"><button type="button" onClick={()=>setEdit(null)}>Cancel</button><button className="fo-save" type="submit" disabled={busy}>{busy?'Saving…':'Save officer'}</button></div></form></div>}
+  </div><div className="fo-modal-actions"><button type="button" onClick={()=>setEdit(null)}>Cancel</button><button className="fo-save" type="submit" disabled={busy}>{busy?'Saving…':'Save officer'}</button></div></form></div>,document.body)}
   {toast&&<div className="fo-fallback-toast">{toast}</div>}
  </main>
 }
