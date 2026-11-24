@@ -109,3 +109,37 @@
     max-height:265px;
   }
 }
+
+
+/* Separate day-wise visitor trend panel */
+.analytics-bento-grid .analytics-visitors-chart{
+  grid-column:1/-1;
+  min-width:0;
+  margin:0;
+  border-radius:19px;
+}
+.analytics-bento-grid .analytics-visitors-chart .analytics-chart-wrap{
+  height:260px;
+  min-height:230px;
+}
+.analytics-visitor-summary{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:10px 22px;
+  margin-top:8px;
+  padding-top:12px;
+  border-top:1px solid var(--analytics-line);
+  color:var(--analytics-muted);
+  font-size:10px;
+}
+.analytics-visitor-summary strong{
+  margin-left:6px;
+  color:var(--analytics-ink);
+  font-size:11px;
+  font-weight:800;
+}
+@media(max-width:700px){
+  .analytics-bento-grid .analytics-visitors-chart{grid-column:1/-1;padding:15px;border-radius:17px}
+  .analytics-bento-grid .analytics-visitors-chart .analytics-chart-wrap{height:235px;min-height:220px}
+}
