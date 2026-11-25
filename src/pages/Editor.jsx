@@ -139,6 +139,12 @@ const download=async()=>{
   exportStage.setAttribute('aria-hidden','true');
   exportStage.style.cssText='position:fixed;left:-12000px;top:0;width:794px;min-height:1123px;margin:0;padding:0;overflow:visible;background:#fff;z-index:-1;transform:none;zoom:1;pointer-events:none;';
   const exportNode=source.cloneNode(true);
+  // Ensure the freshly reserved number is present in the PDF snapshot even if React has not committed its state update yet.
+  const numberWalker=document.createTreeWalker(exportNode,NodeFilter.SHOW_TEXT);
+  let numberTextNode;
+  while((numberTextNode=numberWalker.nextNode())){
+   if(numberTextNode.nodeValue?.includes(d.docNo))numberTextNode.nodeValue=numberTextNode.nodeValue.replaceAll(d.docNo,issuedDocNo);
+  }
   exportNode.style.cssText+=';display:block!important;position:relative!important;left:auto!important;top:auto!important;width:794px!important;min-width:794px!important;max-width:794px!important;min-height:1123px!important;height:auto!important;margin:0!important;padding-bottom:40px!important;transform:none!important;zoom:1!important;box-sizing:border-box!important;overflow:visible!important;';
   exportStage.appendChild(exportNode);
   document.body.appendChild(exportStage);
