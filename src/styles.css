@@ -1350,9 +1350,20 @@ html[data-theme="dark"] .apml-mascot-name-form .apml-mascot-name-cancel{border-c
 .legacy-telemetry-head h2 .legacy-telemetry-open{margin-left:2px;opacity:.65;transition:transform .2s,opacity .2s}
 .legacy-telemetry-link:hover .legacy-telemetry-open{transform:translate(2px,-2px);opacity:1}
 
-/* Subtle sponsor link: matches footer links with a small heart accent. */
-.portal-site-footer .apml-support-link{gap:6px;color:inherit;font-weight:600}
-.portal-site-footer .apml-support-link::before{content:"♡";color:#b4232c;font-size:15px;line-height:1;transition:transform .2s,color .2s}
-.portal-site-footer .apml-support-link:hover{color:#b4232c}
-.portal-site-footer .apml-support-link:hover::before{content:"♥";transform:scale(1.08)}
-html[data-theme="dark"] .portal-site-footer .apml-support-link:hover{color:#fca5a5}
+/* Keep Support Our Work identical to other footer links at rest.
+   On hover/focus, softly blur and dim the page while the link stays crisp. */
+@media (hover:hover) and (pointer:fine){
+ body:has(.apml-support-link:hover)::after,
+ body:has(.apml-support-link:focus-visible)::after{
+  content:"";position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:rgba(15,18,25,.24);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  animation:apmlSupportFocusIn .18s ease both;
+ }
+ .portal-site-footer .apml-support-link:hover,
+ .portal-site-footer .apml-support-link:focus-visible{
+  position:relative;z-index:9999;isolation:isolate;outline:none;
+  text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:4px;
+ }
+}
+@keyframes apmlSupportFocusIn{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){@keyframes apmlSupportFocusIn{from{opacity:1}to{opacity:1}}}
