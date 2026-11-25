@@ -329,6 +329,7 @@ export default function Shell(){
     {
      title: 'Helpful Links',
      links: [
+      { name: 'Support Our Work', href: 'https://kundarwork-debug.github.io/sponsor/support.html', className: 'apml-support-link' },
       { name: 'Admin', Icon: LockKeyhole, href: '/admin' },
      ]
     }
