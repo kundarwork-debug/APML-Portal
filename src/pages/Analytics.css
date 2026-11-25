@@ -189,11 +189,11 @@
 /* Analytics layout stretch + paired panels */
 .analytics-dashboard .analytics-chart-panel{grid-column:1/-1;min-height:370px}
 .analytics-dashboard .analytics-visitors-chart,.analytics-dashboard .analytics-insights{grid-column:span 6;min-width:0}
-.analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(1),
+.analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(1){grid-column:span 6}
 .analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(2){grid-column:span 6}
 .analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(3){grid-column:span 6}
 .analytics-dashboard .analytics-daily-panel{grid-column:span 6}
-.analytics-dashboard .analytics-activity-panel{grid-column:1/-1}
+.analytics-dashboard .analytics-activity-panel{grid-column:span 6}
 @media(max-width:1000px){
   .analytics-dashboard .analytics-chart-panel{grid-column:1/-1}
   .analytics-dashboard .analytics-visitors-chart,.analytics-dashboard .analytics-insights{grid-column:span 6}
