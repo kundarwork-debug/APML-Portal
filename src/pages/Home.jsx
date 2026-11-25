@@ -223,6 +223,17 @@ export default function Home(){
    <a className="legacy-hero-action" href="#workspace">Explore workspace <ArrowDown size={18}/></a>
    <p className="legacy-hero-note">One portal for all solutions.</p>
   </section>
+  <section className="home-storyset-band apml-reveal" aria-label="APML Portal workspace illustration">
+   <div className="home-storyset-copy">
+    <span className="home-storyset-kicker">ONE CONNECTED WORKSPACE</span>
+    <h2>Find what you need.<br/><span>Keep work moving.</span></h2>
+    <p>Tools, documents and operational information — together in one place.</p>
+   </div>
+   <div className="home-storyset-art">
+    <img src="https://stories.freepiklabs.com/storage/35385/Web-search-01.svg" alt="Illustration of a person exploring information online" loading="lazy"/>
+    <a href="https://storyset.com/online" target="_blank" rel="noopener noreferrer">Online illustrations by Storyset</a>
+   </div>
+  </section>
   <section className="legacy-workspace apml-reveal" id="workspace">
    <div className="legacy-section-bar"><div><h2><Grid2X2 size={21}/> Operational workspace</h2><p>Everything you need to keep daily operations moving.</p></div><span>{activeCount} Active Tools</span></div>
    {!hubReady?<div className="apml-skeleton-grid" role="status" aria-label="Loading workspace tools">{[0,1,2,3,4,5].map(item=><div className="apml-skeleton-card" key={item}><span className="apml-skeleton-icon"/><span className="apml-skeleton-line long"/><span className="apml-skeleton-line"/><span className="apml-skeleton-line short"/></div>)}</div>:<div className="legacy-tool-grid">{filtered.map((tool,i)=><Link key={tool.id} to={modules.find(m=>m.id===tool.id)?.path||'/'} className={"legacy-tool-card apml-reveal bento-"+tool.id+(tool.wide?" wide":"")} style={{'--tool-delay':`${i*45}ms`}}>
