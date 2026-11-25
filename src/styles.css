@@ -1349,3 +1349,9 @@ html[data-theme="dark"] .apml-mascot-name-form .apml-mascot-name-cancel{border-c
 .legacy-telemetry-link:focus-visible{outline:3px solid #b91c1c}
 .legacy-telemetry-head h2 .legacy-telemetry-open{margin-left:2px;opacity:.65;transition:transform .2s,opacity .2s}
 .legacy-telemetry-link:hover .legacy-telemetry-open{transform:translate(2px,-2px);opacity:1}
+
+/* Distinct sponsor call-to-action in the footer. */
+.portal-site-footer .apml-support-link{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border:1px solid #e8b7ad;border-radius:9px;background:linear-gradient(135deg,#fff4f1,#fff);color:#a51d20;font-size:12px;font-weight:750;box-shadow:0 3px 10px rgba(185,28,28,.07);transition:transform .2s,box-shadow .2s,background .2s}
+.portal-site-footer .apml-support-link:hover{transform:translateY(-1px);background:#fff0ed;box-shadow:0 7px 16px rgba(185,28,28,.12);color:#991b1b}
+html[data-theme="dark"] .portal-site-footer .apml-support-link{border-color:#713c40;background:#2b2025;color:#fecaca;box-shadow:none}
+html[data-theme="dark"] .portal-site-footer .apml-support-link:hover{background:#3a252b;color:#fff1f2}
