@@ -39,18 +39,28 @@ async function getIpLocation() {
     const cached = JSON.parse(localStorage.getItem(GEO_CACHE_KEY) || 'null')
     if (cached && cached.expiresAt > Date.now() && cached.location) return cached.location
   } catch {}
-  const response = await fetch(GEO_URL, { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' })
-  if (!response.ok) throw new Error('IP location lookup unavailable')
-  const data = await response.json()
-  if (!data.success) throw new Error(data.message || 'IP location lookup unavailable')
+  const [primary, secondary] = await Promise.allSettled([
+    fetch(GEO_URL, { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' }).then(response => response.ok ? response.json() : Promise.reject(new Error('Primary geolocation unavailable'))),
+    fetch('https://ipapi.co/json/', { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' }).then(response => response.ok ? response.json() : Promise.reject(new Error('Secondary geolocation unavailable')))
+  ])
+  const p = primary.status === 'fulfilled' && primary.value?.success !== false ? primary.value : null
+  const s = secondary.status === 'fulfilled' && !secondary.value?.error ? secondary.value : null
+  const city1 = String(p?.city || '').trim()
+  const city2 = String(s?.city || '').trim()
+  const normalize = value => value.toLocaleLowerCase().replace(/[^a-z]/g, '')
+  const cityVerified = Boolean(city1 && city2 && normalize(city1) === normalize(city2))
+  const region = String(p?.region || s?.region || s?.region_code || '').slice(0, 80)
+  const country = String(p?.country || s?.country_name || '').slice(0, 80)
   const location = {
-    city: String(data.city || '').slice(0, 80),
-    region: String(data.region || '').slice(0, 80),
-    country: String(data.country || '').slice(0, 80),
-    countryCode: String(data.country_code || '').slice(0, 2),
-    timezone: String(data.timezone?.id || '').slice(0, 80),
-    source: 'IP geolocation'
+    city: cityVerified ? city1.slice(0, 80) : '',
+    cityVerified,
+    region,
+    country,
+    countryCode: String(p?.country_code || s?.country_code || '').slice(0, 2),
+    timezone: String(p?.timezone?.id || s?.timezone || '').slice(0, 80),
+    source: cityVerified ? 'IP geolocation consensus' : 'IP geolocation (region only)'
   }
+  if (!p && !s) throw new Error('IP location lookup unavailable')
   try { localStorage.setItem(GEO_CACHE_KEY, JSON.stringify({ location, expiresAt: Date.now() + 12 * 60 * 60 * 1000 })) } catch {}
   return location
 }
@@ -97,7 +107,7 @@ export default function VisitorAnalyticsTracker() {
           ...prior, visitorId, firstSeen: Number(prior.firstSeen) || now, lastSeen: now,
           lastCountedAt: countedVisit ? now : lastCountedAt,
           visitCount: (Number(prior.visitCount) || 0) + (countedVisit ? 1 : 0),
-          city: geo.city || prior.city || '', region: geo.region || prior.region || '',
+          city: geo.city || '', cityVerified: Boolean(geo.cityVerified), region: geo.region || prior.region || '',
           country: geo.country || prior.country || '', countryCode: geo.countryCode || prior.countryCode || '',
           timezone: geo.timezone || prior.timezone || '',
           source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
@@ -112,7 +122,7 @@ export default function VisitorAnalyticsTracker() {
           return {
             ...prior, visitorId, firstSeen: Number(prior.firstSeen) || now, lastSeen: now,
             visits: (Number(prior.visits) || 0) + 1,
-            city: geo.city || prior.city || '', region: geo.region || prior.region || '',
+            city: geo.city || '', cityVerified: Boolean(geo.cityVerified), region: geo.region || prior.region || '',
             country: geo.country || prior.country || '', countryCode: geo.countryCode || prior.countryCode || '',
             timezone: geo.timezone || prior.timezone || '',
             source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
@@ -122,7 +132,7 @@ export default function VisitorAnalyticsTracker() {
       } else {
         await database.ref('visitor_intelligence/daily/' + date + '/' + visitorId).update({
           lastSeen: now, trafficClass: 'likely_human',
-          ...(geo.city || geo.region || geo.country ? geo : {}), ...device
+          ...(geo.city || geo.region || geo.country ? geo : {}), city: geo.city || '', cityVerified: Boolean(geo.cityVerified), ...device
         })
       }
       const pageKey = btoa(unescape(encodeURIComponent(page))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
@@ -138,7 +148,7 @@ export default function VisitorAnalyticsTracker() {
           lastSeen: now, online: true, currentPage: page,
           pageViews: (Number(prior.pageViews) || 0) + (pageView ? 1 : 0),
           totalSeconds: (Number(prior.totalSeconds) || 0) + elapsedSeconds,
-          city: geo.city || prior.city || '', region: geo.region || prior.region || '',
+          city: geo.city || '', cityVerified: Boolean(geo.cityVerified), region: geo.region || prior.region || '',
           country: geo.country || prior.country || '', countryCode: geo.countryCode || prior.countryCode || '',
           timezone: geo.timezone || prior.timezone || '',
           source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
