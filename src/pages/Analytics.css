@@ -28,7 +28,7 @@
   margin:0 0 9px;color:var(--analytics-ink);font-size:clamp(31px,4vw,45px);
   line-height:1.08;font-weight:750;letter-spacing:-.055em;
 }
-.analytics-dashboard .analytics-hero h1 span{color:var(--analytics-muted);font-weight:450}
+.analytics-dashboard .analytics-hero h1 span{color:var(--analytics-accent);font-weight:450}
 .analytics-dashboard .analytics-hero p{max-width:610px;margin:0;color:var(--analytics-muted);font-size:12px;line-height:1.75}
 .analytics-dashboard .analytics-hero-actions{display:flex;gap:9px;flex:none}
 .analytics-dashboard .analytics-action-btn{
