@@ -14,7 +14,7 @@ const CONFIG = {
 
   FIREBASE_DB_URL: 'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',
 
-  FIREBASE_API_KEY: 'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
+  FIREBASE_API_KEY: 'AIzaSyDrAUGVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
 
   ADMIN_EMAILS: ['kundar.work@gmail.com', 'kundar701@gmail.com'],
 
@@ -173,7 +173,7 @@ async function cloudinaryDelete(env, items) {
 }
 
 async function getFirebaseAdminEmail(request) {
-  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\\s+/i, '').trim();
+  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
   if (!token) return null;
 
   // Accept approved administrator ID tokens from the original APML project
