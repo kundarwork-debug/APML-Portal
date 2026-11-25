@@ -163,7 +163,7 @@ export default function Analytics() {
       browsers[browser] = (browsers[browser] || 0) + count
       const country = String(detail.country || '').trim().toLowerCase()
       if (country === 'india' || country === 'in' || country === 'ind') {
-        const place = [detail.city, detail.region, detail.country].filter(Boolean).join(', ') || 'Unknown location'
+        const place = [detail.cityVerified ? detail.city : '', detail.region, detail.country].filter(Boolean).join(', ') || 'Unknown location'
         locations[place] = (locations[place] || 0) + count
       }
     }))
