@@ -6,7 +6,7 @@ import { incrementApmlMediaDownload } from '../lib/firebase'
 import { logApmlAction } from '../lib/apmlActivity'
 import { EmptyState } from '../components/ui/StateViews'
 import WheelPagination from '../components/ui/WheelPagination'
-const cfg={apiKey:'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM',authDomain:'portalapml.firebaseapp.com',databaseURL:'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'portalapml',storageBucket:'portalapml.firebasestorage.app',messagingSenderId:'461187970356',appId:'1:461187970356:web:e9dfc58a502fd3e04d2161',measurementId:'G-GXLWXXBT7P'}
+const cfg={apiKey:'AIzaSyDrAUGVJcdSw5A6xyO3Tykjcp1hFFG_dWM',authDomain:'portalapml.firebaseapp.com',databaseURL:'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',projectId:'portalapml',storageBucket:'portalapml.firebasestorage.app',messagingSenderId:'461187970356',appId:'1:461187970356:web:e9dfc58a502fd3e04d2161',measurementId:'G-GXLWXXBT7P'}
 const ADMIN_EMAILS=new Set(['kundar.work@gmail.com','kundar701@gmail.com'])
 function getPortalDriveDb(){return window.firebase.database(window.firebase.app('portalapml-drive'))}
 async function loadPortalDriveFirebase(){
