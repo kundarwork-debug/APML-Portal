@@ -58,8 +58,15 @@ export default function Analytics() {
   const [range, setRange] = useState('30')
   const [records, setRecords] = useState({ pdfDaily: {}, mediaDaily: {}, pdfLifetime: 0, mediaLifetime: 0, sessions: {}, visitors: {}, presence: {}, actions: {} })
   const [loading, setLoading] = useState(true)
+  const [rangeLoading, setRangeLoading] = useState(false)
   const [error, setError] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    if (!rangeLoading) return
+    const timer = window.setTimeout(() => setRangeLoading(false), 650)
+    return () => window.clearTimeout(timer)
+  }, [range, rangeLoading])
 
   useEffect(() => {
     let active = true
@@ -235,12 +242,13 @@ export default function Analytics() {
   }, [daily, startDate, endDate])
 
   return <main className="analytics-page analytics-dashboard">
+    {rangeLoading && <div className="analytics-range-loading" role="status" aria-live="polite"><div className="analytics-range-loading-card"><span className="analytics-range-spinner"/><strong>Loading selected days</strong><small>Updating charts and daily insights…</small></div></div>}
     <header className="analytics-hero">
       <div><div className="analytics-eyebrow"><Activity size={13}/> APML PORTAL INTELLIGENCE</div><h1>Analytics <span>Overview</span></h1><p>Live portal activity, visitor sessions and operational downloads — synced directly with the new Firebase database.</p></div>
       <div className="analytics-hero-actions"><button className="analytics-action-btn" onClick={exportCsv}><FileDown size={15}/> Export CSV</button><button className="analytics-action-btn primary" onClick={() => setRefreshKey(key => key + 1)} disabled={loading}><RefreshCw size={15} className={loading ? 'analytics-spin' : ''}/> Refresh</button></div>
     </header>
 
-    <div className="analytics-toolbar"><div className="analytics-range-tabs">{[['7','7 days'],['30','30 days'],['90','3 months'],['180','6 months'],['365','1 year']].map(([value, label]) => <button key={value} className={range === value ? 'active' : ''} onClick={() => setRange(value)}>{label}</button>)}</div><span className="analytics-period">{labelDate(startDate)} – {labelDate(endDate)} · IST</span></div>
+    <div className="analytics-toolbar"><div className="analytics-range-tabs">{[['7','7 days'],['30','30 days'],['90','3 months'],['180','6 months'],['365','1 year']].map(([value, label]) => <button key={value} className={range === value ? 'active' : ''} onClick={() => { if (range !== value) { setRangeLoading(true); setRange(value) } }}>{label}</button>)}</div><span className="analytics-period">{labelDate(startDate)} – {labelDate(endDate)} · IST</span></div>
     {error && <div className="analytics-error" role="alert">{error}</div>}
     {loading && <div className="analytics-loading"><span/> Syncing live Firebase data…</div>}
 
