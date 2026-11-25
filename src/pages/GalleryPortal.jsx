@@ -7,7 +7,7 @@ import { EmptyState } from '../components/ui/StateViews'
 import WheelPagination from '../components/ui/WheelPagination'
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
+  apiKey: 'AIzaSyDrAUGVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
   authDomain: 'portalapml.firebaseapp.com',
   databaseURL: 'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',
   projectId: 'portalapml',
