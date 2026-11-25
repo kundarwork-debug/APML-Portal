@@ -9,8 +9,8 @@
   --analytics-accent:#a92d38;
   --analytics-accent-soft:#fbf0f1;
   width:100%;
-  max-width:1320px;
-  margin:0 auto;
+  max-width:none;
+  margin:0;
   padding:34px clamp(16px,3vw,42px) 58px;
   color:var(--analytics-ink);
 }
@@ -44,7 +44,7 @@
 .analytics-dashboard .analytics-toolbar{
   display:flex;align-items:center;justify-content:space-between;gap:14px;
   margin:0 0 17px;padding:10px 12px;border:1px solid var(--analytics-line);
-  border-radius:11px;background:var(--analytics-panel);box-shadow:none;
+  border-radius:14px;background:var(--analytics-panel);box-shadow:0 1px 2px rgba(16,16,20,.04),0 10px 28px rgba(16,16,20,.045);
 }
 .analytics-dashboard .analytics-range-tabs{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
 .analytics-dashboard .analytics-range-tabs button{
@@ -62,10 +62,10 @@
 .analytics-dashboard .analytics-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-column:1/-1;gap:12px;margin:0}
 .analytics-dashboard .analytics-kpi{
   position:relative;display:flex;flex-direction:column;gap:13px;min-width:0;min-height:145px;
-  margin:0;padding:17px 18px;border:1px solid var(--analytics-line);border-radius:12px;
-  background:var(--analytics-panel);box-shadow:0 2px 8px rgba(24,30,42,.025);overflow:hidden;
+  margin:0;padding:17px 18px;border:1px solid var(--analytics-line);border-radius:18px;
+  background:var(--analytics-panel);box-shadow:0 1px 2px rgba(16,16,20,.04),0 10px 28px rgba(16,16,20,.045);overflow:hidden;
 }
-.analytics-dashboard .analytics-kpi:before,.analytics-dashboard .analytics-kpi:after{display:none}
+.analytics-dashboard .analytics-kpi:before{content:'';display:block;position:absolute;width:170px;height:170px;right:-70px;top:-85px;border-radius:50%;background:radial-gradient(circle,rgba(169,45,56,.08),transparent 70%);pointer-events:none}.analytics-dashboard .analytics-kpi:after{display:none}
 .analytics-dashboard .analytics-kpi-top{display:flex;align-items:center;gap:9px;color:var(--analytics-muted);font-size:10px;font-weight:700}
 .analytics-kpi-icon{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:9px;background:#f0f1f3;color:#626977}
 .analytics-kpi-icon.red{background:#f9eeee;color:#a92d38}
@@ -75,8 +75,8 @@
 .analytics-dashboard .analytics-kpi>strong{color:var(--analytics-ink);font-size:clamp(29px,3vw,37px);font-weight:750;line-height:1;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
 .analytics-dashboard .analytics-kpi>small{color:var(--analytics-muted);font-size:9px;line-height:1.55}
 .analytics-dashboard .analytics-panel{
-  min-width:0;margin:0;padding:19px;border:1px solid var(--analytics-line);border-radius:12px;
-  background:var(--analytics-panel);box-shadow:0 2px 8px rgba(24,30,42,.025);
+  min-width:0;margin:0;padding:19px;border:1px solid var(--analytics-line);border-radius:18px;
+  background:var(--analytics-panel);box-shadow:0 1px 2px rgba(16,16,20,.04),0 10px 28px rgba(16,16,20,.045);
 }
 .analytics-dashboard .analytics-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:0 0 14px}
 .analytics-dashboard .analytics-panel-head h2{margin:0 0 5px;color:var(--analytics-ink);font-size:13px;font-weight:750;letter-spacing:-.015em}
@@ -137,6 +137,7 @@
 :root[data-theme=dark] .analytics-dashboard .analytics-action-btn{background:var(--analytics-panel);border-color:var(--analytics-line);color:var(--analytics-ink)}
 :root[data-theme=dark] .analytics-dashboard .analytics-action-btn.primary{background:#a92d38;border-color:#a92d38;color:#fff}
 :root[data-theme=dark] .analytics-dashboard .analytics-range-tabs button.active{border-color:#604047;background:#39272c;color:#ffabb1}
+:root[data-theme=dark] .analytics-dashboard .analytics-kpi:before{background:radial-gradient(circle,rgba(225,123,131,.09),transparent 70%)}
 :root[data-theme=dark] .analytics-dashboard .analytics-kpi-icon{background:#303640;color:#c4cad4}
 :root[data-theme=dark] .analytics-dashboard .analytics-kpi-icon.red{background:#40292e;color:#f1a0a6}
 :root[data-theme=dark] .analytics-dashboard .analytics-kpi-icon.blue{background:#283747;color:#9bbce0}
