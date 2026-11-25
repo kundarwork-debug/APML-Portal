@@ -72,7 +72,7 @@ export default function Analytics() {
       mediaLifetime: 'analytics/media_downloads/lifetime',
       sessions: 'visitor_intelligence/sessions',
       visitors: 'visitor_intelligence/daily',
-      presence: 'presence',
+      presence: 'analytics/active_sessions',
       actions: 'analytics/recent_actions'
     }
     const start = async () => {
@@ -180,13 +180,9 @@ export default function Analytics() {
 
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
   const activeSessions = sessions.filter(session => session.trafficClass === 'likely_human' && session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
-  const activePresence = useMemo(() => {
-    const rows = []
-    Object.entries(records.presence || {}).forEach(([uid, values]) => Object.values(values || {}).forEach(session => {
-      if (session?.online && Date.now() - Number(session.timestamp || 0) < 90000) rows.push(uid)
-    }))
-    return new Set(rows).size
-  }, [records.presence])
+  const activePresence = useMemo(() => Object.values(records.presence || {}).filter(session =>
+    session?.online === true && typeof session.timestamp === 'number' && Number.isFinite(session.timestamp) && session.timestamp >= Date.now() - 90000
+  ).length, [records.presence])
   const topPages = useMemo(() => {
     const pages = {}
     sessions.forEach(session => Object.values(session.pages || {}).forEach(page => {
@@ -247,7 +243,7 @@ export default function Analytics() {
 
     <div className="analytics-bento-grid">
     <section className="analytics-kpis">
-      <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(Math.max(activeSessions.length, activePresence))}</strong><small>Live sessions updated within 90 seconds</small></article>
+      <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(activePresence)}</strong><small>Live sessions updated within 90 seconds</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><small>{fmt(lifetimePdf)} lifetime generated</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon blue"><Download size={18}/></span><span>Drive / Gallery downloads</span></div><strong>{fmt(totals.media)}</strong><small>{fmt(lifetimeMedia)} lifetime downloads</small></article>
       <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor visits</span></div><strong>{fmt(visitorRows.visits)}</strong><small>Engaged, likely-human visits · {fmt(visitorRows.unique)} unique browsers</small></article>
