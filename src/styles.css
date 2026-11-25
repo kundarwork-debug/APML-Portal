@@ -1368,35 +1368,3 @@ html[data-theme="dark"] .apml-mascot-name-form .apml-mascot-name-cancel{border-c
 @keyframes apmlSupportFocusIn{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){@keyframes apmlSupportFocusIn{from{opacity:1}to{opacity:1}}}
 
-
-/* Storyset visual on the APML homepage */
-.home-storyset-band{
- display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,390px);align-items:center;gap:28px;
- margin:0 auto 34px;padding:24px clamp(20px,4vw,42px);max-width:1160px;min-height:245px;
- overflow:hidden;border:1px solid rgba(180,35,44,.10);border-radius:22px;
- background:linear-gradient(110deg,#fff 0%,#fff9f8 58%,#fff0ed 100%);
- box-shadow:0 8px 28px rgba(80,35,30,.035);
-}
-.home-storyset-kicker{display:inline-block;margin-bottom:12px;color:#b4232c;font-size:10px;font-weight:850;letter-spacing:1.5px}
-.home-storyset-copy h2{margin:0;color:#242124;font:800 clamp(25px,3.2vw,37px)/1.12 'Plus Jakarta Sans','DM Sans',sans-serif;letter-spacing:-1.6px}
-.home-storyset-copy h2 span{color:#b4232c}
-.home-storyset-copy p{max-width:430px;margin:12px 0 0;color:#777a80;font-size:13px;line-height:1.75}
-.home-storyset-art{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
-.home-storyset-art img{display:block;width:100%;max-width:340px;height:190px;object-fit:contain}
-.home-storyset-art a{margin-top:2px;color:#777a80;font-size:10px;text-decoration:underline;text-underline-offset:3px}
-.home-storyset-art a:hover{color:#b4232c}
-@media(max-width:760px){
- .home-storyset-band{grid-template-columns:1fr;gap:6px;margin:0 15px 28px;padding:22px 18px 14px;text-align:center}
- .home-storyset-copy p{margin-left:auto;margin-right:auto;font-size:12px}
- .home-storyset-art img{height:175px;max-width:300px}
-}
-html[data-theme="dark"] .home-storyset-band{
- border-color:rgba(255,255,255,.09);
- background:linear-gradient(110deg,#171b23 0%,#1c2029 58%,#2a1b20 100%);
- box-shadow:0 8px 28px rgba(0,0,0,.16)
-}
-html[data-theme="dark"] .home-storyset-copy h2{color:#f4f5f7}
-html[data-theme="dark"] .home-storyset-copy p,
-html[data-theme="dark"] .home-storyset-art a{color:#aeb5c2}
-html[data-theme="dark"] .home-storyset-kicker,
-html[data-theme="dark"] .home-storyset-copy h2 span{color:#ef747c}
