@@ -203,3 +203,10 @@
   .analytics-dashboard .analytics-lower-grid>.analytics-panel,
   .analytics-dashboard .analytics-daily-panel,.analytics-dashboard .analytics-activity-panel{grid-column:1/-1}
 }
+
+.analytics-range-loading{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(18,20,25,.38);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.analytics-range-loading-card{display:flex;min-width:220px;align-items:center;flex-direction:column;gap:10px;padding:25px 30px;border:1px solid var(--analytics-line);border-radius:16px;background:var(--analytics-panel);color:var(--analytics-ink);box-shadow:0 18px 55px rgba(0,0,0,.2);text-align:center}
+.analytics-range-loading-card strong{font-size:13px;font-weight:750}.analytics-range-loading-card small{color:var(--analytics-muted);font-size:10px}
+.analytics-range-spinner{width:30px;height:30px;border:3px solid var(--analytics-line);border-top-color:var(--analytics-accent);border-radius:50%;animation:analytics-range-spin .75s linear infinite}
+@keyframes analytics-range-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.analytics-range-spinner{animation:none}}
