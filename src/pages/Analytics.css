@@ -185,3 +185,21 @@
   .analytics-dashboard .analytics-hero h1{font-size:31px}
 }
 @media(prefers-reduced-motion:reduce){.analytics-loading span{animation:none}.analytics-dashboard *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Analytics layout stretch + paired panels */
+.analytics-dashboard .analytics-chart-panel{grid-column:1/-1;min-height:370px}
+.analytics-dashboard .analytics-visitors-chart,.analytics-dashboard .analytics-insights{grid-column:span 6;min-width:0}
+.analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(1),
+.analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(2){grid-column:span 6}
+.analytics-dashboard .analytics-lower-grid>.analytics-panel:nth-child(3){grid-column:span 6}
+.analytics-dashboard .analytics-daily-panel{grid-column:span 6}
+.analytics-dashboard .analytics-activity-panel{grid-column:1/-1}
+@media(max-width:1000px){
+  .analytics-dashboard .analytics-chart-panel{grid-column:1/-1}
+  .analytics-dashboard .analytics-visitors-chart,.analytics-dashboard .analytics-insights{grid-column:span 6}
+}
+@media(max-width:700px){
+  .analytics-dashboard .analytics-visitors-chart,.analytics-dashboard .analytics-insights,
+  .analytics-dashboard .analytics-lower-grid>.analytics-panel,
+  .analytics-dashboard .analytics-daily-panel,.analytics-dashboard .analytics-activity-panel{grid-column:1/-1}
+}
