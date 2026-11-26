@@ -125,3 +125,77 @@ html[data-theme="dark"] .drive-trash-note{color:#a8b5c7}
  .drive-action-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;justify-content:stretch}
  .drive-search{grid-column:1/-1;width:auto;min-width:0;flex:none}
 }
+
+
+/* Universal in-page Drive preview */
+.drive-file-preview{position:relative;padding:0;border:0;cursor:pointer;font:inherit}
+.drive-file-preview .drive-file-type-icon em{font-style:normal;font-size:10px;font-weight:750;opacity:.78}
+.drive-file-preview:hover .drive-file-type-icon em{opacity:1}
+.drive-preview-backdrop{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(13,18,27,.72);backdrop-filter:blur(8px)}
+.drive-preview-modal{display:flex;flex-direction:column;width:min(1120px,100%);height:min(850px,calc(100dvh - 48px));min-height:0;overflow:hidden;border:1px solid #e5e1d9;border-radius:18px;background:#f6f7f9;box-shadow:0 24px 80px #0005;color:#202124}
+.drive-preview-header{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:68px;padding:12px 18px;border-bottom:1px solid #e5e1d9;background:#fff}
+.drive-preview-heading{display:flex;align-items:center;gap:11px;min-width:0}
+.drive-preview-filemark{display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:11px;background:#f8e9e9;color:#b4232c}
+.drive-preview-heading>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.drive-preview-heading strong{overflow:hidden;max-width:min(55vw,650px);font-size:13px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.drive-preview-heading small{color:#73777e;font-size:10px;font-weight:650}
+.drive-preview-header-actions{display:flex;align-items:center;gap:7px;flex:none}
+.drive-preview-header-actions button,.drive-preview-header-actions a,.drive-preview-toolbar button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-width:36px;height:36px;padding:0 10px;border:1px solid #e5e1d9;border-radius:9px;background:#fff;color:#454950;text-decoration:none;font-size:11px;font-weight:750;cursor:pointer}
+.drive-preview-header-actions button:hover,.drive-preview-header-actions a:hover,.drive-preview-toolbar button:hover:not(:disabled){border-color:#b4232c;color:#b4232c}
+.drive-preview-toolbar{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:6px 12px;border-bottom:1px solid #e5e1d9;background:#fff;color:#555b64;font-size:11px}
+.drive-preview-toolbar button{min-width:32px;height:30px;padding:0 7px}
+.drive-preview-toolbar button:disabled{opacity:.35;cursor:not-allowed}
+.drive-preview-toolbar i{width:1px;height:22px;margin:0 5px;background:#e5e1d9}
+.drive-preview-content{position:relative;display:flex;flex:1;align-items:center;justify-content:center;min-height:0;overflow:auto;padding:22px;background:#e9edf2}
+.drive-preview-content>img{display:block;max-width:100%;max-height:100%;object-fit:contain;box-shadow:0 4px 24px #0002}
+.drive-preview-content>video{display:block;max-width:100%;max-height:100%;background:#090b10}
+.drive-preview-content>iframe{width:100%;height:100%;min-height:0;border:0;border-radius:8px;background:#fff}
+.drive-preview-pdf{align-items:flex-start}
+.drive-preview-pdf canvas{display:block;max-width:100%;height:auto!important;background:#fff;box-shadow:0 3px 20px #0002}
+.drive-preview-text{align-items:stretch;justify-content:flex-start}
+.drive-preview-text pre{width:100%;margin:0;padding:20px;border-radius:10px;background:#fff;color:#202124;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 2px 12px #0000000b}
+.drive-preview-loading{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#e9edf2;color:#5d6673;font-size:12px;font-weight:700}
+.drive-preview-loading svg{color:#b4232c;animation:drive-preview-spin .9s linear infinite}
+@keyframes drive-preview-spin{to{transform:rotate(360deg)}}
+.drive-preview-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;max-width:440px;padding:28px;text-align:center;color:#68717e}
+.drive-preview-fallback>svg{color:#b4232c}
+.drive-preview-fallback strong{color:#252a31;font-size:15px}
+.drive-preview-fallback>span{font-size:12px;line-height:1.6}
+.drive-preview-fallback>div{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:7px}
+.drive-preview-fallback button,.drive-preview-fallback a{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 13px;border:1px solid #b4232c;border-radius:9px;background:#b4232c;color:#fff;text-decoration:none;font-size:11px;font-weight:750}
+.drive-preview-fallback a{background:#fff;color:#b4232c}
+.drive-preview-audio-player{display:flex;flex-direction:column;align-items:center;gap:18px;width:min(480px,100%);padding:30px;border:1px solid #e1e5eb;border-radius:18px;background:#fff;box-shadow:0 8px 28px #0000000b}
+.drive-preview-audio-art{display:grid;place-items:center;width:110px;height:110px;border-radius:24px;background:#f8e9e9;color:#b4232c}
+.drive-preview-audio-player strong{max-width:100%;overflow-wrap:anywhere;color:#262a30;font-size:14px;text-align:center}
+.drive-preview-audio-player audio{width:100%}
+html[data-theme="dark"] .drive-preview-modal{border-color:#3c4654;background:#171e29;color:#edf1f5}
+html[data-theme="dark"] .drive-preview-header,html[data-theme="dark"] .drive-preview-toolbar{border-color:#3c4654;background:#202630;color:#d8e0e9}
+html[data-theme="dark"] .drive-preview-heading small{color:#a8b5c7}
+html[data-theme="dark"] .drive-preview-filemark{background:#42272c;color:#ff9298}
+html[data-theme="dark"] .drive-preview-header-actions button,html[data-theme="dark"] .drive-preview-header-actions a,html[data-theme="dark"] .drive-preview-toolbar button{border-color:#46515f;background:#151e2e;color:#e8edf3}
+html[data-theme="dark"] .drive-preview-toolbar i{background:#46515f}
+html[data-theme="dark"] .drive-preview-content{background:#111923}
+html[data-theme="dark"] .drive-preview-loading{background:#111923;color:#b8c2d0}
+html[data-theme="dark"] .drive-preview-fallback{color:#a8b5c7}
+html[data-theme="dark"] .drive-preview-fallback strong{color:#edf1f5}
+html[data-theme="dark"] .drive-preview-fallback a{border-color:#b4232c;background:#202630;color:#ff9298}
+html[data-theme="dark"] .drive-preview-audio-player{border-color:#394554;background:#202630}
+html[data-theme="dark"] .drive-preview-audio-player strong{color:#edf1f5}
+html[data-theme="dark"] .drive-preview-audio-art{background:#42272c;color:#ff9298}
+@media(max-width:760px){
+ .drive-preview-backdrop{padding:0}
+ .drive-preview-modal{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0}
+ .drive-preview-header{min-height:60px;padding:9px 11px;gap:8px}
+ .drive-preview-filemark{width:32px;height:32px}
+ .drive-preview-heading{gap:8px}
+ .drive-preview-heading strong{max-width:42vw;font-size:11px}
+ .drive-preview-heading small{font-size:9px}
+ .drive-preview-header-actions{gap:5px}
+ .drive-preview-header-actions button,.drive-preview-header-actions a{min-width:33px;height:34px;padding:0 8px}
+ .drive-preview-header-actions button:first-child span{display:none}
+ .drive-preview-content{padding:10px}
+ .drive-preview-text pre{padding:13px;font-size:11px}
+ .drive-preview-toolbar{min-height:44px;gap:6px;padding:5px;font-size:10px}
+ .drive-preview-toolbar button{min-width:29px;height:29px}
+}
+@media(prefers-reduced-motion:reduce){.drive-preview-loading svg{animation:none}}
