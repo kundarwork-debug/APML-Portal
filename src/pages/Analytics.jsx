@@ -190,9 +190,11 @@ export default function Analytics() {
 
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
   const activeSessions = sessions.filter(session => session.trafficClass === 'likely_human' && session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
-  const activePresence = useMemo(() => Object.values(records.presence || {}).filter(session =>
-    session?.online === true && typeof session.timestamp === 'number' && Number.isFinite(session.timestamp) && session.timestamp >= Date.now() - 90000
-  ).length, [records.presence])
+  const presenceRecords = useMemo(() => Object.values(records.presence || {}).filter(session => typeof session?.timestamp === 'number' && Number.isFinite(session.timestamp)), [records.presence])
+  const activePresence = useMemo(() => presenceRecords.filter(session =>
+    session?.online === true && session.timestamp >= Date.now() - 90000
+  ).length, [presenceRecords])
+  const presenceShare = presenceRecords.length ? Math.round((activePresence / presenceRecords.length) * 100) : 0
   const topPages = useMemo(() => {
     const pages = {}
     sessions.forEach(session => Object.values(session.pages || {}).forEach(page => {
@@ -202,6 +204,8 @@ export default function Analytics() {
     return Object.entries(pages).sort((a, b) => b[1] - a[1]).slice(0, 6)
   }, [sessions])
   const actions = useMemo(() => Object.entries(records.actions || {}).map(([id, item]) => ({ id, ...item })).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 12), [records.actions])
+  const topBrowsers = useMemo(() => Object.entries(visitorRows.browsers).sort((a, b) => b[1] - a[1]).slice(0, 6), [visitorRows.browsers])
+  const topLocations = useMemo(() => Object.entries(visitorRows.locations).sort((a, b) => b[1] - a[1]).slice(0, 8), [visitorRows.locations])
   const lifetimePdf = Number(records.pdfLifetime) || 0
   const lifetimeMedia = Number(records.mediaLifetime) || 0
   const combined = totals.pdf + totals.media
@@ -276,6 +280,21 @@ export default function Analytics() {
   }
 
 
+  const sparkOptions = {
+    chart: { type: 'area', sparkline: { enabled: true }, animations: { enabled: true, speed: 450 } },
+    stroke: { curve: 'smooth', width: 2.5, lineCap: 'round' },
+    fill: { type: 'gradient', gradient: { opacityFrom: .3, opacityTo: .02, stops: [0, 100] } },
+    dataLabels: { enabled: false }, markers: { size: 0 }, tooltip: { enabled: false },
+    yaxis: { min: 0 }, grid: { show: false }
+  }
+  const onlineGaugeOptions = {
+    chart: { type: 'radialBar', sparkline: { enabled: true }, animations: { enabled: true, speed: 500 } },
+    colors: ['#299b69'],
+    plotOptions: { radialBar: { startAngle: -110, endAngle: 110, hollow: { size: '64%' }, track: { background: 'var(--analytics-soft)', strokeWidth: '100%', margin: 0 }, dataLabels: { name: { show: false }, value: { show: true, offsetY: 5, fontSize: '13px', fontWeight: 750, color: 'var(--analytics-ink)', formatter: value => Math.round(value) + '%' } } } },
+    stroke: { lineCap: 'round' }
+  }
+  const rankingMax = values => Math.max(1, ...values.map(([, count]) => Number(count) || 0))
+
   const exportCsv = useCallback(() => {
     const lines = [['Date', 'PDF generated', 'Drive/Gallery downloads', 'Total'], ...[...daily].reverse().map(row => [row.date, row.pdf, row.media, row.pdf + row.media])]
     const csv = lines.map(row => row.map(value => '"' + String(value).replaceAll('"', '""') + '"').join(',')).join('\n')
@@ -300,10 +319,10 @@ export default function Analytics() {
 
     <div className="analytics-bento-grid">
     <section className="analytics-kpis">
-      <article className="analytics-kpi live"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><strong>{fmt(activePresence)}</strong><small>Live sessions updated within 90 seconds</small></article>
-      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><small>{fmt(lifetimePdf)} lifetime generated</small></article>
-      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon blue"><Download size={18}/></span><span>Drive / Gallery downloads</span></div><strong>{fmt(totals.media)}</strong><small>{fmt(lifetimeMedia)} lifetime downloads</small></article>
-      <article className="analytics-kpi"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor visits</span></div><strong>{fmt(visitorRows.visits)}</strong><small>Engaged, likely-human visits · {fmt(visitorRows.unique)} unique browsers</small></article>
+      <article className="analytics-kpi live analytics-kpi-online"><div className="analytics-kpi-top"><span className="analytics-kpi-icon"><Users size={18}/></span><span>People online</span><i/></div><div className="analytics-kpi-gauge-row"><strong>{fmt(activePresence)}</strong><div className="analytics-online-gauge"><ReactApexChart options={onlineGaugeOptions} series={[presenceShare]} type="radialBar" height={76}/></div></div><small>{presenceShare}% of tracked presence records active · last 90 seconds</small></article>
+      <article className="analytics-kpi analytics-kpi-spark"><div className="analytics-kpi-top"><span className="analytics-kpi-icon red"><FileText size={18}/></span><span>PDF generated</span></div><strong>{fmt(totals.pdf)}</strong><div className="analytics-kpi-sparkline"><ReactApexChart options={{...sparkOptions, colors:['#bd303b']}} series={[{name:'PDFs',data:daily.slice(-14).map(row=>row.pdf)}]} type="area" height={42}/></div><small>{fmt(lifetimePdf)} lifetime generated</small></article>
+      <article className="analytics-kpi analytics-kpi-spark"><div className="analytics-kpi-top"><span className="analytics-kpi-icon blue"><Download size={18}/></span><span>Drive / Gallery downloads</span></div><strong>{fmt(totals.media)}</strong><div className="analytics-kpi-sparkline"><ReactApexChart options={{...sparkOptions, colors:['#3b82c4']}} series={[{name:'Downloads',data:daily.slice(-14).map(row=>row.media)}]} type="area" height={42}/></div><small>{fmt(lifetimeMedia)} lifetime downloads</small></article>
+      <article className="analytics-kpi analytics-kpi-spark"><div className="analytics-kpi-top"><span className="analytics-kpi-icon violet"><Eye size={18}/></span><span>Visitor visits</span></div><strong>{fmt(visitorRows.visits)}</strong><div className="analytics-kpi-sparkline"><ReactApexChart options={{...sparkOptions, colors:['#8b5cf6']}} series={[{name:'Visits',data:visitorDaily.slice(-14).map(row=>row.visits)}]} type="area" height={42}/></div><small>Engaged, likely-human visits · {fmt(visitorRows.unique)} unique browsers</small></article>
     </section>
 
     <section className="analytics-insight-grid">
@@ -314,9 +333,10 @@ export default function Analytics() {
     </section>
 
     <section className="analytics-lower-grid">
-      <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Most viewed pages</h2><p>Page views accumulated across recorded visitor sessions</p></div></div>{topPages.length ? <div className="analytics-rank-list">{topPages.map(([name, count], index) => <div className="analytics-rank-row" key={name}><span className="analytics-rank-number">{index + 1}</span><span className="analytics-rank-name">{name}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Page-view details will appear as visitor sessions are recorded.</div>}</article>
+      <article className="analytics-panel analytics-ranking-panel"><div className="analytics-panel-head"><div><h2>Most viewed pages</h2><p>Page views accumulated across recorded visitor sessions</p></div><span className="analytics-row-count">{topPages.length} pages</span></div>{topPages.length ? <div className="analytics-horizontal-rank">{topPages.map(([name,count],index)=><div className="analytics-horizontal-row" key={name}><div className="analytics-horizontal-meta"><span><b>{index+1}</b>{name}</span><strong>{fmt(count)}</strong></div><div className="analytics-horizontal-track"><i style={{width:((count/rankingMax(topPages))*100)+'%'}}/></div></div>)}</div> : <div className="analytics-empty compact">Page-view details will appear as visitor sessions are recorded.</div>}</article>
       <article className="analytics-panel analytics-device-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device share by recorded visits</p></div></div>{deviceSeries.length ? <><div className="analytics-device-donut"><ReactApexChart options={deviceChartOptions} series={deviceSeries} type="donut" height="100%"/></div><div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
-      <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor locations</h2><p>Approximate location from network information</p></div></div>{Object.keys(visitorRows.locations).length ? <div className="analytics-rank-list">{Object.entries(visitorRows.locations).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([place,count],index)=><div className="analytics-rank-row" key={place}><span className="analytics-rank-number"><MapPin size={14}/></span><span className="analytics-rank-name">{place}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Location details will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel analytics-ranking-panel"><div className="analytics-panel-head"><div><h2>Visitor locations</h2><p>Approximate locations · India traffic only</p></div></div>{topLocations.length ? <div className="analytics-horizontal-rank">{topLocations.map(([place,count],index)=><div className="analytics-horizontal-row" key={place}><div className="analytics-horizontal-meta"><span><b><MapPin size={12}/></b>{place}</span><strong>{fmt(count)}</strong></div><div className="analytics-horizontal-track"><i className="location" style={{width:((count/rankingMax(topLocations))*100)+'%'}}/></div></div>)}</div> : <div className="analytics-empty compact">Location details will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel analytics-ranking-panel"><div className="analytics-panel-head"><div><h2>Browser rankings</h2><p>Browsers used by engaged visitors</p></div></div>{topBrowsers.length ? <div className="analytics-horizontal-rank">{topBrowsers.map(([browser,count],index)=><div className="analytics-horizontal-row" key={browser}><div className="analytics-horizontal-meta"><span><b>{index+1}</b>{browser}</span><strong>{fmt(count)}</strong></div><div className="analytics-horizontal-track"><i className="browser" style={{width:((count/rankingMax(topBrowsers))*100)+'%'}}/></div></div>)}</div> : <div className="analytics-empty compact">Browser details will appear as visitor records arrive.</div>}</article>
 
     </section>
 
