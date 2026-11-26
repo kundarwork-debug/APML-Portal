@@ -222,12 +222,58 @@ export default function Analytics() {
   }
   const chartSeries = [{ name: 'PDF generated', data: daily.map(row => row.pdf) }, { name: 'Drive / Gallery downloads', data: daily.map(row => row.media) }]
   const visitorChartOptions = {
-    ...chartOptions,
+    chart: { type: 'bar', toolbar: { show: false }, zoom: { enabled: false }, fontFamily: 'Plus Jakarta Sans, DM Sans, sans-serif', foreColor: 'var(--analytics-muted)', animations: { enabled: true, speed: 500 } },
     colors: ['#8b5cf6'],
-    xaxis: { ...chartOptions.xaxis, categories: visitorDaily.map(row => shortDate(row.date)) },
-    tooltip: { shared: false, intersect: false, x: { formatter: (_, opts) => visitorDaily[opts.dataPointIndex] ? labelDate(visitorDaily[opts.dataPointIndex].date) : '' }, y: { formatter: fmt } }
+    plotOptions: { bar: { borderRadius: 5, columnWidth: '48%', distributed: false } },
+    dataLabels: { enabled: false },
+    stroke: { show: false },
+    grid: { borderColor: 'var(--analytics-grid)', strokeDashArray: 4, padding: { left: 5, right: 8 } },
+    xaxis: { categories: visitorDaily.map(row => shortDate(row.date)), tickAmount: 8, axisBorder: { show: false }, axisTicks: { show: false }, labels: { rotate: 0, hideOverlappingLabels: true, style: { fontSize: '10px' } } },
+    yaxis: { min: 0, forceNiceScale: true, decimalsInFloat: 0, labels: { formatter: value => Math.round(value), style: { fontSize: '10px' } } },
+    tooltip: { shared: false, intersect: false, x: { formatter: (_, opts) => visitorDaily[opts.dataPointIndex] ? labelDate(visitorDaily[opts.dataPointIndex].date) : '' }, y: { formatter: fmt } },
+    responsive: [{ breakpoint: 650, options: { plotOptions: { bar: { columnWidth: '62%' } }, xaxis: { tickAmount: 5 } } }]
   }
   const visitorChartSeries = [{ name: 'Likely-human visits', data: visitorDaily.map(row => row.visits) }]
+  const deviceLabels = Object.keys(visitorRows.devices)
+  const deviceSeries = deviceLabels.map(label => visitorRows.devices[label])
+  const deviceChartOptions = {
+    chart: { type: 'donut', fontFamily: 'Plus Jakarta Sans, DM Sans, sans-serif', foreColor: 'var(--analytics-muted)' },
+    labels: deviceLabels,
+    colors: ['#bd303b', '#3b82c4', '#8b5cf6', '#d49b42'],
+    legend: { position: 'bottom', fontSize: '10px', markers: { radius: 8 }, labels: { colors: 'var(--analytics-muted)' } },
+    dataLabels: { enabled: false },
+    stroke: { width: 3, colors: ['var(--analytics-panel)'] },
+    plotOptions: { pie: { donut: { size: '72%', labels: { show: true, name: { show: true, fontSize: '10px' }, value: { show: true, fontSize: '19px', fontWeight: 700, formatter: fmt }, total: { show: true, label: 'Visits', formatter: w => fmt(w.globals.seriesTotals.reduce((sum, value) => sum + value, 0)) } } } } },
+    tooltip: { y: { formatter: fmt } },
+    responsive: [{ breakpoint: 650, options: { chart: { height: 270 }, legend: { position: 'bottom' } } }]
+  }
+  const heatmapWeeks = useMemo(() => {
+    const start = new Date(startDate + 'T00:00:00Z')
+    start.setUTCDate(start.getUTCDate() - start.getUTCDay())
+    const end = new Date(endDate + 'T00:00:00Z')
+    const count = Math.ceil((end - start) / 604800000) + 1
+    const lookup = Object.fromEntries(visitorDaily.map(row => [row.date, row.visits]))
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    return weekdays.map((name, day) => ({
+      name,
+      data: Array.from({ length: count }, (_, week) => {
+        const date = new Date(start)
+        date.setUTCDate(date.getUTCDate() + week * 7 + day)
+        const key = date.toISOString().slice(0, 10)
+        return { x: 'W' + (week + 1), y: key >= startDate && key <= endDate ? (lookup[key] || 0) : -1, date: key }
+      })
+    }))
+  }, [visitorDaily, startDate, endDate])
+  const heatmapOptions = {
+    chart: { type: 'heatmap', toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, DM Sans, sans-serif', foreColor: 'var(--analytics-muted)' },
+    dataLabels: { enabled: false },
+    stroke: { width: 2, colors: ['var(--analytics-panel)'] },
+    plotOptions: { heatmap: { radius: 3, enableShades: true, shadeIntensity: .55, colorScale: { ranges: [{ from: -1, to: -1, color: 'var(--analytics-panel)', name: 'Outside range' }, { from: 0, to: 0, color: '#eef0f3', name: 'No visits' }, { from: 1, to: 2, color: '#d9cafa', name: 'Low' }, { from: 3, to: 8, color: '#a78bfa', name: 'Medium' }, { from: 9, to: 999999, color: '#6d45bd', name: 'High' }] } } },
+    xaxis: { type: 'category', labels: { style: { fontSize: '9px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+    yaxis: { labels: { style: { fontSize: '10px' } } },
+    tooltip: { custom: ({ seriesIndex, dataPointIndex, w }) => { const point = w.config.series[seriesIndex]?.data[dataPointIndex]; return point?.date ? '<div class="analytics-heat-tooltip">' + labelDate(point.date) + '<strong>' + fmt(Math.max(0, point.y)) + ' visits</strong></div>' : '' } },
+    legend: { show: false }
+  }
 
 
   const exportCsv = useCallback(() => {
@@ -262,13 +308,14 @@ export default function Analytics() {
 
     <section className="analytics-insight-grid">
       <article className="analytics-panel analytics-chart-panel"><div className="analytics-panel-head"><div><h2>Portal activity</h2><p>Daily PDF generation and Drive / Gallery downloads</p></div><span className="analytics-live-label"><i/> LIVE SYNC</span></div><div className="analytics-chart-wrap">{daily.length ? <ReactApexChart options={chartOptions} series={chartSeries} type="area" height="100%"/> : <div className="analytics-empty">No activity in this period.</div>}</div></article>
-      <article className="analytics-panel analytics-visitors-chart"><div className="analytics-panel-head"><div><h2>Daily visitors</h2><p>Day-wise engaged, likely-human visits · India Standard Time</p></div><span className="analytics-row-count">{fmt(visitorDailyTotal)} visits</span></div><div className="analytics-chart-wrap"><ReactApexChart options={visitorChartOptions} series={visitorChartSeries} type="area" height="100%"/></div><div className="analytics-visitor-summary"><span>Daily average <strong>{fmt(visitorDailyTotal / Math.max(1, visitorDaily.length))}</strong></span><span>Peak day <strong>{visitorPeak.visits ? labelDate(visitorPeak.date) + ' · ' + fmt(visitorPeak.visits) : '—'}</strong></span></div></article>
+      <article className="analytics-panel analytics-visitors-chart"><div className="analytics-panel-head"><div><h2>Daily visitors</h2><p>Day-wise engaged, likely-human visits · India Standard Time</p></div><span className="analytics-row-count">{fmt(visitorDailyTotal)} visits</span></div><div className="analytics-chart-wrap analytics-visitors-bars"><ReactApexChart options={visitorChartOptions} series={visitorChartSeries} type="bar" height="100%"/></div><div className="analytics-visitor-summary"><span>Daily average <strong>{fmt(visitorDailyTotal / Math.max(1, visitorDaily.length))}</strong></span><span>Peak day <strong>{visitorPeak.visits ? labelDate(visitorPeak.date) + ' · ' + fmt(visitorPeak.visits) : '—'}</strong></span></div></article>
+      <article className="analytics-panel analytics-heatmap-panel"><div className="analytics-panel-head"><div><h2>Visitor activity heatmap</h2><p>Weekly pattern · darker cells indicate more visits</p></div><span className="analytics-row-count">{range} days</span></div><div className="analytics-heatmap-wrap"><ReactApexChart options={heatmapOptions} series={heatmapWeeks} type="heatmap" height="100%"/></div><div className="analytics-heatmap-legend"><span>Less</span><i className="level-0"/><i className="level-1"/><i className="level-2"/><i className="level-3"/><span>More</span></div></article>
       <article className="analytics-panel analytics-insights"><div className="analytics-panel-head"><div><h2>Period insights</h2><p>Summary for the selected date range</p></div></div><div className="analytics-insight-row"><span>Total tracked downloads</span><strong>{fmt(combined)}</strong></div><div className="analytics-insight-row"><span>Average per day</span><strong>{fmt(combined / Math.max(1, daily.length))}</strong></div><div className="analytics-insight-row"><span>Visitor-days recorded</span><strong>{fmt(visitorRows.days)}</strong></div><div className="analytics-insight-row"><span>Busiest activity date</span><strong>{busiest && busiest.pdf + busiest.media ? shortDate(busiest.date) : '—'}</strong></div><div className="analytics-insight-note">Generated PDFs are counted separately from downloads. A PDF is not counted as a Drive/Gallery download unless it is downloaded from there separately.</div></article>
     </section>
 
     <section className="analytics-lower-grid">
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Most viewed pages</h2><p>Page views accumulated across recorded visitor sessions</p></div></div>{topPages.length ? <div className="analytics-rank-list">{topPages.map(([name, count], index) => <div className="analytics-rank-row" key={name}><span className="analytics-rank-number">{index + 1}</span><span className="analytics-rank-name">{name}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Page-view details will appear as visitor sessions are recorded.</div>}</article>
-      <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device type · operating system · browser</p></div></div>{Object.keys(visitorRows.devices).length ? <div className="analytics-device-list">{Object.entries(visitorRows.devices).sort((a,b)=>b[1]-a[1]).map(([device,count])=>{const Icon=device==='Mobile'?Smartphone:device==='Tablet'?Tablet:Monitor;const pct=Math.round(count/Math.max(1,Object.values(visitorRows.devices).reduce((a,b)=>a+b,0))*100);return <div className="analytics-device-row" key={device}><span className="analytics-device-icon"><Icon size={16}/></span><span className="analytics-device-name">{device}</span><div className="analytics-device-track"><i style={{width:pct+'%'}}/></div><strong>{pct}%</strong></div>})}<div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></div> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel analytics-device-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device share by recorded visits</p></div></div>{deviceSeries.length ? <><div className="analytics-device-donut"><ReactApexChart options={deviceChartOptions} series={deviceSeries} type="donut" height="100%"/></div><div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor locations</h2><p>Approximate location from network information</p></div></div>{Object.keys(visitorRows.locations).length ? <div className="analytics-rank-list">{Object.entries(visitorRows.locations).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([place,count],index)=><div className="analytics-rank-row" key={place}><span className="analytics-rank-number"><MapPin size={14}/></span><span className="analytics-rank-name">{place}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Location details will appear as visitor records arrive.</div>}</article>
 
     </section>
