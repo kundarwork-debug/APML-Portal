@@ -144,7 +144,7 @@ export default function GalleryPortal() {
   const [lightbox, setLightbox] = useState(null)
   const [page, setPage] = useState(1)
   const [uploadStatus, setUploadStatus] = useState('Select destination category and choose photos or videos')
-  const [dragOverFolder, setDragOverFolder] = useState('')
+  const [dragOverFolder, setDragOverFolder] = useState(null)
   const input = useRef(null)
   const dbRef = useRef(null)
   const pageSize = Math.max(16, (window.innerWidth <= 359 ? 1 : window.innerWidth <= 760 ? 2 : window.innerWidth <= 1100 ? 3 : 4) * 5)
