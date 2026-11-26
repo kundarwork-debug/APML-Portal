@@ -144,6 +144,7 @@ export default function GalleryPortal() {
   const [lightbox, setLightbox] = useState(null)
   const [page, setPage] = useState(1)
   const [uploadStatus, setUploadStatus] = useState('Select destination category and choose photos or videos')
+  const [dragOverFolder, setDragOverFolder] = useState('')
   const input = useRef(null)
   const dbRef = useRef(null)
   const pageSize = Math.max(16, (window.innerWidth <= 359 ? 1 : window.innerWidth <= 760 ? 2 : window.innerWidth <= 1100 ? 3 : 4) * 5)
@@ -435,8 +436,14 @@ export default function GalleryPortal() {
   async function trashMedia(item) {
     return move(item, 'deleted')
   }
+  function handleFolderDragOver(event, folderId) {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+    setDragOverFolder(folderId)
+  }
   function handleDrop(event, folderId) {
     event.preventDefault()
+    setDragOverFolder('')
     const key = event.dataTransfer.getData('text/plain')
     const item = items.find(entry => entry.key === key)
     if (item && item.folder !== folderId) move(item, folderId)
@@ -481,14 +488,15 @@ export default function GalleryPortal() {
 
     <section className="gallery-toolbar">
       <div className="gallery-folder-tabs">
-        <button className={activeFolder === '' ? 'selected' : ''} onClick={() => selectFolder('')} onDragOver={event => event.preventDefault()} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
-        {folders.map(folder => <span className="gallery-folder-tab" key={folder.id} onDragOver={event => event.preventDefault()} onDrop={event => handleDrop(event, folder.id)}>
+        <button className={`${activeFolder === '' ? 'selected' : ''} ${dragOverFolder === '' ? 'gallery-drop-active' : ''}`} onClick={() => selectFolder('')} onDragOver={event => handleFolderDragOver(event, '')} onDragLeave={() => setDragOverFolder('')} onDrop={event => handleDrop(event, '')}><MaterialIcon name="grid_view" style={{ fontSize: 15 }}/> All Media</button>
+        {folders.map(folder => <span className={`gallery-folder-tab ${dragOverFolder === folder.id ? 'gallery-drop-active' : ''}`} key={folder.id} onDragOver={event => handleFolderDragOver(event, folder.id)} onDragLeave={() => setDragOverFolder('')} onDrop={event => handleDrop(event, folder.id)}>
           <button className={activeFolder === folder.id ? 'selected' : ''} onClick={() => selectFolder(folder.id)}><MaterialIcon name={folder.icon || 'folder'} style={{ fontSize: 16 }}/>{folder.label}</button>
           {!PROTECTED_FOLDERS.includes(folder.id) && <><button className="gallery-mini-action" title="Rename folder" onClick={() => editFolder(folder)}><MaterialIcon name="edit" style={{ fontSize: 12 }}/></button><button className="gallery-mini-action" title="Delete folder" onClick={() => deleteFolder(folder)}><MaterialIcon name="close" style={{ fontSize: 13 }}/></button></>}
         </span>)}
         {admin && <button className={activeFolder === 'deleted' ? 'selected' : ''} onClick={() => selectFolder('deleted')}><MaterialIcon name="delete" style={{ fontSize: 14 }}/> Trash Archive</button>}
       </div>
     </section>
+    <div className="gallery-drag-hint"><MaterialIcon name="drag_indicator" style={{fontSize:17}}/> Move media between folders by dragging a photo or video onto a folder above.</div>
 
     <div className="gallery-live-status"><span className="gallery-live-dot"/>{status}<span>{visible.length} items</span></div>
 
@@ -497,7 +505,7 @@ export default function GalleryPortal() {
       <div className="gallery-grid">
         {pageItems.map(item => {
           const source = fileSource(item.url)
-          return <article className="gallery-card" key={item.key} draggable={true} onDragStart={event => event.dataTransfer.setData('text/plain', item.key)}>
+          return <article className="gallery-card" key={item.key} draggable={true} onDragStart={event => { event.dataTransfer.setData('text/plain', item.key); event.dataTransfer.effectAllowed = 'move'; }}>
             <button className="gallery-media-preview" type="button" onClick={() => openMedia(item)} aria-label={`Preview ${item.name || 'media'}`}>
               {item.isVideo ? <video src={item.url} muted playsInline preload="metadata"/> : <img src={optimizedUrl(item.url)} loading="lazy" decoding="async" alt={item.name || 'Gallery media'}/>}
               {item.isVideo && <span className="gallery-video-mark"><MaterialIcon name="videocam" style={{ fontSize: 13 }}/> VIDEO</span>}
@@ -515,7 +523,7 @@ export default function GalleryPortal() {
                   <button title="Delete permanently" onClick={() => permanentDelete(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
                 {activeFolder !== 'deleted' && <div className="gallery-admin-actions">
-                  <select aria-label="Move media to folder" value={item.folder || ''} onChange={event => move(item, event.target.value)}>{folders.map(folder => <option key={folder.id} value={folder.id}>{folder.label}</option>)}</select>
+                  
                   <button title="Move to trash" onClick={() => trashMedia(item)}><MaterialIcon name="delete" style={{ fontSize: 14 }}/></button>
                 </div>}
               </div>
