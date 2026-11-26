@@ -298,7 +298,7 @@ export default function Analytics() {
   return <main className="analytics-page analytics-dashboard">
     {rangeLoading && <div className="analytics-range-loading" role="status" aria-live="polite"><div className="analytics-range-loading-card"><span className="analytics-range-spinner"/><strong>Loading selected days</strong><small>Updating charts and daily insights…</small></div></div>}
     <header className="analytics-hero">
-      <div><div className="analytics-eyebrow"><Activity size={13}/> APML PORTAL INTELLIGENCE</div><h1>Analytics <span>Overview</span></h1><p>Live portal activity, visitor sessions and operational downloads — synced directly with the new Firebase database.</p></div>
+      <div><div className="analytics-eyebrow"><Activity size={13}/> APML PORTAL INTELLIGENCE</div><h1>Portal <span>Activity</span></h1><p>Live portal activity, visitor sessions and operational downloads — synced directly with the new Firebase database.</p></div>
       <div className="analytics-hero-actions"><button className="analytics-action-btn" onClick={exportCsv}><FileDown size={15}/> Export CSV</button><button className="analytics-action-btn primary" onClick={() => setRefreshKey(key => key + 1)} disabled={loading}><RefreshCw size={15} className={loading ? 'analytics-spin' : ''}/> Refresh</button></div>
     </header>
 
