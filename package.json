@@ -20,8 +20,7 @@
     "class-variance-authority": "^0.7.1",
     "apexcharts": "^4.7.0",
     "react-apexcharts": "^1.7.0",
-    "three": "^0.180.0",
-    "@amcharts/amcharts5": "^5.14.3"
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
