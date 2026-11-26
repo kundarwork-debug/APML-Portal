@@ -38,6 +38,8 @@ function AmChart({ kind, data = [], series = [], height = '100%' }) {
         const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, { categoryField: 'week', renderer: xRenderer }))
         const yRenderer = am5xy.AxisRendererY.new(root, { inversed: true, cellStartLocation: 0.1, cellEndLocation: 0.9 })
         yRenderer.grid.template.setAll({ forceHidden: true })
+        yRenderer.labels.template.setAll({ fill: am5.color(ink), fontSize: 10 })
+        xRenderer.labels.template.setAll({ fill: am5.color(ink), fontSize: 10 })
         const yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, { categoryField: 'day', renderer: yRenderer }))
         xAxis.data.setAll([...new Set(data.map(item => item.week))].map(week => ({ week })))
         yAxis.data.setAll(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day => ({ day })))
@@ -60,7 +62,7 @@ function AmChart({ kind, data = [], series = [], height = '100%' }) {
             const color = index === 0 ? '#bd303b' : '#3b82c4'
             const line = chart.series.push(am5xy.LineSeries.new(root, { name: item.name, xAxis, yAxis, categoryXField: 'label', valueYField: item.field, stroke: am5.color(color), fill: am5.color(color), tooltip: am5.Tooltip.new(root, { labelText: '{name}: {valueY}' }) }))
             line.strokes.template.setAll({ strokeWidth: 3 })
-            line.fills.template.setAll({ visible: true, fillOpacity: 0.13 })
+            line.fills.template.setAll({ visible: true, fillOpacity: 0.2, fillGradient: am5.LinearGradient.new(root, { rotation: 90, stops: [{ color: am5.color(color), opacity: 0.28 }, { color: am5.color(color), opacity: 0.015 }] }) })
             line.data.setAll(data)
           })
           const legend = chart.children.push(am5.Legend.new(root, { x: am5.percent(100), centerX: am5.percent(100), layout: root.horizontalLayout }))
@@ -334,7 +336,7 @@ export default function Analytics() {
 
     <section className="analytics-lower-grid">
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Most viewed pages</h2><p>Page views accumulated across recorded visitor sessions</p></div></div>{topPages.length ? <div className="analytics-rank-list">{topPages.map(([name, count], index) => <div className="analytics-rank-row" key={name}><span className="analytics-rank-number">{index + 1}</span><span className="analytics-rank-name">{name}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Page-view details will appear as visitor sessions are recorded.</div>}</article>
-      <article className="analytics-panel analytics-device-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device share by recorded visits</p></div></div>{deviceSeries.length ? <><div className="analytics-device-donut"><AmChart kind="donut" data={deviceChartData} /></div><div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
+      <article className="analytics-panel analytics-device-panel"><div className="analytics-panel-head"><div><h2>Visitor devices</h2><p>Device share by recorded visits</p></div></div>{deviceChartData.length ? <><div className="analytics-device-donut"><AmChart kind="donut" data={deviceChartData} /></div><div className="analytics-insight-note">OS: {Object.entries(visitorRows.systems).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}<br/>Browsers: {Object.entries(visitorRows.browsers).sort((a,b)=>b[1]-a[1]).map(([name,count])=>name+' ('+fmt(count)+')').join(' · ') || '—'}</div></> : <div className="analytics-empty compact">Device breakdown will appear as visitor records arrive.</div>}</article>
       <article className="analytics-panel"><div className="analytics-panel-head"><div><h2>Visitor locations</h2><p>Approximate location from network information</p></div></div>{Object.keys(visitorRows.locations).length ? <div className="analytics-rank-list">{Object.entries(visitorRows.locations).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([place,count],index)=><div className="analytics-rank-row" key={place}><span className="analytics-rank-number"><MapPin size={14}/></span><span className="analytics-rank-name">{place}</span><strong>{fmt(count)}</strong></div>)}</div> : <div className="analytics-empty compact">Location details will appear as visitor records arrive.</div>}</article>
 
     </section>
