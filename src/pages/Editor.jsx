@@ -156,8 +156,24 @@ const download=async()=>{
   const bytes=blob?new Uint8Array(await blob.arrayBuffer()):canvas.toDataURL('image/jpeg',.96);
   const {jsPDF}=window.jspdf,pdf=new jsPDF({unit:'mm',format:'a4',orientation:'portrait',compress:true});
   const pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight();
-  const fit=Math.min(pageW/canvas.width,pageH/canvas.height),w=canvas.width*fit,h=canvas.height*fit;
-  pdf.addImage(bytes,'JPEG',(pageW-w)/2,(pageH-h)/2,w,h,undefined,'FAST');
+  // Preserve the quotation's normal scale. The previous single-page fit shrank
+  // longer quotations to fit one A4 page, making text difficult to read.
+  // Slice the rendered canvas into A4-sized pages instead.
+  const pagePixelHeight=Math.max(1,Math.floor(canvas.width*pageH/pageW));
+  const pageCount=Math.ceil(canvas.height/pagePixelHeight);
+  for(let pageIndex=0;pageIndex<pageCount;pageIndex++){
+   if(pageIndex>0)pdf.addPage();
+   const sourceY=pageIndex*pagePixelHeight,sliceHeight=Math.min(pagePixelHeight,canvas.height-sourceY);
+   const pageCanvas=document.createElement('canvas');
+   pageCanvas.width=canvas.width;pageCanvas.height=sliceHeight;
+   const pageContext=pageCanvas.getContext('2d');
+   if(!pageContext)throw Error('Could not prepare the quotation PDF page.');
+   pageContext.fillStyle='#ffffff';pageContext.fillRect(0,0,pageCanvas.width,pageCanvas.height);
+   pageContext.drawImage(canvas,0,sourceY,canvas.width,sliceHeight,0,0,canvas.width,sliceHeight);
+   const pageImage=pageCanvas.toDataURL('image/jpeg',.96);
+   const imageHeight=sliceHeight*pageW/canvas.width;
+   pdf.addImage(pageImage,'JPEG',0,0,pageW,imageHeight,undefined,'FAST');
+  }
   const clean=x=>String(x||'').replace(/[^a-zA-Z0-9 ]/g,'').trim()||'Customer';
   const name=clean(shared.custName)+'_'+clean(d.companyName)+'.pdf',file=pdf.output('blob'),url=URL.createObjectURL(file),a=document.createElement('a');
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
