@@ -229,6 +229,6 @@
 :root[data-theme=dark] .analytics-dashboard .analytics-heatmap-legend i.level-3{background:#a78bfa}
 @media(max-width:700px){
   .analytics-dashboard .analytics-heatmap-wrap{height:205px;min-height:180px;overflow-x:auto}
-  .analytics-dashboard .analytics-heatmap-wrap .amchart-host{min-width:600px}
+  .analytics-dashboard .analytics-heatmap-wrap .apexcharts-canvas{min-width:600px}
   .analytics-dashboard .analytics-device-donut{height:225px}
 }
