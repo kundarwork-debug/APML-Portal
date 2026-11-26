@@ -384,3 +384,120 @@
 @media(max-width:700px){
   .analytics-dashboard .analytics-365-scroll{margin-right:-2px}
 }
+
+
+/* Mobile layout correction — prevent analytics panels from retaining desktop widths */
+@media (max-width: 768px) {
+  .analytics-page.analytics-dashboard {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 16px 12px 32px !important;
+    overflow-x: clip !important;
+  }
+  .analytics-dashboard .analytics-bento-grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+  .analytics-dashboard .analytics-bento-grid > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .analytics-dashboard .analytics-insight-grid,
+  .analytics-dashboard .analytics-lower-grid {
+    display: contents !important;
+  }
+  .analytics-dashboard .analytics-kpis {
+    width: 100% !important;
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+  .analytics-dashboard .analytics-kpi {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 138px !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+  .analytics-dashboard .analytics-kpi-top {
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+  }
+  .analytics-dashboard .analytics-kpi-top > span:not(.analytics-kpi-icon) {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  .analytics-dashboard .analytics-chart-panel,
+  .analytics-dashboard .analytics-visitors-chart,
+  .analytics-dashboard .analytics-heatmap-panel,
+  .analytics-dashboard .analytics-insights,
+  .analytics-dashboard .analytics-lower-grid > .analytics-panel,
+  .analytics-dashboard .analytics-daily-panel,
+  .analytics-dashboard .analytics-activity-panel {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .analytics-dashboard .analytics-chart-panel,
+  .analytics-dashboard .analytics-visitors-chart {
+    min-height: 320px !important;
+  }
+  .analytics-dashboard .analytics-chart-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .analytics-dashboard .analytics-panel {
+    padding: 14px !important;
+    border-radius: 13px !important;
+  }
+  .analytics-dashboard .analytics-panel-head {
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+  }
+  .analytics-dashboard .analytics-panel-head > div {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .analytics-dashboard .analytics-panel-head p {
+    overflow-wrap: anywhere !important;
+  }
+  .analytics-dashboard .analytics-lower-grid > .analytics-panel {
+    min-height: 230px !important;
+  }
+  .analytics-dashboard .analytics-daily-panel,
+  .analytics-dashboard .analytics-activity-panel {
+    height: 330px !important;
+    min-height: 330px !important;
+    max-height: 330px !important;
+  }
+  .analytics-dashboard .analytics-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+  .analytics-dashboard .analytics-footer-note {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  .analytics-dashboard .analytics-toolbar {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 420px) {
+  .analytics-dashboard .analytics-hero h1 { font-size: 30px !important; }
+  .analytics-dashboard .analytics-hero-actions { gap: 7px !important; }
+  .analytics-dashboard .analytics-action-btn { padding: 9px 10px !important; font-size: 10px !important; }
+  .analytics-dashboard .analytics-kpi > strong { font-size: 24px !important; }
+  .analytics-dashboard .analytics-kpi-online .analytics-kpi-gauge-row { gap: 3px !important; }
+  .analytics-dashboard .analytics-online-gauge { width: 64px !important; }
+  .analytics-dashboard .analytics-range-tabs button { padding: 6px 9px !important; }
+}
