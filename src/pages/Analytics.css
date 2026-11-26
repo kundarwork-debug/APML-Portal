@@ -232,3 +232,35 @@
   .analytics-dashboard .analytics-heatmap-wrap .apexcharts-canvas{min-width:600px}
   .analytics-dashboard .analytics-device-donut{height:225px}
 }
+
+
+/* Premium analytics details: KPI micro-trends, live gauge and ranking bars */
+.analytics-dashboard .analytics-kpi-spark{gap:7px;min-height:158px}
+.analytics-dashboard .analytics-kpi-spark>strong{margin-top:1px}
+.analytics-dashboard .analytics-kpi-sparkline{height:39px;margin:-2px -3px -1px;overflow:hidden}
+.analytics-dashboard .analytics-kpi-sparkline .apexcharts-canvas{margin:0 auto}
+.analytics-dashboard .analytics-kpi-online{min-height:158px;gap:7px}
+.analytics-kpi-gauge-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:74px}
+.analytics-kpi-gauge-row>strong{font-size:clamp(29px,3vw,37px);font-weight:750;line-height:1;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.analytics-online-gauge{width:86px;height:76px;flex:none;margin-right:2px}
+.analytics-online-gauge .apexcharts-canvas{margin:0 auto}
+.analytics-dashboard .analytics-kpi-online>small{max-width:95%;font-size:8px}
+.analytics-dashboard .analytics-ranking-panel{min-width:0}
+.analytics-horizontal-rank{display:flex;flex-direction:column;gap:13px;padding:3px 0}
+.analytics-horizontal-row{min-width:0}
+.analytics-horizontal-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.analytics-horizontal-meta>span{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;color:var(--analytics-ink);font-size:10px;font-weight:600;text-overflow:ellipsis;white-space:nowrap}
+.analytics-horizontal-meta>span b{display:grid;place-items:center;width:21px;height:21px;flex:none;border-radius:6px;background:var(--analytics-soft);color:var(--analytics-muted);font-size:9px;font-weight:750}
+.analytics-horizontal-meta>strong{flex:none;color:var(--analytics-muted);font-size:10px;font-weight:750;font-variant-numeric:tabular-nums}
+.analytics-horizontal-track{height:7px;overflow:hidden;border-radius:99px;background:var(--analytics-soft)}
+.analytics-horizontal-track i{display:block;height:100%;min-width:2px;border-radius:99px;background:linear-gradient(90deg,#a92d38,#df7e87);transition:width .45s ease}
+.analytics-horizontal-track i.location{background:linear-gradient(90deg,#3b82c4,#80b4e5)}
+.analytics-horizontal-track i.browser{background:linear-gradient(90deg,#8061b5,#b49bd8)}
+:root[data-theme=dark] .analytics-horizontal-track i{background:linear-gradient(90deg,#a92d38,#e17b83)}
+:root[data-theme=dark] .analytics-horizontal-track i.location{background:linear-gradient(90deg,#356c9d,#80b4e5)}
+:root[data-theme=dark] .analytics-horizontal-track i.browser{background:linear-gradient(90deg,#70529f,#b49bd8)}
+@media(max-width:700px){
+  .analytics-dashboard .analytics-kpi-spark,.analytics-dashboard .analytics-kpi-online{min-height:145px}
+  .analytics-kpi-gauge-row>strong{font-size:27px}
+  .analytics-online-gauge{width:75px}
+}
