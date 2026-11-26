@@ -251,33 +251,22 @@ export default function Analytics() {
     tooltip: { y: { formatter: fmt } },
     responsive: [{ breakpoint: 650, options: { chart: { height: 270 }, legend: { position: 'bottom' } } }]
   }
-  const heatmapWeeks = useMemo(() => {
-    const start = new Date(startDate + 'T00:00:00Z')
-    start.setUTCDate(start.getUTCDate() - start.getUTCDay())
-    const end = new Date(endDate + 'T00:00:00Z')
-    const count = Math.ceil((end - start) / 604800000) + 1
-    const lookup = Object.fromEntries(visitorDaily.map(row => [row.date, row.visits]))
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    return weekdays.map((name, day) => ({
-      name,
-      data: Array.from({ length: count }, (_, week) => {
-        const date = new Date(start)
-        date.setUTCDate(date.getUTCDate() + week * 7 + day)
-        const key = date.toISOString().slice(0, 10)
-        return { x: 'W' + (week + 1), y: key >= startDate && key <= endDate ? (lookup[key] || 0) : -1, date: key }
-      })
-    }))
-  }, [visitorDaily, startDate, endDate])
-  const heatmapOptions = {
-    chart: { type: 'heatmap', toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, DM Sans, sans-serif', foreColor: 'var(--analytics-muted)' },
-    dataLabels: { enabled: false },
-    stroke: { width: 2, colors: ['var(--analytics-panel)'] },
-    plotOptions: { heatmap: { radius: 3, enableShades: true, shadeIntensity: .55, colorScale: { ranges: [{ from: -1, to: -1, color: 'var(--analytics-panel)', name: 'Outside range' }, { from: 0, to: 0, color: '#eef0f3', name: 'No visits' }, { from: 1, to: 2, color: '#d9cafa', name: 'Low' }, { from: 3, to: 8, color: '#a78bfa', name: 'Medium' }, { from: 9, to: 999999, color: '#6d45bd', name: 'High' }] } } },
-    xaxis: { type: 'category', labels: { style: { fontSize: '9px' } }, axisBorder: { show: false }, axisTicks: { show: false } },
-    yaxis: { labels: { style: { fontSize: '10px' } } },
-    tooltip: { custom: ({ seriesIndex, dataPointIndex, w }) => { const point = w.config.series[seriesIndex]?.data[dataPointIndex]; return point?.date ? '<div class="analytics-heat-tooltip">' + labelDate(point.date) + '<strong>' + fmt(Math.max(0, point.y)) + ' visits</strong></div>' : '' } },
-    legend: { show: false }
-  }
+  // Fixed rolling 365-day visitor calendar, independent of the selected analytics period.
+  const heatmapDays = useMemo(() => {
+    const today = istDateKey()
+    const first = shiftDate(today, -364)
+    const days = Array.from({ length: 365 }, (_, offset) => {
+      const date = shiftDate(first, offset)
+      const visitors = Object.values(records.visitors?.[date] || {})
+      const visits = visitors.reduce((sum, detail) => sum + (detail?.trafficClass === 'likely_human' ? Number(detail.visits) || 0 : 0), 0)
+      return { date, visits }
+    })
+    const leading = new Date(first + 'T00:00:00Z').getUTCDay()
+    const cells = [...Array(leading).fill(null), ...days]
+    while (cells.length % 7) cells.push(null)
+    const weeks = Array.from({ length: cells.length / 7 }, (_, week) => cells.slice(week * 7, week * 7 + 7))
+    return { days, weeks, first, today }
+  }, [records.visitors, refreshKey])
 
 
   const sparkOptions = {
@@ -328,7 +317,7 @@ export default function Analytics() {
     <section className="analytics-insight-grid">
       <article className="analytics-panel analytics-chart-panel"><div className="analytics-panel-head"><div><h2>Portal activity</h2><p>Daily PDF generation and Drive / Gallery downloads</p></div><span className="analytics-live-label"><i/> LIVE SYNC</span></div><div className="analytics-chart-wrap">{daily.length ? <ReactApexChart options={chartOptions} series={chartSeries} type="area" height="100%"/> : <div className="analytics-empty">No activity in this period.</div>}</div></article>
       <article className="analytics-panel analytics-visitors-chart"><div className="analytics-panel-head"><div><h2>Daily visitors</h2><p>Day-wise engaged, likely-human visits · India Standard Time</p></div><span className="analytics-row-count">{fmt(visitorDailyTotal)} visits</span></div><div className="analytics-chart-wrap analytics-visitors-bars"><ReactApexChart options={visitorChartOptions} series={visitorChartSeries} type="bar" height="100%"/></div><div className="analytics-visitor-summary"><span>Daily average <strong>{fmt(visitorDailyTotal / Math.max(1, visitorDaily.length))}</strong></span><span>Peak day <strong>{visitorPeak.visits ? labelDate(visitorPeak.date) + ' · ' + fmt(visitorPeak.visits) : '—'}</strong></span></div></article>
-      <article className="analytics-panel analytics-heatmap-panel"><div className="analytics-panel-head"><div><h2>Visitor activity heatmap</h2><p>Weekly pattern · darker cells indicate more visits</p></div><span className="analytics-row-count">{range} days</span></div><div className="analytics-heatmap-wrap"><ReactApexChart options={heatmapOptions} series={heatmapWeeks} type="heatmap" height="100%"/></div><div className="analytics-heatmap-legend"><span>Less</span><i className="level-0"/><i className="level-1"/><i className="level-2"/><i className="level-3"/><span>More</span></div></article>
+      <article className="analytics-panel analytics-heatmap-panel analytics-365-heatmap"><div className="analytics-panel-head"><div><h2>Visitor activity heatmap</h2><p>Every day across the last 365 days · darker cells indicate more visits</p></div><span className="analytics-row-count">365 days</span></div><div className="analytics-365-scroll"><div className="analytics-365-calendar"><div className="analytics-365-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div className="analytics-365-grid">{heatmapDays.weeks.map((week,index)=><div className="analytics-365-week" key={index}>{week.map((day,dayIndex)=>day?<span key={day.date} className={"analytics-365-cell "+(day.visits===0?"level-0":day.visits<=2?"level-1":day.visits<=8?"level-2":"level-3")} title={labelDate(day.date)+": "+fmt(day.visits)+" visits"} aria-label={labelDate(day.date)+": "+fmt(day.visits)+" visits"}/>:<span key={"blank-"+dayIndex} className="analytics-365-cell empty"/>)}</div>)}</div></div></div><div className="analytics-heatmap-legend"><span>Less</span><i className="level-0"/><i className="level-1"/><i className="level-2"/><i className="level-3"/><span>More</span></div><div className="analytics-365-footnote">{labelDate(heatmapDays.first)} – {labelDate(heatmapDays.today)} · {fmt(heatmapDays.days.reduce((sum,day)=>sum+day.visits,0))} likely-human visits</div></article>
       <article className="analytics-panel analytics-insights"><div className="analytics-panel-head"><div><h2>Period insights</h2><p>Summary for the selected date range</p></div></div><div className="analytics-insight-row"><span>Total tracked downloads</span><strong>{fmt(combined)}</strong></div><div className="analytics-insight-row"><span>Average per day</span><strong>{fmt(combined / Math.max(1, daily.length))}</strong></div><div className="analytics-insight-row"><span>Visitor-days recorded</span><strong>{fmt(visitorRows.days)}</strong></div><div className="analytics-insight-row"><span>Busiest activity date</span><strong>{busiest && busiest.pdf + busiest.media ? shortDate(busiest.date) : '—'}</strong></div><div className="analytics-insight-note">Generated PDFs are counted separately from downloads. A PDF is not counted as a Drive/Gallery download unless it is downloaded from there separately.</div></article>
     </section>
 
