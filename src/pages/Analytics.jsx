@@ -39,7 +39,7 @@ function AmChart({ kind, data = [], series = [], height = '100%' }) {
         const yRenderer = am5xy.AxisRendererY.new(root, { inversed: true, cellStartLocation: 0.1, cellEndLocation: 0.9 })
         yRenderer.grid.template.setAll({ forceHidden: true })
         const yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, { categoryField: 'day', renderer: yRenderer }))
-        xAxis.data.setAll([...new Set(data.map(item => ({ week: item.week })))])
+        xAxis.data.setAll([...new Set(data.map(item => item.week))].map(week => ({ week })))
         yAxis.data.setAll(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(day => ({ day })))
         const heat = chart.series.push(am5xy.ColumnSeries.new(root, { xAxis, yAxis, categoryXField: 'week', categoryYField: 'day', valueField: 'value', clustered: false }))
         heat.columns.template.setAll({ width: am5.percent(88), height: am5.percent(88), strokeOpacity: 0, tooltipText: '{day} · {week}: {value} visits', cornerRadius: 3 })
