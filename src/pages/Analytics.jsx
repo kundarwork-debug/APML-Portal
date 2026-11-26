@@ -78,9 +78,6 @@ function AmChart({ kind, data = [], series = [], height = '100%' }) {
   }, [kind, dataKey, seriesKey])
   return <div ref={host} className="amchart-host" style={{ height, width: '100%' }} />
 }
-import { Activity, Users, FileText, Download, Eye, RefreshCw, ArrowUpRight, Monitor, Smartphone, Tablet, Clock3, FileDown, MapPin } from 'lucide-react'
-import './Analytics.css'
-
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyDgJ6uVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
   authDomain: 'portalapml.firebaseapp.com',
