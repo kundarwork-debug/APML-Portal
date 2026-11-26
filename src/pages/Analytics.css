@@ -354,26 +354,33 @@
 }
 
 
-/* Rolling 365-day visitor contribution calendar */
+/* GitHub-style 365-day contribution calendar */
 .analytics-dashboard .analytics-365-heatmap{min-width:0}
-.analytics-dashboard .analytics-365-scroll{width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 0 8px;scrollbar-width:thin;scrollbar-color:var(--analytics-muted) transparent}
-.analytics-dashboard .analytics-365-calendar{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;min-width:760px}
-.analytics-dashboard .analytics-365-weekdays{display:grid;grid-template-rows:repeat(7,11px);gap:4px;padding-top:1px;color:var(--analytics-muted);font-size:8px;line-height:11px}
-.analytics-dashboard .analytics-365-weekdays span:nth-child(odd){visibility:visible}
+.analytics-dashboard .analytics-365-scroll{width:100%;overflow-x:auto;overflow-y:hidden;padding:8px 0 10px;scrollbar-width:thin;scrollbar-color:var(--analytics-muted) transparent}
+.analytics-dashboard .analytics-365-calendar{display:grid;grid-template-columns:25px max-content;grid-template-rows:16px auto;column-gap:8px;min-width:max-content}
+.analytics-dashboard .analytics-365-weekdays{grid-column:1;grid-row:2;display:grid;grid-template-rows:repeat(7,10px);row-gap:3px;padding-top:0;color:var(--analytics-muted);font-size:9px;line-height:10px}
 .analytics-dashboard .analytics-365-weekdays span:nth-child(even){visibility:hidden}
-.analytics-dashboard .analytics-365-grid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-rows:repeat(7,11px);gap:4px;min-width:0}
-.analytics-dashboard .analytics-365-week{display:grid;grid-template-rows:repeat(7,11px);gap:4px}
-.analytics-dashboard .analytics-365-cell{display:block;width:100%;height:11px;border-radius:3px;background:#e9eaf0;outline:1px solid rgba(80,80,90,.04)}
-.analytics-dashboard .analytics-365-cell.level-1{background:#d9cafa}
-.analytics-dashboard .analytics-365-cell.level-2{background:#a78bfa}
-.analytics-dashboard .analytics-365-cell.level-3{background:#6d45bd}
+.analytics-dashboard .analytics-365-months{grid-column:2;grid-row:1;display:grid;grid-auto-flow:column;grid-auto-columns:10px;column-gap:3px;align-items:start;color:var(--analytics-muted);font-size:9px;line-height:12px}
+.analytics-dashboard .analytics-365-grid{grid-column:2;grid-row:2;display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,10px);grid-auto-columns:10px;column-gap:3px;row-gap:3px}
+.analytics-dashboard .analytics-365-week{display:contents}
+.analytics-dashboard .analytics-365-cell{display:block;width:10px;height:10px;border-radius:2px;background:#ebedf0;outline:1px solid rgba(27,31,35,.025)}
+.analytics-dashboard .analytics-365-cell.level-1{background:#c6e48b}
+.analytics-dashboard .analytics-365-cell.level-2{background:#7bc96f}
+.analytics-dashboard .analytics-365-cell.level-3{background:#239a3b}
 .analytics-dashboard .analytics-365-cell.empty{visibility:hidden}
 .analytics-dashboard .analytics-365-footnote{margin-top:9px;color:var(--analytics-muted);font-size:9px;text-align:right}
-:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-0{background:#303640}
-:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-1{background:#51406e}
-:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-2{background:#7658a7}
-:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-3{background:#a78bfa}
+.analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend{margin-top:2px}
+.analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-1{background:#c6e48b}
+.analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-2{background:#7bc96f}
+.analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-3{background:#239a3b}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-0{background:#242b33}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-1{background:#0e4429}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-2{background:#006d32}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-cell.level-3{background:#26a641}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-0{background:#242b33}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-1{background:#0e4429}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-2{background:#006d32}
+:root[data-theme=dark] .analytics-dashboard .analytics-365-heatmap .analytics-heatmap-legend i.level-3{background:#26a641}
 @media(max-width:700px){
-  .analytics-dashboard .analytics-365-calendar{min-width:760px}
   .analytics-dashboard .analytics-365-scroll{margin-right:-2px}
 }
