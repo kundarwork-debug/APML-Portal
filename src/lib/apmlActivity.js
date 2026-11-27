@@ -1,10 +1,9 @@
 import { getApmlAuth, getApmlDatabase } from './firebase'
 
 const ACTIVITY_PATH = 'analytics/recent_actions'
-const ACTIVITY_LIMIT = 50
 
 export async function logApmlAction({ action, module, item = '', details = '', fileName = '', folder = '', fileSize = null, fileType = '' } = {}) {
-  if (!action || !module) return false
+  if (!action || !module || window.__apmlVisitorVerified !== true) return false
   try {
     const [auth, database] = await Promise.all([getApmlAuth(), getApmlDatabase()])
     const authUser = auth.currentUser
@@ -22,19 +21,9 @@ export async function logApmlAction({ action, module, item = '', details = '', f
       fileSize: Number.isFinite(Number(fileSize)) && fileSize !== null ? Number(fileSize) : null,
       fileType: String(fileType || '').slice(0, 80),
       user: String(user).slice(0, 100),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      interactionVerified: true
     })
-    const isAdmin = authUser?.emailVerified && ['kundar.work@gmail.com', 'kundar701@gmail.com'].includes(String(authUser.email || '').toLowerCase())
-    if (isAdmin) {
-      const snapshot = await ref.once('value')
-      const entries = Object.entries(snapshot.val() || {}).sort((a, b) => Number(b[1]?.timestamp || 0) - Number(a[1]?.timestamp || 0))
-      const stale = entries.slice(ACTIVITY_LIMIT)
-      if (stale.length) {
-        const updates = {}
-        stale.forEach(([entryKey]) => { updates[entryKey] = null })
-        await ref.update(updates)
-      }
-    }
     return true
   } catch (error) {
     console.warn('APML activity log could not be saved:', error)
