@@ -22,7 +22,7 @@
   var ENABLED = { pdf: true, drive: true, gallery: true, visit: true, bug: true };   // switch a kind off with false
 
   // "Someone is online": one alert per device, then quiet for this many hours, however many pages they open
-  var VISIT = { cooldownHours: 0.5, delayMs: 1500 };
+  var VISIT = { cooldownHours: 0.5 };
 
   // Announcements: pinned in the floating avatar. The page asks your Worker whether one is live.
   var ANNOUNCE = {
@@ -194,11 +194,9 @@
       if (fired || !event || event.isTrusted !== true || document.visibilityState !== 'visible' || looksLikeBot()) return;
       fired = true;
       activityEvents.forEach(function (name) { window.removeEventListener(name, onRealActivity, true); });
-      window.setTimeout(function () {
-        if (document.visibilityState === 'hidden' || looksLikeBot()) return;
-        try { localStorage.setItem(key, String(Date.now())); } catch (e) {}
-        send({ type: 'visit', title: 'New portal visit', file: pageName(), folder: deviceText() });
-      }, 8000);
+      if (document.visibilityState === 'hidden' || looksLikeBot()) return;
+      try { localStorage.setItem(key, String(Date.now())); } catch (e) {}
+      send({ type: 'visit', title: 'New portal visit', file: pageName(), folder: deviceText() });
     }
     activityEvents.forEach(function (name) { window.addEventListener(name, onRealActivity, { capture: true, passive: true }); });
   }
