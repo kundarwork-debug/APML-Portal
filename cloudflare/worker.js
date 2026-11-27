@@ -222,7 +222,7 @@ const TG_EMOJI = { pdf: '🧾', drive: '📥', gallery: '🖼️', visit: '🟢'
 function isAutomatedUserAgent(value) {
   const ua = String(value || '').trim();
   if (!ua) return true;
-  return /(?:bot\\b|crawler|spider|slurp|preview|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|googlebot|google-inspectiontool|adsbot-google|bingbot|bingpreview|duckduckbot|applebot|baiduspider|yandexbot|sogou|bytespider|petalbot|amazonbot|gptbot|claudebot|perplexitybot|ccbot|ahrefsbot|semrushbot|mj12bot|dotbot|dataforseobot|uptimerobot|pingdom|statuscake|site24x7|headless|lighthouse|pagespeed|gtmetrix|phantomjs|selenium|playwright|puppeteer|webdriver|curl\\/|wget\\/|python-requests|python-urllib|go-http-client|node-fetch|axios\\/|okhttp\\/|postmanruntime|scrapy|validator)/i.test(ua);
+  return /(?:bot|crawler|spider|slurp|preview|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|google-inspectiontool|adsbot-google|bingpreview|duckduckbot|applebot|baiduspider|yandex|sogou|bytespider|petalbot|amazonbot|gptbot|claudebot|perplexitybot|ccbot|ahrefsbot|semrushbot|mj12bot|dotbot|dataforseobot|uptimerobot|pingdom|statuscake|site24x7|headless|lighthouse|pagespeed|gtmetrix|phantomjs|selenium|playwright|puppeteer|webdriver|curl|wget|python-requests|python-urllib|go-http-client|node-fetch|axios|okhttp|postmanruntime|scrapy|validator)/i.test(ua);
 }
 
 function tgClean(v, max) {
