@@ -1,27 +1,72 @@
-import {useEffect,useState} from 'react'
-import {Link} from 'react-router-dom'
+import {useMemo,useState} from 'react'
 import './InfoPage.css'
 
-const sponsorUrl='https://kundarwork-debug.github.io/sponsor/support.html'
-
 function MaterialIcon({name,size=20}){return <span className="material-symbols-rounded about-material-icon" aria-hidden="true" style={{fontSize:size}}>{name}</span>}
+
+const chapters = [
+ {phase:'01',status:'origin',label:'THE BEGINNING',title:'A simple idea: make everyday work easier.',description:'APML Portal started with a practical goal — bring useful digital tools closer to the people who need them. What began as a focused internal productivity project grew through real-world feedback and everyday use.',icon:'lightbulb',items:['A single place for useful work tools','A focus on practical problems, not unnecessary complexity']},
+ {phase:'02',status:'complete',label:'THE FIRST TOOLS',title:'From individual tools to a useful workspace.',description:'The portal expanded with purpose-built calculators and modules that help turn repetitive tasks into quicker, more consistent workflows.',icon:'calculate',items:['Local and vehicle rate calculators','APML Lite and quotation-related workflows','A responsive interface for desktop and mobile']},
+ {phase:'03',status:'complete',label:'A CONNECTED WORKSPACE',title:'Bringing people, files and workflows together.',description:'The experience grew beyond calculators. Directory and Field Officer tools made information easier to access, while Drive and Gallery brought shared files and media into the same workspace.',icon:'hub',items:['Directory and Field Officer modules','Drive and Gallery for shared files','Shared navigation, themes and reusable interface components']},
+ {phase:'04',status:'complete',label:'SMARTER OPERATIONS',title:'Automation, notifications and visibility.',description:'The portal gained more connected workflows — including quotation PDF generation, file activity notifications and analytics to better understand how the workspace is being used.',icon:'auto_awesome',items:['Quotation Editor and PDF generation','Telegram notifications and workflow automation','Portal activity and visitor analytics']},
+ {phase:'05',status:'active',label:'FOUNDATION & RELIABILITY',title:'Strengthening the systems behind the experience.',description:'The focus has shifted toward dependable infrastructure, clearer data flows and better operational visibility. This includes the ongoing Drive storage/index migration to Cloudflare D1 and continued analytics and visitor-tracking improvements.',icon:'database',items:['Firebase data and access-rule improvements','Cloudflare Worker services and scheduled reporting','Drive D1 migration and analytics reliability work'],note:'Work in this chapter is ongoing; individual migrations and fixes are verified as they are completed.'}
+]
+
+const roadmap = [
+ {tag:'PORTAL 1.0',state:'NEXT PRIORITY',title:'Stability & completion',icon:'verified',description:'Make the existing portal dependable before adding more complexity.',points:['Complete pending migrations and remove obsolete connections','Improve analytics accuracy and hourly reporting','Audit module behaviour, permissions and mobile responsiveness','Strengthen error handling, monitoring and recovery']},
+ {tag:'PORTAL 2.0',state:'FUTURE VISION',title:'Intelligence & integration',icon:'psychology',description:'Build on a stable foundation with smarter, more connected workflows.',points:['More intelligent automation for repetitive tasks','Deeper integrations between portal modules and services','More useful operational insights and reporting','A more adaptive, polished experience across devices']},
+ {tag:'BEYOND',state:'EXPLORATION',title:'Grow with real needs',icon:'rocket_launch',description:'New ideas should earn their place by solving real problems.',points:['Explore new modules based on user feedback','Improve existing workflows before duplicating features','Keep the portal practical, accessible and easy to maintain']}
+]
+
 export default function InfoPage(){
- const [support,setSupport]=useState(false),[seconds,setSeconds]=useState(5)
- useEffect(()=>{if(!support)return;setSeconds(5);const end=Date.now()+5000;const timer=setInterval(()=>setSeconds(Math.max(0,Math.ceil((end-Date.now())/1000))),200);const redirect=setTimeout(()=>{window.open(sponsorUrl,'_blank','noopener,noreferrer');setSupport(false)},5000);return()=>{clearInterval(timer);clearTimeout(redirect)}},[support])
- const repoGroups=[
-  {icon:'public',title:'React pages',desc:'The screens and tools people use across the portal.',files:['src/pages/','Home.jsx','Editor.jsx','DirectoryPortal.jsx','FieldOfficerPortal.jsx','DrivePortal.jsx','GalleryPortal.jsx']},
-  {icon:'layers',title:'Shared experience',desc:'Reusable layout, routing and shared styles.',files:['src/components/','Shell.jsx','src/styles.css']},
-  {icon:'cloud',title:'Service integrations',desc:'API endpoints and connected service workflows.',files:['api/','system-health.js','public/notify.js','Firebase','Cloudinary']},
-  {icon:'smartphone',title:'Assets & PWA',desc:'Brand identity and installable web-app configuration.',files:['public/logo.svg','manifest.webmanifest','sw.js','pwa icons']},
-  {icon:'account_tree',title:'Build & deployment',desc:'Automated React validation and GitHub Pages publishing.',files:['.github/workflows/','react-build.yml','deploy-pages.yml','vite.config.js']},
-  {icon:'shield',title:'Policies & support',desc:'Privacy, terms and issue reporting.',files:['PolicyPage.jsx','BugReport.jsx']}
- ]
- return <main className="about-page">
-  <section className="about-hero"><div><div className="about-eyebrow">A LITTLE ABOUT ME</div><h1><span className="about-name-first">Prasad</span> <span className="about-name-last">Kundar</span></h1><p className="about-lead">I’m a BDO at APML, and I built this project with a simple goal: make everyday work easier through useful tools, thoughtful automation, and technology that solves real problems.</p><div className="about-meta"><span className="about-chip"><MaterialIcon name="work" size={15}/> BDO · APML</span><span className="about-chip"><MaterialIcon name="code" size={15}/> Builder & problem solver</span></div><div className="about-actions"><a className="about-github-link" href="https://github.com/kundarwork-debug" target="_blank" rel="noopener noreferrer" aria-label="Visit GitHub profile"><MaterialIcon name="code" size={30}/><span className="about-github-tooltip" role="tooltip">GitHub</span></a><button className="about-github-link about-support-link" type="button" onClick={()=>setSupport(true)} aria-label="Support my work"><MaterialIcon name="favorite" size={27}/><span className="about-github-tooltip" role="tooltip">Support my work</span></button></div></div><div className="about-art" aria-label="Programming illustration"><div className="about-orbit"/><img src={import.meta.env.BASE_URL+'other/undraw_programming_j1zw.svg'} alt="Illustration of a person programming at a computer"/></div></section>
-  <section className="about-section"><div className="about-section-head"><div><div className="about-kicker">WHAT I ENJOY BUILDING</div><h2>Turning ideas into useful tools.</h2></div><p>From small workflow improvements to complete digital experiences, the focus is always on making technology practical and approachable.</p></div><div className="about-focus-grid">{[{icon:'automation',title:'AI & Automation',desc:'Exploring ways to reduce repetitive work and make everyday processes smarter.'},{icon:'language',title:'Web Experiences',desc:'Building clean, responsive websites and tools designed around real user needs.'},{icon:'rocket_launch',title:'Product Building',desc:'Taking ideas from a first concept to useful digital products and SaaS-style experiences.'}].map(x=><article className="about-card" key={x.title}><div className="about-card-icon"><MaterialIcon name={x.icon} size={23}/></div><h3>{x.title}</h3><p>{x.desc}</p></article>)}</div></section>
-  <section className="about-section"><div className="about-section-head"><div><div className="about-kicker">BEHIND THE SCENES</div><h2>A look inside the repository.</h2></div><p>A visual map of how APML Portal is organised, from the React interface to shared services and deployment.</p></div><div className="about-repo-shell about-architecture-map"><div className="about-repo-root about-map-root"><MaterialIcon name="account_tree" size={25}/><div><strong>APML-Portal</strong><small>React · Vite · Connected services</small></div><a href="https://github.com/kundarwork-debug/APML-Portal" target="_blank" rel="noopener noreferrer">Explore GitHub <MaterialIcon name="open_in_new" size={14}/></a></div><div className="about-map-trunk" aria-hidden="true"/><div className="about-repo-grid about-map-grid">{repoGroups.map(g=><article className="about-repo-card about-map-card" key={g.title}><div className="about-repo-icon"><MaterialIcon name={g.icon} size={22}/></div><h3>{g.title}</h3><p>{g.desc}</p><div>{g.files.map(f=><code key={f}>{f}</code>)}</div></article>)}</div><p className="about-repo-foot">A curated architecture overview of the main repository areas. It is maintained with the About page and is not an automatically generated live dependency graph.</p></div></section>
-  <section className="about-section"><div className="about-section-head"><div><div className="about-kicker">MORE THINGS I'VE MADE</div><h2>Other projects to check out.</h2></div><p>A few more ideas and experiences I'm working on beyond APML Portal.</p></div><article className="about-project-card"><div className="about-project-copy"><img src={import.meta.env.BASE_URL+'other/logo.svg'} alt="For You logo"/><div><h3>For You</h3><p>A little corner for thoughtful messages, greetings, and moments worth sharing.</p></div></div><a className="about-btn primary" href="https://4r-you.vercel.app/" target="_blank" rel="noreferrer">Visit project <MaterialIcon name="open_in_new" size={17}/></a></article></section>
-  <section className="about-bottom"><div><h2>Have an idea worth building?</h2><p>Explore my work on GitHub or support the ongoing development of this project. Every bit of encouragement helps keep it moving.</p></div><button className="about-btn" onClick={()=>setSupport(true)}><MaterialIcon name="favorite" size={18}/> Support this project</button></section>
-  {support&&<div className="about-redirect-backdrop" role="dialog" aria-modal="true" aria-label="Support redirect" onClick={e=>{if(e.target===e.currentTarget)setSupport(false)}}><div className="about-redirect"><h3>Taking you to the support page…</h3><div className="about-progress"><span style={{width:(5-seconds)*20+'%',transition:'width 200ms linear'}}/></div><p>Redirecting in {seconds}s…</p><button className="about-btn primary" onClick={()=>{window.open(sponsorUrl,'_blank','noopener,noreferrer');setSupport(false)}}>Continue now</button><button className="about-btn" style={{marginLeft:8}} onClick={()=>setSupport(false)}>Cancel</button></div></div>}
+ const [expanded,setExpanded]=useState('01')
+ const milestones=useMemo(()=>chapters.map((x)=>({...x,open:expanded===x.phase})),[expanded])
+ return <main className="about-page roadmap-page">
+  <section className="roadmap-hero">
+   <div className="roadmap-hero-copy">
+    <div className="about-eyebrow"><MaterialIcon name="route" size={15}/> THE STORY SO FAR & WHAT'S AHEAD</div>
+    <h1>About <span>APML Portal.</span></h1>
+    <p className="about-lead">A workspace built around real work, improved one step at a time. Explore how APML Portal has evolved — from its first tools to a connected platform — and where it is heading next.</p>
+    <div className="roadmap-hero-tags"><span><MaterialIcon name="history" size={16}/> Our journey</span><span><MaterialIcon name="timeline" size={16}/> Product roadmap</span><span><MaterialIcon name="trending_up" size={16}/> Always evolving</span></div>
+   </div>
+   <div className="roadmap-hero-art"><div className="roadmap-art-glow"/><img src={import.meta.env.BASE_URL+'other/undraw_programming_j1zw.svg'} alt="Illustration representing the development of APML Portal"/><div className="roadmap-art-caption"><span className="roadmap-live-dot"/> Built around real-world needs</div></div>
+  </section>
+
+  <section className="roadmap-intro">
+   <div><div className="about-kicker">OUR APPROACH</div><h2>Built in chapters.<br/><span>Improved continuously.</span></h2></div>
+   <p>APML Portal is not a one-time launch. It is an evolving collection of tools and services shaped by practical requirements, feedback and lessons from daily use. This roadmap separates what has been built from what is still being worked on and what remains a future goal.</p>
+  </section>
+
+  <section className="roadmap-timeline-section">
+   <div className="roadmap-section-heading"><div><div className="about-kicker">THE JOURNEY</div><h2>How we got here.</h2></div><span className="roadmap-section-count">05 CHAPTERS</span></div>
+   <div className="roadmap-timeline">
+    {milestones.map((item,index)=><article className={'roadmap-milestone '+(item.status==='active'?'is-active':'')} key={item.phase}>
+     <div className="roadmap-rail"><span className="roadmap-node">{item.status==='active'?<MaterialIcon name="sync" size={17}/>:item.status==='origin'?<MaterialIcon name="flag" size={17}/>:<MaterialIcon name="check" size={17}/>}</span></div>
+     <div className="roadmap-milestone-card">
+      <button className="roadmap-milestone-toggle" type="button" aria-expanded={item.open} onClick={()=>setExpanded(item.open?'':item.phase)}>
+       <div className="roadmap-milestone-top"><span className="roadmap-phase">{item.phase} / {item.label}</span><span className={'roadmap-status '+item.status}>{item.status==='active'?'IN PROGRESS':item.status==='origin'?'ORIGIN':'COMPLETED'}</span></div>
+       <div className="roadmap-milestone-title"><span className="roadmap-milestone-icon"><MaterialIcon name={item.icon} size={23}/></span><span><strong>{item.title}</strong><small>{item.description}</small></span><MaterialIcon name={item.open?'expand_less':'expand_more'} size={22}/></div>
+      </button>
+      {item.open&&<div className="roadmap-milestone-details"><ul>{item.items.map(point=><li key={point}><MaterialIcon name="check_circle" size={17}/>{point}</li>)}</ul>{item.note&&<p className="roadmap-note"><MaterialIcon name="info" size={16}/>{item.note}</p>}</div>}
+     </div>
+    </article>)}
+   </div>
+  </section>
+
+  <section className="roadmap-future">
+   <div className="roadmap-section-heading"><div><div className="about-kicker">THE ROAD AHEAD</div><h2>What's coming next?</h2></div><span className="roadmap-section-count">THE ROADMAP</span></div>
+   <div className="roadmap-future-grid">
+    {roadmap.map((item,index)=><article className={'roadmap-future-card future-'+index} key={item.tag}>
+     <div className="roadmap-future-top"><span className="roadmap-future-icon"><MaterialIcon name={item.icon} size={24}/></span><span className="roadmap-status planned">{item.state}</span></div>
+     <div className="roadmap-future-tag">{item.tag}</div><h3>{item.title}</h3><p>{item.description}</p>
+     <ul>{item.points.map(point=><li key={point}><MaterialIcon name="arrow_forward" size={16}/>{point}</li>)}</ul>
+    </article>)}
+   </div>
+  </section>
+
+  <section className="roadmap-principles">
+   <div className="roadmap-principle-icon"><MaterialIcon name="tips_and_updates" size={28}/></div>
+   <div><div className="about-kicker">THE PRINCIPLE</div><h2>Useful first. Better every day.</h2><p>Every improvement should make the portal more useful, reliable or easier to use. The roadmap will evolve as real needs change — and completed work will be marked only after it has been implemented and verified.</p></div>
+   <a href="https://github.com/kundarwork-debug/APML-Portal" target="_blank" rel="noopener noreferrer" className="about-btn"><MaterialIcon name="code" size={17}/> View project <MaterialIcon name="open_in_new" size={15}/></a>
+  </section>
  </main>
 }
