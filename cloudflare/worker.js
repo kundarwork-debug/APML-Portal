@@ -648,36 +648,20 @@ async function handleNotify(request, env) {
   // convenience; this server-side check protects Telegram even if a crawler calls /notify directly.
   const requestUa = request.headers.get('User-Agent') || '';
   const incomingItems = Array.isArray(body && body.items) ? body.items : [body];
-  let visitCooldownKey = '';
+  // Do not deduplicate visit alerts by IP: many legitimate visitors can share
+  // one public address (office, home Wi-Fi, carrier NAT). Browser-side/session
+  // qualification and the Worker-wide Telegram pacing/rate guard remain active.
   let filteredItems = incomingItems.filter((item) =>
     !(item && item.type === 'visit' && isAutomatedUserAgent(requestUa))
   );
-
-  // A single IP fingerprint may generate only one visit alert per 30 minutes.
-  // This server-side guard catches repeated page-view alerts even when a crawler
-  // disguises itself as a normal mobile browser. Raw IP addresses are never stored.
-  const hasVisit = filteredItems.some(item => item && item.type === 'visit');
-  if (hasVisit) {
-    const clientIp = request.headers.get('CF-Connecting-IP') || '';
-    if (!clientIp || !env.ANNOUNCE_KV) {
-      filteredItems = filteredItems.filter(item => !item || item.type !== 'visit');
-    } else {
-      const ipDigest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('apml-visit-alert:' + clientIp));
-      const ipHash = Array.from(new Uint8Array(ipDigest)).map(x => x.toString(16).padStart(2, '0')).join('');
-      visitCooldownKey = 'telegram_visit_cooldown:' + ipHash;
-      const alreadyAlerted = await env.ANNOUNCE_KV.get(visitCooldownKey);
-      if (alreadyAlerted) {
-        filteredItems = filteredItems.filter(item => !item || item.type !== 'visit');
-      } else {
-        let keptVisit = false;
-        filteredItems = filteredItems.filter(item => {
-          if (!item || item.type !== 'visit') return true;
-          if (keptVisit) return false;
-          keptVisit = true;
-          return true;
-        });
-      }
-    }
+  if (filteredItems.some(item => item && item.type === 'visit')) {
+    let keptVisit = false;
+    filteredItems = filteredItems.filter(item => {
+      if (!item || item.type !== 'visit') return true;
+      if (keptVisit) return false;
+      keptVisit = true;
+      return true;
+    });
   }
   if (!filteredItems.length) return json({ ok: true, ignored: 'automated-or-duplicate-visitor' });
   const notificationBody = Array.isArray(body && body.items)
@@ -1881,11 +1865,10 @@ async function handleVisitorCollect(request, env) {
   if (isAutomatedUserAgent(ua)) {
     return json({ ok: true, ignored: 'automated-or-unknown-client' });
   }
-  const ip = request.headers.get('CF-Connecting-IP') || '';
-  if (!ip) return json({ ok: false, error: 'Cloudflare client address unavailable' }, 400);
   let body;
   try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
   const sessionId = String(body.sessionId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+  const clientVisitorId = String(body.visitorId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
   const page = String(body.page || '/').split('?')[0].split('#')[0].slice(0, 120) || '/';
   if (!/^[a-zA-Z0-9_-]{8,80}$/.test(sessionId)) return json({ ok: false, error: 'Invalid session identifier' }, 400);
   const now = Date.now();
@@ -1897,11 +1880,13 @@ async function handleVisitorCollect(request, env) {
     hashSecret = Array.from(random).map(x => x.toString(16).padStart(2, '0')).join('');
     await env.ANNOUNCE_KV.put('visitor_hash_secret', hashSecret);
   }
-  const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashSecret + ':' + ip));
+  // Use a browser-scoped identifier (or session fallback), never the public IP.
+  // This keeps people on shared Wi-Fi distinct while storing only a keyed hash.
+  const identity = /^[a-zA-Z0-9_-]{8,80}$/.test(clientVisitorId) ? clientVisitorId : sessionId;
+  const hashBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashSecret + ':' + identity));
   const visitorId = Array.from(new Uint8Array(hashBytes)).map(x => x.toString(16).padStart(2, '0')).join('');
 
-  // Count one visit per IP fingerprint, then allow another after a full 30-minute cooldown.
-  // Only the keyed one-way fingerprint is stored; the raw IP is never persisted.
+  // Count once per browser identity per 30 minutes, independent of network/IP.
   const visitDay = new Date(now).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   const cooldownKey = 'visitor_cooldown:' + visitorId;
   const lastCountedAt = Number(await env.ANNOUNCE_KV.get(cooldownKey) || 0);
@@ -1914,7 +1899,7 @@ async function handleVisitorCollect(request, env) {
     countedVisit = true;
   }
 
-  const rateKey = 'visitor_rate:' + visitorId + ':' + Math.floor(now / 60000);
+  const rateKey = 'visitor_rate:' + sessionId + ':' + Math.floor(now / 60000);
   const priorRate = Number(await env.ANNOUNCE_KV.get(rateKey) || 0);
   if (priorRate >= 90) return json({ ok: false, error: 'Rate limit exceeded' }, 429);
   await env.ANNOUNCE_KV.put(rateKey, String(priorRate + 1), { expirationTtl: 120 });
