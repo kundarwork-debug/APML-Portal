@@ -1759,37 +1759,70 @@ async function handleAnnouncementRead(env) {
 }
 
 async function sendHourlyAnalyticsSummary(env) {
-
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
-
   if (env.ANNOUNCE_KV && (await env.ANNOUNCE_KV.get('alerts_enabled')) === 'false') return;
 
-  const stats = await liveStatsWithDaily();
-
-  const message = '📊 <b>Hourly Portal Analytics Summary</b>\n\n' +
-
-    '📅 <b>Today\'s Activity:</b>\n' +
-
-    '  • 👁️ ' + tgNum(stats.todayVisitors) + ' unique visitors\n' +
-
-    '  • 🧾 ' + tgNum(stats.todayPdfs) + ' PDFs generated\n' +
-
-    '  • 📥 ' + tgNum(stats.todayMedia) + ' media downloaded\n\n' +
-
-    '📈 <b>Consolidated Overall Data:</b>\n' +
-
-    '  • 👥 ' + (stats.online ? stats.online + (stats.online === 1 ? ' person online now' : ' people online now') : 'Online: —') + '\n' +
-
-    '  • 🧾 ' + (stats.totalPdfs !== null ? tgNum(stats.totalPdfs) + ' total PDFs' : 'Total PDFs: —') + '\n' +
-
-    '  • 📥 ' + (stats.totalMedia !== null ? tgNum(stats.totalMedia) + ' total media' : 'Total media: —') + '\n\n' +
-
-    '🕒 ' + tgTime();
-
-  await tgSendMessage(env,env.TELEGRAM_CHAT_ID,{
-    text:message,parse_mode:'HTML',disable_web_page_preview:true
+  const now = new Date();
+  const hourEnd = new Date(now);
+  hourEnd.setUTCMinutes(0, 0, 0);
+  const hourStart = new Date(hourEnd.getTime() - 60 * 60 * 1000);
+  const hourLabel = date => date.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
   });
+  const [stats, dailyResult, eventsResult] = await Promise.all([
+    liveStatsWithDaily(),
+    fbRead('analytics/daily_logs/' + getTodayIST()),
+    fbRead('analytics/events')
+  ]);
 
+  const today = dailyFields(dailyResult.ok ? dailyResult.value : {});
+  const events = eventsResult.ok && eventsResult.value && typeof eventsResult.value === 'object'
+    ? Object.values(eventsResult.value).filter(event => event && typeof event === 'object')
+    : [];
+  const recent = events.filter(event => {
+    const timestamp = Number(event.timestamp || event.createdAt || 0);
+    return timestamp >= hourStart.getTime() && timestamp < hourEnd.getTime();
+  });
+  const categories = {};
+  for (const event of recent) {
+    const raw = String(event.eventType || event.type || 'other').toLowerCase();
+    const category = /pdf|quotation|generat/.test(raw) ? 'PDF / quotation' :
+      /download/.test(raw) ? 'Download' :
+      /upload/.test(raw) ? 'Upload' :
+      /visit|page.?view|visitor/.test(raw) ? 'Visit / page view' :
+      /delete|trash/.test(raw) ? 'Delete' :
+      /edit|update|rename|move/.test(raw) ? 'Edit / update' : raw.slice(0, 32);
+    categories[category] = (categories[category] || 0) + 1;
+  }
+  const hourlyLines = Object.entries(categories).sort((a,b) => b[1]-a[1])
+    .slice(0, 8).map(([name,count]) => '  • ' + tgEsc(name) + ': ' + tgNum(count));
+  const message = [
+    '🕐 <b>APML HOURLY ACTIVITY REPORT</b>',
+    '<b>Hour:</b> ' + hourLabel(hourStart) + ' – ' + hourLabel(hourEnd) + ' IST',
+    '<b>Report generated:</b> ' + tgTime(),
+    '',
+    '⚡ <b>ACTIVITY IN THIS HOUR</b>',
+    '  • Tracked events: ' + (eventsResult.ok ? tgNum(recent.length) : 'unavailable'),
+    ...(eventsResult.ok ? (hourlyLines.length ? hourlyLines : ['  • No tracked events recorded in this hour']) : ['  • Event details unavailable (analytics/events read failed)']),
+    '',
+    '📅 <b>TODAY SO FAR (' + getTodayIST() + ')</b>',
+    '  • 👁️ Visitors: ' + (dailyResult.ok ? tgNum(today.visitors) : 'unavailable'),
+    '  • 🧾 PDFs generated: ' + (dailyResult.ok ? tgNum(today.pdf) : 'unavailable'),
+    '  • 📥 Media downloads: ' + (dailyResult.ok ? tgNum(today.media) : 'unavailable'),
+    '  • ⚡ Peak online: ' + (dailyResult.ok ? tgNum(today.peak) : 'unavailable'),
+    '',
+    '🌐 <b>LIVE & LIFETIME TOTALS</b>',
+    '  • 👥 Online now: ' + (stats.online == null ? 'unavailable' : tgNum(stats.online)),
+    '  • 🧾 Lifetime PDFs: ' + (stats.totalPdfs == null ? 'unavailable' : tgNum(stats.totalPdfs)),
+    '  • 📥 Lifetime media downloads: ' + (stats.totalMedia == null ? 'unavailable' : tgNum(stats.totalMedia)),
+    '',
+    '<i>Hourly event details depend on records being written to analytics/events. Daily and lifetime counters are shown separately.</i>'
+  ].join('\n');
+
+  const sent = await tgSendMessage(env, env.TELEGRAM_CHAT_ID, {
+    text: message, parse_mode: 'HTML', disable_web_page_preview: true
+  });
+  if (!sent.ok) console.error('Hourly Telegram report was not sent:', sent.data?.description || sent.status);
 }
 
 
