@@ -183,16 +183,24 @@
   function startVisit() {
     if (!ENABLED.visit || muted() || looksLikeBot()) return;
     var key = 'apml_visit_alert_at';
-    var now = Date.now();
+    var last = 0;
     try {
-      var last = Number(localStorage.getItem(key) || 0);
-      if (last && now - last < VISIT.cooldownHours * 60 * 60 * 1000) return;
-      localStorage.setItem(key, String(now));
+      last = Number(localStorage.getItem(key) || 0);
+      if (last && Date.now() - last < VISIT.cooldownHours * 60 * 60 * 1000) return;
     } catch (e) {}
-    setTimeout(function () {
-      if (document.visibilityState === 'hidden' || looksLikeBot()) return;
-      send({ type: 'visit', title: 'New portal visit', file: pageName(), folder: deviceText() });
-    }, VISIT.delayMs);
+    var fired = false;
+    var activityEvents = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
+    function onRealActivity(event) {
+      if (fired || !event || event.isTrusted !== true || document.visibilityState !== 'visible' || looksLikeBot()) return;
+      fired = true;
+      activityEvents.forEach(function (name) { window.removeEventListener(name, onRealActivity, true); });
+      window.setTimeout(function () {
+        if (document.visibilityState === 'hidden' || looksLikeBot()) return;
+        try { localStorage.setItem(key, String(Date.now())); } catch (e) {}
+        send({ type: 'visit', title: 'New portal visit', file: pageName(), folder: deviceText() });
+      }, 8000);
+    }
+    activityEvents.forEach(function (name) { window.addEventListener(name, onRealActivity, { capture: true, passive: true }); });
   }
 
   // ---------------- announcements ----------------
