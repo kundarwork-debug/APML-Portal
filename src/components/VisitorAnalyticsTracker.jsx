@@ -111,7 +111,7 @@ export default function VisitorAnalyticsTracker() {
           country: geo.country || prior.country || '', countryCode: geo.countryCode || prior.countryCode || '',
           timezone: geo.timezone || prior.timezone || '',
           source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
-          trafficClass: 'likely_human', ...device
+          trafficClass: 'likely_human', interactionVerified: true, ...device
         }
       }, undefined, false)
       if (!transaction.committed) return
@@ -145,7 +145,7 @@ export default function VisitorAnalyticsTracker() {
         const prior = current && typeof current === 'object' ? current : {}
         return {
           ...prior, visitorId, startedAt: Number(prior.startedAt) || startedAt,
-          lastSeen: now, online: true, currentPage: page,
+          lastSeen: now, online: true, currentPage: page, interactionVerified: true,
           pageViews: (Number(prior.pageViews) || 0) + (pageView ? 1 : 0),
           totalSeconds: (Number(prior.totalSeconds) || 0) + elapsedSeconds,
           city: geo.city || '', cityVerified: Boolean(geo.cityVerified), region: geo.region || prior.region || '',
@@ -158,7 +158,7 @@ export default function VisitorAnalyticsTracker() {
     }
 
     const qualify = async () => {
-      if (qualified || automation.suspected || activeSeconds < HUMAN_QUALIFY_SECONDS || !database) return
+      if (qualified || automation.suspected || !interactionSeen || activeSeconds < HUMAN_QUALIFY_SECONDS || !database) return
       qualified = true
       await send(lastPage, true)
       publishStatus({ state: 'connected', message: 'Qualified visitor activity is syncing to the new Firebase.', backend: 'portalapml Firebase', trafficClass: 'likely_human' })
@@ -179,8 +179,8 @@ export default function VisitorAnalyticsTracker() {
       }
     }
 
-    const onActivity = () => {
-      if (document.visibilityState === 'visible') interactionSeen = true
+    const onActivity = event => {
+      if (event?.isTrusted === true && document.visibilityState === 'visible') interactionSeen = true
     }
     const start = async () => {
       try {
@@ -202,6 +202,7 @@ export default function VisitorAnalyticsTracker() {
         const tick = async () => {
           if (!active || qualified) return
           if (document.visibilityState === 'visible') activeSeconds += HEARTBEAT_MS / 1000
+          if (qualified) { await send(lastPage, false); return }
           await qualify()
         }
         heartbeat = window.setInterval(tick, HEARTBEAT_MS)
