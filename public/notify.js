@@ -188,10 +188,12 @@
       last = Number(localStorage.getItem(key) || 0);
       if (last && Date.now() - last < VISIT.cooldownHours * 60 * 60 * 1000) return;
     } catch (e) {}
-    var fired = false;
-    var activityEvents = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
+    var fired = false, score = 0;
+    var activityEvents = ['pointerdown', 'keydown', 'touchstart', 'touchmove', 'wheel'];
     function onRealActivity(event) {
       if (fired || !event || event.isTrusted !== true || document.visibilityState !== 'visible' || looksLikeBot()) return;
+      score += event.type === 'pointerdown' || event.type === 'touchstart' ? 3 : 2;
+      if (score < 3) return;
       fired = true;
       activityEvents.forEach(function (name) { window.removeEventListener(name, onRealActivity, true); });
       if (document.visibilityState === 'hidden' || looksLikeBot()) return;
