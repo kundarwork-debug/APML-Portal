@@ -162,7 +162,7 @@ export default function Analytics() {
 
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
   const verifiedSessions = useMemo(() => sessions.filter(session => session.trafficClass === 'likely_human' && session.interactionVerified === true), [sessions])
-  const activeSessions = verifiedSessions.filter(session => session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
+  const activeSessions = verifiedSessions.filter(session => session.online !== false && Number.isFinite(Number(session.lastSeen)) && Number(session.lastSeen) >= Date.now() - 90000)
   // Match homepage People online using the same verified sessions and 90-second cutoff.
   const activePresence = activeSessions.length
   const presenceShare = sessions.length ? Math.round((activePresence / sessions.length) * 100) : 0
