@@ -311,10 +311,10 @@ async function handleQuotationPdfQueue(request, env) {
   const bytes=new Uint8Array(await file.arrayBuffer());
   let binary='';
   for(let i=0;i<bytes.length;i+=0x8000) binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
-  const job={id,fileName:clean(file.name,150)||'Quotation.pdf',caption:'🧾 <b>APML Quotation</b>\n📄 '+tgEsc(clean(metadata.quotationNo,80)||'Quotation')+'\n👤 '+tgEsc(clean(metadata.customer,100)||'Customer')+'\n🏢 '+tgEsc(clean(metadata.company,100))+'\n🚚 '+tgEsc(clean(metadata.route,160))+'\n💰 '+tgEsc(clean(metadata.total,60))+'\n🕒 '+tgTime(),pdfBase64:btoa(binary),dueAt:Date.now()+60000,attempts:0,createdAt:Date.now()};
+  const job={id,fileName:clean(file.name,150)||'Quotation.pdf',caption:'🧾 <b>APML Quotation</b>\n📄 '+tgEsc(clean(metadata.quotationNo,80)||'Quotation')+'\n👤 '+tgEsc(clean(metadata.customer,100)||'Customer')+'\n🏢 '+tgEsc(clean(metadata.company,100))+'\n🚚 '+tgEsc(clean(metadata.route,160))+'\n💰 '+tgEsc(clean(metadata.total,60))+'\n🕒 '+tgTime(),pdfBase64:btoa(binary),dueAt:Date.now(),attempts:0,createdAt:Date.now()};
   await env.ANNOUNCE_KV.put(QUOTE_PDF_PREFIX+id,JSON.stringify(job),{expirationTtl:3600});
   await env.ANNOUNCE_KV.put(rateKey,String(count+1),{expirationTtl:3600});
-  return json({ok:true,id,dueAt:job.dueAt,delaySeconds:60});
+  return json({ok:true,id,dueAt:job.dueAt,delaySeconds:0});
 }
 async function sendTelegramPdf(env,job) {
   const kv=env.ANNOUNCE_KV,now=Date.now();
