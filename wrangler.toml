@@ -9,4 +9,4 @@ binding = "ANNOUNCE_KV"
 id = "67a645649ab941668956f159f890147e"
 
 [triggers]
-crons = ["30 * * * *"]
+crons = ["* * * * *"]
