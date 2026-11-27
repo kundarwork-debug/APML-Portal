@@ -153,6 +153,7 @@ function FloatingMascot({pagePath}){
   const clock=setInterval(syncAfterHours,15000)
   return()=>clearInterval(clock)
  },[])
+ useEffect(()=>{window.dispatchEvent(new Event('resize'))},[quietHours])
  useEffect(()=>{
   const initial=setTimeout(()=>{
    if(quietHoursRef.current){
