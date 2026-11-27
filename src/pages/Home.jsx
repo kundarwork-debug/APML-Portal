@@ -152,12 +152,14 @@ function OperationalTelemetry(){
      const ref=db.ref(path);refs.push(ref)
      ref.on('value',snap=>{if(active)setCounts(prev=>({...prev,[key]:transform(snap)}))},error=>console.warn('APML homepage telemetry:',path,error))
     }
-    const presenceRef=db.ref('analytics/active_sessions');refs.push(presenceRef)
+    const presenceRef=db.ref('visitor_intelligence/sessions');refs.push(presenceRef)
     presenceRef.on('value',snap=>{
      const cutoff=Date.now()-90000
-     const online=Object.values(snap.val()||{}).filter(session=>session?.online===true&&typeof session.timestamp==='number'&&Number.isFinite(session.timestamp)&&session.timestamp>=cutoff).length
+     const visitors=snap.val()||{}
+     const sessions=Object.values(visitors).flatMap(visitor=>Object.values(visitor||{}))
+     const online=sessions.filter(session=>session?.interactionVerified===true&&session.online!==false&&typeof session.lastSeen==='number'&&Number.isFinite(session.lastSeen)&&session.lastSeen>=cutoff).length
      if(active)setCounts(prev=>({...prev,users:online}))
-    },error=>console.warn('APML live presence count unavailable',error))
+    },error=>console.warn('APML verified live presence count unavailable',error))
     let dailyPdfTotal=0,lifetimePdfTotal=0
     const publishPdfTotal=()=>{if(active)setCounts(prev=>({...prev,pdf:Math.max(dailyPdfTotal,lifetimePdfTotal)}))}
     const dailyRef=db.ref('analytics/pdf_generation/daily');refs.push(dailyRef)
