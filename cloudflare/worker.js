@@ -705,9 +705,6 @@ async function handleNotify(request, env) {
     parse_mode:'HTML',disable_web_page_preview:true
   });
   if(sent.ok){
-    if (visitCooldownKey && filteredItems.some(item => item && item.type === 'visit')) {
-      await env.ANNOUNCE_KV.put(visitCooldownKey, String(Date.now()), { expirationTtl: 30 * 60 });
-    }
     return json({ok:true});
   }
   const wait=sent.data&&sent.data.parameters&&sent.data.parameters.retry_after;
