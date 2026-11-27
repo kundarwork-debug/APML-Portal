@@ -648,6 +648,7 @@ async function handleNotify(request, env) {
   // convenience; this server-side check protects Telegram even if a crawler calls /notify directly.
   const requestUa = request.headers.get('User-Agent') || '';
   const incomingItems = Array.isArray(body && body.items) ? body.items : [body];
+  let visitCooldownKey = '';
   let filteredItems = incomingItems.filter((item) =>
     !(item && item.type === 'visit' && isAutomatedUserAgent(requestUa))
   );
@@ -663,12 +664,11 @@ async function handleNotify(request, env) {
     } else {
       const ipDigest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('apml-visit-alert:' + clientIp));
       const ipHash = Array.from(new Uint8Array(ipDigest)).map(x => x.toString(16).padStart(2, '0')).join('');
-      const cooldownKey = 'telegram_visit_cooldown:' + ipHash;
-      const alreadyAlerted = await env.ANNOUNCE_KV.get(cooldownKey);
+      visitCooldownKey = 'telegram_visit_cooldown:' + ipHash;
+      const alreadyAlerted = await env.ANNOUNCE_KV.get(visitCooldownKey);
       if (alreadyAlerted) {
         filteredItems = filteredItems.filter(item => !item || item.type !== 'visit');
       } else {
-        await env.ANNOUNCE_KV.put(cooldownKey, String(Date.now()), { expirationTtl: 30 * 60 });
         let keptVisit = false;
         filteredItems = filteredItems.filter(item => {
           if (!item || item.type !== 'visit') return true;
@@ -720,7 +720,12 @@ async function handleNotify(request, env) {
     text:priorityPrefix+tgMessage(notificationBody,tgPlace(request),stats),
     parse_mode:'HTML',disable_web_page_preview:true
   });
-  if(sent.ok)return json({ok:true});
+  if(sent.ok){
+    if (visitCooldownKey && filteredItems.some(item => item && item.type === 'visit')) {
+      await env.ANNOUNCE_KV.put(visitCooldownKey, String(Date.now()), { expirationTtl: 30 * 60 });
+    }
+    return json({ok:true});
+  }
   const wait=sent.data&&sent.data.parameters&&sent.data.parameters.retry_after;
   return json({ok:false,error:String(sent.data&&sent.data.description||'Telegram error').slice(0,200),retry_after:wait},sent.status===429?429:sent.status===503?503:502);
 
