@@ -530,3 +530,10 @@
 :root[data-theme=dark] .analytics-customizer-option,:root[data-theme=dark] .analytics-reset-btn{background:var(--analytics-soft);border-color:var(--analytics-line);color:var(--analytics-ink)}
 @media(max-width:850px){.analytics-customizer-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.analytics-customizer{padding:13px}.analytics-customizer-head{flex-direction:column;gap:10px}.analytics-reset-btn{align-self:flex-start}.analytics-customizer-list{grid-template-columns:1fr}.analytics-dashboard .analytics-hero-actions{flex-wrap:wrap}.analytics-dashboard .analytics-hero-actions .analytics-action-btn{min-width:calc(50% - 5px)}}
+
+.analytics-customizer-item{display:flex;align-items:center;gap:4px;min-width:0}
+.analytics-customizer-item .analytics-customizer-option{flex:1;min-width:0}
+.analytics-order-controls{display:flex;flex:none;gap:2px}
+.analytics-order-controls button{width:25px;height:32px;padding:0;border:1px solid var(--analytics-line);border-radius:6px;background:var(--analytics-panel);color:var(--analytics-muted);font-size:12px;font-weight:800;cursor:pointer}
+.analytics-order-controls button:disabled{opacity:.3;cursor:not-allowed}
+:root[data-theme=dark] .analytics-order-controls button{background:var(--analytics-panel);border-color:var(--analytics-line);color:var(--analytics-ink)}
