@@ -510,3 +510,23 @@
   .analytics-dashboard .analytics-online-gauge { width: 64px !important; }
   .analytics-dashboard .analytics-range-tabs button { padding: 6px 9px !important; }
 }
+
+
+/* Per-browser Portal Activity dashboard customization */
+.analytics-customizer{margin:0 0 17px;padding:17px;border:1px solid var(--analytics-line);border-radius:14px;background:var(--analytics-panel);box-shadow:0 8px 24px rgba(16,16,20,.045)}
+.analytics-customizer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:13px}
+.analytics-customizer-head strong{display:block;color:var(--analytics-ink);font-size:12px;font-weight:800}
+.analytics-customizer-head p{margin:5px 0 0;color:var(--analytics-muted);font-size:10px;line-height:1.6}
+.analytics-reset-btn{display:inline-flex;align-items:center;gap:6px;flex:none;padding:8px 10px;border:1px solid var(--analytics-line);border-radius:8px;background:var(--analytics-soft);color:var(--analytics-ink);font-size:10px;font-weight:700;cursor:pointer}
+.analytics-customizer-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.analytics-customizer-option{display:flex;align-items:center;gap:8px;min-width:0;padding:9px 10px;border:1px solid var(--analytics-line);border-radius:8px;background:var(--analytics-soft);color:var(--analytics-ink);font-size:10px;font-weight:650;cursor:pointer}
+.analytics-customizer-option input{width:14px;height:14px;flex:none;accent-color:var(--analytics-accent)}
+.analytics-customizer-option span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.analytics-customizer-option>svg{flex:none;color:var(--analytics-muted)}
+.analytics-dashboard [data-dashboard-widget][draggable="true"]{cursor:grab;outline:1px dashed color-mix(in srgb,var(--analytics-accent) 45%,transparent);outline-offset:2px;transition:opacity .15s,transform .15s,outline-color .15s}
+.analytics-dashboard [data-dashboard-widget][draggable="true"]:active{cursor:grabbing}
+.analytics-dashboard [data-dashboard-widget][draggable="true"]:hover{outline-color:var(--analytics-accent);transform:translateY(-1px)}
+:root[data-theme=dark] .analytics-customizer{background:var(--analytics-panel);border-color:var(--analytics-line)}
+:root[data-theme=dark] .analytics-customizer-option,:root[data-theme=dark] .analytics-reset-btn{background:var(--analytics-soft);border-color:var(--analytics-line);color:var(--analytics-ink)}
+@media(max-width:850px){.analytics-customizer-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.analytics-customizer{padding:13px}.analytics-customizer-head{flex-direction:column;gap:10px}.analytics-reset-btn{align-self:flex-start}.analytics-customizer-list{grid-template-columns:1fr}.analytics-dashboard .analytics-hero-actions{flex-wrap:wrap}.analytics-dashboard .analytics-hero-actions .analytics-action-btn{min-width:calc(50% - 5px)}}
