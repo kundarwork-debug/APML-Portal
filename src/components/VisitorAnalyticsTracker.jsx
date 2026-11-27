@@ -126,12 +126,12 @@ export default function VisitorAnalyticsTracker() {
             country: geo.country || prior.country || '', countryCode: geo.countryCode || prior.countryCode || '',
             timezone: geo.timezone || prior.timezone || '',
             source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
-            trafficClass: 'likely_human', ...device
+            trafficClass: 'likely_human', interactionVerified: true, ...device
           }
         }, undefined, false)
       } else {
         await database.ref('visitor_intelligence/daily/' + date + '/' + visitorId).update({
-          lastSeen: now, trafficClass: 'likely_human',
+          lastSeen: now, trafficClass: 'likely_human', interactionVerified: true,
           ...(geo.city || geo.region || geo.country ? geo : {}), city: geo.city || '', cityVerified: Boolean(geo.cityVerified), ...device
         })
       }
@@ -200,7 +200,7 @@ export default function VisitorAnalyticsTracker() {
         await sessionRef.onDisconnect().remove()
         lastTick = Date.now()
         const tick = async () => {
-          if (!active || qualified) return
+          if (!active) return
           if (document.visibilityState === 'visible') activeSeconds += HEARTBEAT_MS / 1000
           if (qualified) { await send(lastPage, false); return }
           await qualify()
