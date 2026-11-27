@@ -157,7 +157,7 @@ function OperationalTelemetry(){
      const cutoff=Date.now()-90000
      const visitors=snap.val()||{}
      const sessions=Object.values(visitors).flatMap(visitor=>Object.values(visitor||{}))
-     const online=sessions.filter(session=>session?.interactionVerified===true&&session.online!==false&&typeof session.lastSeen==='number'&&Number.isFinite(session.lastSeen)&&session.lastSeen>=cutoff).length
+     const online=sessions.filter(session=>session?.trafficClass==='likely_human'&&session?.interactionVerified===true&&session.online!==false&&typeof session.lastSeen==='number'&&Number.isFinite(session.lastSeen)&&session.lastSeen>=cutoff).length
      if(active)setCounts(prev=>({...prev,users:online}))
     },error=>console.warn('APML verified live presence count unavailable',error))
     let dailyPdfTotal=0,lifetimePdfTotal=0
