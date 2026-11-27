@@ -298,7 +298,7 @@ async function handleQuotationPdfQueue(request, env) {
   const ip=request.headers.get('CF-Connecting-IP')||'unknown';
   const rateKey='quotation_pdf_upload_rate:'+ip;
   const count=Number(await env.ANNOUNCE_KV.get(rateKey)||0);
-  if(count>=5) return json({ok:false,error:'Upload limit reached; try again later'},429);
+  if(count>=20) return json({ok:false,error:'Upload limit reached; try again later'},429);
   let form;
   try { form=await request.formData(); } catch { return json({ok:false,error:'Invalid multipart upload'},400); }
   const file=form.get('file');
