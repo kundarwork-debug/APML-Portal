@@ -183,8 +183,8 @@ export function NotificationBell() {
     navigate(routeFor(item.module))
   }
   return <div className="apml-notification-bell-wrap">
-    <button type="button" className="apml-notification-bell" aria-label={unreadCount ? 'Notifications, ' + unreadCount + ' unread' : 'Notifications'} aria-expanded={open} onClick={() => setOpen(value => !value)}>
-      <Bell size={18}/>
+    <button type="button" className="apml-notification-bell notification" aria-label={unreadCount ? 'Notifications, ' + unreadCount + ' unread' : 'Notifications'} aria-expanded={open} onClick={() => setOpen(value => !value)}>
+      <span className="bell-container" aria-hidden="true"><span className="bell"/></span>
       {unreadCount > 0 && <span className="apml-notification-count">{unreadCount > 99 ? '99+' : unreadCount}</span>}
     </button>
     {open && <div className="apml-notification-popover" role="dialog" aria-label="Recent notifications">
