@@ -152,7 +152,7 @@ export default function VisitorAnalyticsTracker() {
           country: geo.country || prior.country || '', countryCode: geo.countryCode || prior.countryCode || '',
           timezone: geo.timezone || prior.timezone || '',
           source: geo.city || geo.region || geo.country ? geo.source : (prior.source || geo.source),
-          trafficClass: 'likely_human', ...device
+          trafficClass: 'likely_human', interactionVerified: true, ...device
         }
       }, undefined, false)
     }
@@ -160,6 +160,7 @@ export default function VisitorAnalyticsTracker() {
     const qualify = async () => {
       if (qualified || automation.suspected || !interactionSeen || activeSeconds < HUMAN_QUALIFY_SECONDS || !database) return
       qualified = true
+      window.__apmlVisitorVerified = true
       await send(lastPage, true)
       publishStatus({ state: 'connected', message: 'Qualified visitor activity is syncing to the new Firebase.', backend: 'portalapml Firebase', trafficClass: 'likely_human' })
     }
@@ -226,6 +227,7 @@ export default function VisitorAnalyticsTracker() {
     start()
     return () => {
       active = false
+      if (window.__apmlVisitorVerified === true) window.__apmlVisitorVerified = false
       if (heartbeat) window.clearInterval(heartbeat)
       activityEvents.forEach(name => window.removeEventListener(name, onActivity))
       window.removeEventListener('apml:visitor-route', routeChanged)
