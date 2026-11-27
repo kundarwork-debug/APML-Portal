@@ -322,8 +322,7 @@ export default function Shell(){
      links: [
       { name: 'About APML Portal', Icon: BookOpen, href: '/about' },
       { name: 'Privacy Policy', Icon: ShieldCheck, href: '/privacy' },
-      { name: 'Terms & Conditions', Icon: Scale, href: '/terms' },
-      { name: 'Cookies Policy', Icon: ShieldCheck, href: '/cookies' }
+      { name: 'Terms & Conditions', Icon: Scale, href: '/terms' }
      ]
     },
     {
