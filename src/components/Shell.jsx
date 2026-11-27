@@ -57,8 +57,10 @@ function FloatingMascot({pagePath}){
   "Signing off for today! Have a peaceful evening. 🌙"
  ]
  const isAfterHours=()=>{
-  const now=new Date()
-  const minutes=now.getHours()*60+now.getMinutes()
+  const parts=new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date())
+  const hour=Number(parts.find(part=>part.type==='hour')?.value||0)
+  const minute=Number(parts.find(part=>part.type==='minute')?.value||0)
+  const minutes=hour*60+minute
   return minutes>=19*60+30||minutes<6*60
  }
  const directionNames=['up-left','up','up-right','left','center','right','down-left','down','down-right']
@@ -106,7 +108,7 @@ function FloatingMascot({pagePath}){
    const footerHeight=footer?footer.offsetHeight:0
    const nearBottom=scrollPosition>(bodyHeight-footerHeight+20)
    const keepMascotForHours=quietHoursRef.current
-   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&pageKey!=='play'&&(keepMascotForHours||!isIndexPage||scrollY>250)&&(keepMascotForHours||!nearBottom))
+   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&pageKey!=='play'&&(!isIndexPage||scrollY>250)&&!nearBottom)
    if(nearBottom&&!keepMascotForHours){
     clearTimeout(timers.current.hide)
     if(!pinnedRef.current)setBubbleVisible(false)
