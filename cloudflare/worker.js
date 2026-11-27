@@ -648,10 +648,38 @@ async function handleNotify(request, env) {
   // convenience; this server-side check protects Telegram even if a crawler calls /notify directly.
   const requestUa = request.headers.get('User-Agent') || '';
   const incomingItems = Array.isArray(body && body.items) ? body.items : [body];
-  const filteredItems = incomingItems.filter((item) =>
+  let filteredItems = incomingItems.filter((item) =>
     !(item && item.type === 'visit' && isAutomatedUserAgent(requestUa))
   );
-  if (!filteredItems.length) return json({ ok: true, ignored: 'automated-visitor' });
+
+  // A single IP fingerprint may generate only one visit alert per 30 minutes.
+  // This server-side guard catches repeated page-view alerts even when a crawler
+  // disguises itself as a normal mobile browser. Raw IP addresses are never stored.
+  const hasVisit = filteredItems.some(item => item && item.type === 'visit');
+  if (hasVisit) {
+    const clientIp = request.headers.get('CF-Connecting-IP') || '';
+    if (!clientIp || !env.ANNOUNCE_KV) {
+      filteredItems = filteredItems.filter(item => !item || item.type !== 'visit');
+    } else {
+      const ipDigest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('apml-visit-alert:' + clientIp));
+      const ipHash = Array.from(new Uint8Array(ipDigest)).map(x => x.toString(16).padStart(2, '0')).join('');
+      const cooldownKey = 'telegram_visit_cooldown:' + ipHash;
+      const alreadyAlerted = await env.ANNOUNCE_KV.get(cooldownKey);
+      if (alreadyAlerted) {
+        filteredItems = filteredItems.filter(item => !item || item.type !== 'visit');
+      } else {
+        await env.ANNOUNCE_KV.put(cooldownKey, String(Date.now()), { expirationTtl: 30 * 60 });
+        let keptVisit = false;
+        filteredItems = filteredItems.filter(item => {
+          if (!item || item.type !== 'visit') return true;
+          if (keptVisit) return false;
+          keptVisit = true;
+          return true;
+        });
+      }
+    }
+  }
+  if (!filteredItems.length) return json({ ok: true, ignored: 'automated-or-duplicate-visitor' });
   const notificationBody = Array.isArray(body && body.items)
     ? { ...body, items: filteredItems }
     : filteredItems[0];
