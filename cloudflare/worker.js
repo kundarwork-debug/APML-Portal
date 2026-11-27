@@ -14,9 +14,9 @@ const CONFIG = {
 
   CLOUD_NAME: 'wbrmw2pm',
 
-  FIREBASE_DB_URL: 'https://apml-portal-default-rtdb.firebaseio.com',
+  FIREBASE_DB_URL: 'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',
 
-  FIREBASE_API_KEY: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
+  FIREBASE_API_KEY: 'AIzaSyDrAUGVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
 
   ADMIN_EMAILS: ['kundar.work@gmail.com', 'kundar701@gmail.com'],
 
