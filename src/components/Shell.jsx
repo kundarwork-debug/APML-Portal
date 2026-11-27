@@ -1,12 +1,13 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Footer } from './ui/footer'
+import { NotificationProvider, NotificationBell } from './NotificationCenter'
 import { getApmlPresenceServices } from '../lib/firebase'
 import VisitorAnalyticsTracker from './VisitorAnalyticsTracker'
-import { ChevronDown, Home, FileText, Users, Cloud, Images, LockKeyhole, CircleHelp, Calculator, Truck, Activity, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Search, X, ArrowRight } from 'lucide-react'
+import { ChevronDown, Home, FileText, Users, Cloud, Images, LockKeyhole, CircleHelp, Calculator, Truck, Activity, Bell, MapPinned, BriefcaseBusiness, LifeBuoy, ExternalLink, Github, Mail, BookOpen, ShieldCheck, Scale, Search, X, ArrowRight } from 'lucide-react'
 
 const links = [
- {to:'/',label:'Home',icon:Home},{to:'/editor',label:'Quotation Editor',icon:FileText},
+ {to:'/',label:'Home',icon:Home},{to:'/notifications',label:'Notifications',icon:Bell},{to:'/editor',label:'Quotation Editor',icon:FileText},
  {to:'/directory',label:'Branch Directory',icon:MapPinned},{to:'/field-officer',label:'Field Officers',icon:Users},
  {to:'/drive',label:'APML Drive',icon:Cloud},{to:'/gallery',label:'Gallery',icon:Images},
  {to:'/local-rate',label:'Local Rate',icon:Calculator},{to:'/car-rate',label:'Car Rate',icon:Truck},
@@ -321,12 +322,12 @@ export default function Shell(){
  useEffect(()=>{const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);if(!mobile||window.matchMedia('(display-mode: standalone)').matches)return;let timer;const ready=e=>{e.preventDefault();setInstallEvent(e);timer=window.setTimeout(()=>setShowInstall(true),5000)};const installed=()=>{setShowInstall(false);setInstallEvent(null)};window.addEventListener('beforeinstallprompt',ready);window.addEventListener('appinstalled',installed);return()=>{window.removeEventListener('beforeinstallprompt',ready);window.removeEventListener('appinstalled',installed);window.clearTimeout(timer)}},[])
  async function installPortal(){if(!installEvent)return;await installEvent.prompt();await installEvent.userChoice;setShowInstall(false);setInstallEvent(null)}
  const active=links.find(x=>x.to===location.pathname)?.label||(location.pathname==='/bug-report'?'Report an issue':'APML Workspace')
- return <div className="app-shell topnav-shell">
+ return <NotificationProvider><div className="app-shell topnav-shell">
   <VisitorAnalyticsTracker/>
   {showInstall&&installEvent&&<aside className="install-prompt"><div><strong>Install APML Portal</strong><span>Add the workspace to your phone for quick access.</span></div><button onClick={installPortal}>Install</button><button className="install-dismiss" onClick={()=>setShowInstall(false)} aria-label="Dismiss install prompt">×</button></aside>}
   <header className="portal-header"><div className="portal-header-inner">
    <Link to="/" className="portal-brand"><img className="apml-rotating-logo" src={import.meta.env.BASE_URL+'logo.svg'} alt="APML Portal"/><span><b>APML <i>Portal</i></b></span></Link>
-   <div className="portal-header-actions"><button type="button" className="apml-command-trigger" onClick={()=>setPaletteOpen(true)} aria-label="Search pages and tools"><Search size={16}/><span>Search anything...</span><kbd>Ctrl K</kbd></button><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label></div>
+   <div className="portal-header-actions"><NotificationBell/><button type="button" className="apml-command-trigger" onClick={()=>setPaletteOpen(true)} aria-label="Search pages and tools"><Search size={16}/><span>Search anything...</span><kbd>Ctrl K</kbd></button><label className="apml-theme-switch" title={darkTheme?"Switch to light theme":"Switch to dark theme"} aria-label="Toggle dark theme"><input type="checkbox" checked={darkTheme} onChange={e=>setDarkTheme(e.target.checked)} aria-label="Enable dark theme"/><span className="apml-theme-slider" aria-hidden="true"><span className="apml-theme-thumb-icon">{darkTheme?"☾":"☀"}</span></span></label></div>
   </div></header> 
   {paletteOpen&&<div className="apml-command-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget){setPaletteOpen(false);setPaletteQuery('')}}}>
    <section className="apml-command-dialog" role="dialog" aria-modal="true" aria-label="Search APML Portal">
@@ -385,6 +386,6 @@ export default function Shell(){
    ]}
    copyright={`${new Date().getFullYear()} APML Portal. Unofficial operations workspace.`}
   />
- </div>
+ </div></NotificationProvider>
 }
 
