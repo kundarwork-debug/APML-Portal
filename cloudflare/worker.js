@@ -219,6 +219,12 @@ async function purgeExpiredTrash(env) {
 const TG_EMOJI = { pdf: '🧾', drive: '📥', gallery: '🖼️', visit: '🟢', bug: '🚨', error: '🧯' };
 
 
+function isAutomatedUserAgent(value) {
+  const ua = String(value || '').trim();
+  if (!ua) return true;
+  return /(?:bot\\b|crawler|spider|slurp|preview|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|googlebot|google-inspectiontool|adsbot-google|bingbot|bingpreview|duckduckbot|applebot|baiduspider|yandexbot|sogou|bytespider|petalbot|amazonbot|gptbot|claudebot|perplexitybot|ccbot|ahrefsbot|semrushbot|mj12bot|dotbot|dataforseobot|uptimerobot|pingdom|statuscake|site24x7|headless|lighthouse|pagespeed|gtmetrix|phantomjs|selenium|playwright|puppeteer|webdriver|curl\\/|wget\\/|python-requests|python-urllib|go-http-client|node-fetch|axios\\/|okhttp\\/|postmanruntime|scrapy|validator)/i.test(ua);
+}
+
 function tgClean(v, max) {
 
   return String(v == null ? '' : v).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -638,19 +644,27 @@ async function handleNotify(request, env) {
 
   } catch (e) { return json({ ok: false, error: 'Bad request' }, 400); }
 
+  // Filter automated clients at the Worker boundary. Browser-side checks are only a
+  // convenience; this server-side check protects Telegram even if a crawler calls /notify directly.
+  const requestUa = request.headers.get('User-Agent') || '';
+  const incomingItems = Array.isArray(body && body.items) ? body.items : [body];
+  const filteredItems = incomingItems.filter((item) =>
+    !(item && item.type === 'visit' && isAutomatedUserAgent(requestUa))
+  );
+  if (!filteredItems.length) return json({ ok: true, ignored: 'automated-visitor' });
+  const notificationBody = Array.isArray(body && body.items)
+    ? { ...body, items: filteredItems }
+    : filteredItems[0];
+
   // Shared KV pacing and rate checks run immediately before each Telegram send.
 
-  const hasDownload = Array.isArray(body && body.items)
-
-    ? body.items.some((x) => x && x.type !== 'visit')
-
-    : !!body && body.type !== 'visit';
+  const hasDownload = filteredItems.some((x) => x && x.type !== 'visit');
 
   if (hasDownload && CONFIG.COUNTER_SETTLE_MS > 0) await new Promise((r) => setTimeout(r, CONFIG.COUNTER_SETTLE_MS));
 
   const stats = await liveStatsWithDaily();
 
-  const notifiedItems = Array.isArray(body && body.items) ? body.items.slice(0, 15) : [body];
+  const notifiedItems = filteredItems.slice(0, 15);
 
   for (const raw of notifiedItems) {
 
@@ -675,7 +689,7 @@ async function handleNotify(request, env) {
   const priorityPrefix = notifiedItems.some(x => x && ['bug', 'error'].includes(x.type)) ? '🚨 <b>HIGH PRIORITY</b>\n' : '';
 
   const sent=await tgSendMessage(env,env.TELEGRAM_CHAT_ID,{
-    text:priorityPrefix+tgMessage(body,tgPlace(request),stats),
+    text:priorityPrefix+tgMessage(notificationBody,tgPlace(request),stats),
     parse_mode:'HTML',disable_web_page_preview:true
   });
   if(sent.ok)return json({ok:true});
@@ -1831,7 +1845,7 @@ async function handleVisitorCollect(request, env) {
   if (origin && !CONFIG.ALLOWED_ORIGINS.includes(origin)) return json({ ok: false, error: 'Origin not allowed' }, 403);
   if (!env.ANNOUNCE_KV) return json({ ok: false, error: 'Visitor storage is not configured' }, 503);
   const ua = String(request.headers.get('User-Agent') || '').slice(0, 500);
-  if (!ua || /(bot|crawler|spider|preview|facebookexternalhit|slackbot|discordbot|whatsapp|telegrambot|googlebot|bingbot|uptimerobot|headless|lighthouse|pagespeed)/i.test(ua)) {
+  if (isAutomatedUserAgent(ua)) {
     return json({ ok: true, ignored: 'automated-or-unknown-client' });
   }
   const ip = request.headers.get('CF-Connecting-IP') || '';
