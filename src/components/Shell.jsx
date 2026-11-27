@@ -23,6 +23,8 @@ function FloatingMascot({pagePath}){
  const [direction,setDirection]=useState('center')
  const [reaction,setReaction]=useState('')
  const [tipIndex,setTipIndex]=useState(0)
+ const [quietHours,setQuietHours]=useState(false)
+ const quietHoursRef=useRef(false)
  const timers=useRef({type:null,hide:null,reaction:null})
  const typing=useRef(false)
  const token=useRef(0)
@@ -42,6 +44,23 @@ function FloatingMascot({pagePath}){
  }
  const tips=pageTips[pageKey]||['Welcome to the APML Enterprise workspace! 💼','Everything is synced in real-time with Firebase.','Press Ctrl + K to jump between modules.','Quotation PDFs are saved to the Drive automatically. 📁','Click my avatar anytime for another quick hint!']
  const isIndexPage=pageKey==='index'
+ const afterHoursMessages=[
+  "Clocking out! Even superheroes need their beauty sleep. 🦸",
+  "That's enough for today! Even great ideas need some rest.",
+  "Boss, it's time to log off. Tomorrow is another productive day!",
+  "My circuits need some sleep too. See you in the morning! 🤖",
+  "Today's productivity quota is complete. Recharging overnight…",
+  "The office may be quiet, but the ideas will be waiting tomorrow!",
+  "You've done enough today. Relax, recharge and come back stronger!",
+  "No more debugging tonight. Even bugs deserve office hours! 😄",
+  "APML is taking a little nap. See you tomorrow!",
+  "Signing off for today! Have a peaceful evening. 🌙"
+ ]
+ const isAfterHours=()=>{
+  const now=new Date()
+  const minutes=now.getHours()*60+now.getMinutes()
+  return minutes>=19*60+30||minutes<6*60
+ }
  const directionNames=['up-left','up','up-right','left','center','right','down-left','down','down-right']
  const reactionNames=['blink','heart','sparkle','surprised','starry','blush','sleepy','dizzy','delighted']
  const position=(name,names)=>{const i=names.indexOf(name);return i<0?'50% 50%':((i%3)*50)+'% '+(Math.floor(i/3)*50)+'%'}
@@ -72,7 +91,7 @@ function FloatingMascot({pagePath}){
     setIsSpeaking(false)
     setReaction('')
     timers.current.hide=setTimeout(()=>{
-     if(currentToken===token.current&&!pinnedRef.current)setBubbleVisible(false)
+     if(currentToken===token.current&&!pinnedRef.current&&!quietHoursRef.current)setBubbleVisible(false)
     },holdMs)
    }
   }
@@ -86,11 +105,12 @@ function FloatingMascot({pagePath}){
    const bodyHeight=document.body.offsetHeight
    const footerHeight=footer?footer.offsetHeight:0
    const nearBottom=scrollPosition>(bodyHeight-footerHeight+20)
-   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&pageKey!=='play'&&(!isIndexPage||scrollY>250)&&!nearBottom)
-   if(nearBottom){
+   const keepMascotForHours=quietHoursRef.current
+   setVisible(window.innerWidth>768&&!document.documentElement.classList.contains('is-native-apk')&&pageKey!=='404'&&pageKey!=='play'&&(keepMascotForHours||!isIndexPage||scrollY>250)&&(keepMascotForHours||!nearBottom))
+   if(nearBottom&&!keepMascotForHours){
     clearTimeout(timers.current.hide)
     if(!pinnedRef.current)setBubbleVisible(false)
-   }else if(pinnedRef.current){
+   }else if(pinnedRef.current||keepMascotForHours){
     setBubbleVisible(true)
    }
   }
@@ -116,8 +136,30 @@ function FloatingMascot({pagePath}){
   return()=>{window.removeEventListener('pointermove',aim);window.removeEventListener('pointerout',reset)}
  },[visible,reaction,isSpeaking])
  useEffect(()=>{
+  const syncAfterHours=()=>{
+   const active=isAfterHours()
+   if(active&&!quietHoursRef.current){
+    quietHoursRef.current=true
+    setQuietHours(true)
+    playTip(afterHoursMessages[Math.floor(Math.random()*afterHoursMessages.length)],12*60*60*1000)
+   }else if(!active&&quietHoursRef.current){
+    quietHoursRef.current=false
+    setQuietHours(false)
+    clearTimeout(timers.current.hide)
+    if(!pinnedRef.current)setBubbleVisible(false)
+   }
+  }
+  syncAfterHours()
+  const clock=setInterval(syncAfterHours,15000)
+  return()=>clearInterval(clock)
+ },[])
+ useEffect(()=>{
   const initial=setTimeout(()=>{
-   if(!typing.current&&!bubbleVisible&&(!isIndexPage||window.scrollY>250))playTip(tips[tipIndex % tips.length])
+   if(quietHoursRef.current){
+    if(!bubbleVisible&&!typing.current)playTip(afterHoursMessages[Math.floor(Math.random()*afterHoursMessages.length)],12*60*60*1000)
+   }else if(!typing.current&&!bubbleVisible&&(!isIndexPage||window.scrollY>250)){
+    playTip(tips[tipIndex % tips.length])
+   }
   },1000)
   return()=>clearTimeout(initial)
  },[pagePath])
@@ -165,9 +207,14 @@ function FloatingMascot({pagePath}){
   const nextReaction=count>=4?'dizzy':['heart','sparkle','delighted'][(count-1)%3]
   if(count>=4)boops.current.count=0
   showReaction(nextReaction,900)
-  const next=(tipIndex+1)%tips.length
-  setTipIndex(next)
-  playTip(tips[next])
+  if(quietHoursRef.current){
+   const choices=afterHoursMessages.filter(message=>message!==typedText)
+   playTip(choices[Math.floor(Math.random()*choices.length)],12*60*60*1000)
+  }else{
+   const next=(tipIndex+1)%tips.length
+   setTipIndex(next)
+   playTip(tips[next])
+  }
  }
  return <div className={'apml-floating-mascot'+(visible?' is-visible':' is-hidden')+(isSpeaking?' is-speaking':'')}>
   <div className="apml-floating-mascot-inner">
