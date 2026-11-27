@@ -287,6 +287,78 @@ async function tgSendMessage(env, chatId, payload) {
 }
 
 
+
+
+// Delayed quotation PDF delivery. PDFs are kept briefly in KV (max 8 MB each)
+// and delivered by the minute cron; this endpoint never blocks PDF generation.
+const QUOTE_PDF_PREFIX = 'quotation_pdf_job:';
+async function handleQuotationPdfQueue(request, env) {
+  if (!tgOriginAllowed(request)) return json({ok:false,error:'Origin not allowed'},403);
+  if (!env.ANNOUNCE_KV || !env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return json({ok:false,error:'Background PDF delivery is not configured'},503);
+  const ip=request.headers.get('CF-Connecting-IP')||'unknown';
+  const rateKey='quotation_pdf_upload_rate:'+ip;
+  const count=Number(await env.ANNOUNCE_KV.get(rateKey)||0);
+  if(count>=5) return json({ok:false,error:'Upload limit reached; try again later'},429);
+  let form;
+  try { form=await request.formData(); } catch { return json({ok:false,error:'Invalid multipart upload'},400); }
+  const file=form.get('file');
+  if(!(file instanceof File)||file.size<=0||file.size>8*1024*1024) return json({ok:false,error:'PDF must be between 1 byte and 8 MB'},413);
+  if(file.type!=='application/pdf') return json({ok:false,error:'Only PDF files are accepted'},415);
+  let metadata={};
+  try { metadata=JSON.parse(String(form.get('metadata')||'{}')); } catch {}
+  const clean=(v,n)=>tgClean(v,n);
+  const id=crypto.randomUUID();
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  let binary='';
+  for(let i=0;i<bytes.length;i+=0x8000) binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+  const job={id,fileName:clean(file.name,150)||'Quotation.pdf',caption:'🧾 <b>APML Quotation</b>\n📄 '+tgEsc(clean(metadata.quotationNo,80)||'Quotation')+'\n👤 '+tgEsc(clean(metadata.customer,100)||'Customer')+'\n🏢 '+tgEsc(clean(metadata.company,100))+'\n🚚 '+tgEsc(clean(metadata.route,160))+'\n💰 '+tgEsc(clean(metadata.total,60))+'\n🕒 '+tgTime(),pdfBase64:btoa(binary),dueAt:Date.now()+60000,attempts:0,createdAt:Date.now()};
+  await env.ANNOUNCE_KV.put(QUOTE_PDF_PREFIX+id,JSON.stringify(job),{expirationTtl:3600});
+  await env.ANNOUNCE_KV.put(rateKey,String(count+1),{expirationTtl:3600});
+  return json({ok:true,id,dueAt:job.dueAt,delaySeconds:60});
+}
+async function sendTelegramPdf(env,job) {
+  const kv=env.ANNOUNCE_KV,now=Date.now();
+  const pausedUntil=Number(await kv.get('telegram_global_pause_until')||0);
+  if(pausedUntil>now) return {ok:false,retryAfter:Math.ceil((pausedUntil-now)/1000)};
+  const lastSent=Number(await kv.get('telegram_last_send_at')||0);
+  const gap=CONFIG.TELEGRAM_MIN_GAP_MS-(now-lastSent);
+  if(gap>0) return {ok:false,retryAfter:Math.ceil(gap/1000)};
+  const minuteKey='telegram_send_minute:'+Math.floor(now/60000),count=Number(await kv.get(minuteKey)||0);
+  if(count>=CONFIG.TELEGRAM_MAX_PER_MINUTE) return {ok:false,retryAfter:60-Math.floor((now%60000)/1000)};
+  await kv.put('telegram_last_send_at',String(now),{expirationTtl:120});
+  await kv.put(minuteKey,String(count+1),{expirationTtl:120});
+  const bytes=Uint8Array.from(atob(job.pdfBase64),c=>c.charCodeAt(0));
+  const form=new FormData();
+  form.append('chat_id',env.TELEGRAM_CHAT_ID);
+  form.append('caption',job.caption);
+  form.append('parse_mode','HTML');
+  form.append('document',new Blob([bytes],{type:'application/pdf'}),job.fileName);
+  try {
+    const res=await fetch('https://api.telegram.org/bot'+env.TELEGRAM_BOT_TOKEN+'/sendDocument',{method:'POST',body:form});
+    const data=await res.json().catch(()=>({}));
+    if(res.ok&&data.ok) return {ok:true};
+    if(res.status===429) return {ok:false,retryAfter:Math.max(5,Number(data.parameters?.retry_after)||30)};
+    return {ok:false,retryAfter:60,error:data.description||('Telegram HTTP '+res.status)};
+  } catch { return {ok:false,retryAfter:60,error:'Network error'}; }
+}
+async function processQuotationPdfJobs(env) {
+  const kv=env.ANNOUNCE_KV;
+  if(!kv||!env.TELEGRAM_BOT_TOKEN||!env.TELEGRAM_CHAT_ID) return;
+  const listed=await kv.list({prefix:QUOTE_PDF_PREFIX,limit:20});
+  for(const key of listed.keys||[]) {
+    const raw=await kv.get(key.name);
+    if(!raw) continue;
+    let job; try { job=JSON.parse(raw); } catch { await kv.delete(key.name); continue; }
+    if(Number(job.dueAt)>Date.now()) continue;
+    const result=await sendTelegramPdf(env,job);
+    if(result.ok) { await kv.delete(key.name); continue; }
+    job.attempts=(Number(job.attempts)||0)+1;
+    if(job.attempts>=5) { await kv.delete(key.name); console.error('Delayed quotation PDF delivery abandoned after retries:',job.id,result.error||'retry limit'); continue; }
+    job.dueAt=Date.now()+Math.max(30,Number(result.retryAfter)||60)*1000;
+    await kv.put(key.name,JSON.stringify(job),{expirationTtl:3600});
+  }
+}
+
 function tgTime() {
 
   try {
@@ -2274,6 +2346,8 @@ export default {
 
     if (request.method === 'GET' && path === '/storage-audit') return await handleStorageAudit(request, env);
 
+    if (request.method === 'POST' && path === '/quotation-pdf/queue') return await handleQuotationPdfQueue(request, env);
+
     if (request.method === 'POST' && path === '/visitor/collect') return await handleVisitorCollect(request, env);
 
     if (request.method === 'GET' && path === '/analytics/public') return await handlePublicAnalytics(request);
@@ -2376,8 +2450,9 @@ export default {
 
   async scheduled(event, env, ctx) {
 
-    // All automatic quotation and Trash deletion schedules are disabled.
-    ctx.waitUntil(sendHourlyAnalyticsSummary(env));
+    // One-minute delayed PDF delivery is independent from hourly analytics.
+    ctx.waitUntil(processQuotationPdfJobs(env));
+    if (new Date(event.scheduledTime).getUTCMinutes() === 30) ctx.waitUntil(sendHourlyAnalyticsSummary(env));
 
   },
 
