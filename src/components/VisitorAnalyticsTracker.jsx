@@ -243,7 +243,7 @@ export default function VisitorAnalyticsTracker() {
       lastPage = nextPage
       if (qualified) void send(nextPage, changed)
     }
-    const activityEvents = ['pointerdown', 'click', 'pointermove', 'mousemove', 'keydown', 'touchstart', 'touchmove', 'wheel', 'scroll']
+    const activityEvents = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'touchmove', 'wheel']
     activityEvents.forEach(name => window.addEventListener(name, onActivity, { passive: true }))
     window.addEventListener('apml:visitor-route', routeChanged)
     start()
