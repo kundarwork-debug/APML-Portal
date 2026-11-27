@@ -163,11 +163,9 @@ export default function Analytics() {
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
   const verifiedSessions = useMemo(() => sessions.filter(session => session.trafficClass === 'likely_human' && session.interactionVerified === true), [sessions])
   const activeSessions = verifiedSessions.filter(session => session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
-  const presenceRecords = useMemo(() => Object.values(records.presence || {}).filter(session => typeof session?.timestamp === 'number' && Number.isFinite(session.timestamp)), [records.presence])
-  const activePresence = useMemo(() => presenceRecords.filter(session =>
-    session?.online === true && session.interactionVerified === true && session.timestamp >= Date.now() - 90000
-  ).length, [presenceRecords])
-  const presenceShare = presenceRecords.length ? Math.round((activePresence / presenceRecords.length) * 100) : 0
+  // Match homepage People online using the same verified sessions and 90-second cutoff.
+  const activePresence = activeSessions.length
+  const presenceShare = sessions.length ? Math.round((activePresence / sessions.length) * 100) : 0
   const topPages = useMemo(() => {
     const pages = {}
     verifiedSessions.forEach(session => Object.values(session.pages || {}).forEach(page => {
