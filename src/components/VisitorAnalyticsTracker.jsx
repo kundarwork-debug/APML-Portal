@@ -8,7 +8,6 @@ const SESSION_KEY = 'apml-firebase-visitor-session'
 const GEO_CACHE_KEY = 'apml-ip-location-cache'
 const COOLDOWN_MS = 30 * 60 * 1000
 const HEARTBEAT_MS = 5000
-const HUMAN_QUALIFY_SECONDS = 10
 const safePage = value => String(value || '/').split('?')[0].split('#')[0].slice(0, 120) || '/'
 const makeId = () => (window.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80)
 function getStoredId(key, storage) {
@@ -80,9 +79,11 @@ export default function VisitorAnalyticsTracker() {
     let active = true
     let heartbeat = null
     let lastTick = Date.now()
-    let activeSeconds = 0
     let qualified = false
-    let interactionSeen = false
+    let interactionScore = 0
+    let movementPoints = 0
+    let lastPointer = null
+    let lastInteractionAt = 0
     let lastPage = safePage(window.location.pathname)
     let database
     let sessionRef
@@ -158,7 +159,7 @@ export default function VisitorAnalyticsTracker() {
     }
 
     const qualify = async () => {
-      if (qualified || automation.suspected || !interactionSeen || activeSeconds < HUMAN_QUALIFY_SECONDS || !database) return
+      if (qualified || automation.suspected || interactionScore < 3 || !database) return
       qualified = true
       window.__apmlVisitorVerified = true
       await send(lastPage, true)
@@ -181,7 +182,32 @@ export default function VisitorAnalyticsTracker() {
     }
 
     const onActivity = event => {
-      if (event?.isTrusted === true && document.visibilityState === 'visible') interactionSeen = true
+      if (!event?.isTrusted || document.visibilityState !== 'visible' || automation.suspected || qualified) return
+      const now = Date.now()
+      const type = event.type
+      if (type === 'pointermove' || type === 'mousemove') {
+        const x = Number(event.clientX), y = Number(event.clientY)
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return
+        if (lastPointer && Math.hypot(x - lastPointer.x, y - lastPointer.y) >= 18 && now - lastInteractionAt >= 120) {
+          movementPoints = Math.min(3, movementPoints + 1)
+          interactionScore = Math.max(interactionScore, movementPoints)
+          lastInteractionAt = now
+        }
+        lastPointer = { x, y }
+      } else if (type === 'wheel' || type === 'scroll') {
+        interactionScore += 2
+        lastInteractionAt = now
+      } else if (type === 'pointerdown' || type === 'touchstart' || type === 'click') {
+        interactionScore += 3
+        lastInteractionAt = now
+      } else if (type === 'keydown') {
+        interactionScore += 2
+        lastInteractionAt = now
+      } else if (type === 'touchmove') {
+        interactionScore += 2
+        lastInteractionAt = now
+      }
+      void qualify()
     }
     const start = async () => {
       try {
@@ -202,15 +228,11 @@ export default function VisitorAnalyticsTracker() {
         lastTick = Date.now()
         const tick = async () => {
           if (!active) return
-          if (document.visibilityState === 'visible') activeSeconds += HEARTBEAT_MS / 1000
           if (qualified) { await send(lastPage, false); return }
           await qualify()
         }
         heartbeat = window.setInterval(tick, HEARTBEAT_MS)
-        const initialPage = lastPage
-        if (document.visibilityState === 'visible') activeSeconds = 0
         publishStatus({ state: 'pending', message: 'Waiting for meaningful page engagement before counting this visit.', backend: 'portalapml Firebase', trafficClass: 'unverified' })
-        void initialPage
       } catch (error) {
         publishStatus({ state: 'error', message: error.message || 'Visitor tracker could not start.', backend: 'portalapml Firebase' })
       }
@@ -221,7 +243,7 @@ export default function VisitorAnalyticsTracker() {
       lastPage = nextPage
       if (qualified) void send(nextPage, changed)
     }
-    const activityEvents = ['pointerdown', 'keydown', 'touchstart', 'wheel']
+    const activityEvents = ['pointerdown', 'click', 'pointermove', 'mousemove', 'keydown', 'touchstart', 'touchmove', 'wheel', 'scroll']
     activityEvents.forEach(name => window.addEventListener(name, onActivity, { passive: true }))
     window.addEventListener('apml:visitor-route', routeChanged)
     start()
