@@ -88,24 +88,7 @@ export default function Analytics() {
       try {
         database = await getNewDatabase()
         if (!active) return
-        // Remove only records explicitly classified as suspected bots. Preserve all other visitor history.
-        try {
-          const trafficSnapshot = await database.ref('visitor_intelligence/traffic_sessions').once('value')
-          const trafficData = trafficSnapshot.val() || {}
-          const removals = []
-          Object.entries(trafficData).forEach(([date, visitors]) => {
-            Object.entries(visitors || {}).forEach(([visitorId, sessions]) => {
-              Object.entries(sessions || {}).forEach(([sessionId, session]) => {
-                if (session?.status === 'suspected_bot') {
-                  removals.push(database.ref('visitor_intelligence/traffic_sessions/' + date + '/' + visitorId + '/' + sessionId).remove())
-                }
-              })
-            })
-          })
-          await Promise.all(removals)
-        } catch (cleanupError) {
-          console.warn('Could not clean suspected bot session records:', cleanupError)
-        }
+        // Historical visitor records are preserved. Unverified records are filtered from reports below.
         if (!active) return
         Object.entries(paths).forEach(([key, path]) => {
           const ref = database.ref(path)
@@ -177,19 +160,9 @@ export default function Analytics() {
     return { visits, unique: unique.size, devices, locations, systems, browsers, days: selected.length }
   }, [records.visitors, startDate, endDate])
 
-  const legacyUnclassified = useMemo(() => {
-    let count = 0
-    Object.entries(records.visitors || {}).forEach(([date, visitors]) => {
-      if (date < startDate || date > endDate) return
-      Object.values(visitors || {}).forEach(detail => {
-        if (detail && typeof detail === 'object' && !detail.trafficClass) count += Number(detail.visits) || 0
-      })
-    })
-    return count
-  }, [records.visitors, startDate, endDate])
-
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
-  const activeSessions = sessions.filter(session => session.trafficClass === 'likely_human' && session.interactionVerified === true && session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
+  const verifiedSessions = useMemo(() => sessions.filter(session => session.trafficClass === 'likely_human' && session.interactionVerified === true), [sessions])
+  const activeSessions = verifiedSessions.filter(session => session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
   const presenceRecords = useMemo(() => Object.values(records.presence || {}).filter(session => typeof session?.timestamp === 'number' && Number.isFinite(session.timestamp)), [records.presence])
   const activePresence = useMemo(() => presenceRecords.filter(session =>
     session?.online === true && session.interactionVerified === true && session.timestamp >= Date.now() - 90000
@@ -197,13 +170,13 @@ export default function Analytics() {
   const presenceShare = presenceRecords.length ? Math.round((activePresence / presenceRecords.length) * 100) : 0
   const topPages = useMemo(() => {
     const pages = {}
-    sessions.forEach(session => Object.values(session.pages || {}).forEach(page => {
+    verifiedSessions.forEach(session => Object.values(session.pages || {}).forEach(page => {
       const name = page?.name || '/'
       pages[name] = (pages[name] || 0) + (Number(page?.views) || 0)
     }))
     return Object.entries(pages).sort((a, b) => b[1] - a[1]).slice(0, 6)
-  }, [sessions])
-  const actions = useMemo(() => Object.entries(records.actions || {}).map(([id, item]) => ({ id, ...item })).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 12), [records.actions])
+  }, [verifiedSessions])
+  const actions = useMemo(() => Object.entries(records.actions || {}).filter(([, item]) => item?.interactionVerified === true).map(([id, item]) => ({ id, ...item })).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 12), [records.actions])
   const topBrowsers = useMemo(() => Object.entries(visitorRows.browsers).sort((a, b) => b[1] - a[1]).slice(0, 6), [visitorRows.browsers])
   const topLocations = useMemo(() => Object.entries(visitorRows.locations).sort((a, b) => b[1] - a[1]).slice(0, 8), [visitorRows.locations])
   const lifetimePdf = Number(records.pdfLifetime) || 0
@@ -258,7 +231,7 @@ export default function Analytics() {
     const days = Array.from({ length: 365 }, (_, offset) => {
       const date = shiftDate(first, offset)
       const visitors = Object.values(records.visitors?.[date] || {})
-      const visits = visitors.reduce((sum, detail) => sum + (detail?.trafficClass === 'likely_human' ? Number(detail.visits) || 0 : 0), 0)
+      const visits = visitors.reduce((sum, detail) => sum + (detail?.trafficClass === 'likely_human' && detail?.interactionVerified === true ? Number(detail.visits) || 0 : 0), 0)
       return { date, visits }
     })
     const leading = new Date(first + 'T00:00:00Z').getUTCDay()
