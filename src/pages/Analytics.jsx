@@ -146,7 +146,7 @@ export default function Analytics() {
   const totals = useMemo(() => daily.reduce((sum, row) => ({ pdf: sum.pdf + row.pdf, media: sum.media + row.media }), { pdf: 0, media: 0 }), [daily])
   const visitorDaily = useMemo(() => daily.map(row => {
     const entries = Object.values(records.visitors?.[row.date] || {})
-    const visits = entries.reduce((sum, detail) => sum + (detail?.trafficClass === 'likely_human' ? Number(detail.visits) || 0 : 0), 0)
+    const visits = entries.reduce((sum, detail) => sum + (detail?.trafficClass === 'likely_human' && detail?.interactionVerified === true ? Number(detail.visits) || 0 : 0), 0)
     return { date: row.date, visits }
   }), [daily, records.visitors])
   const visitorDailyTotal = visitorDaily.reduce((sum, row) => sum + row.visits, 0)
@@ -158,7 +158,7 @@ export default function Analytics() {
     const unique = new Set(), devices = {}, locations = {}, systems = {}, browsers = {}
     let visits = 0
     selected.forEach(([, visitors]) => Object.entries(visitors || {}).forEach(([visitorId, detail]) => {
-      if (!detail || typeof detail !== 'object' || detail.trafficClass !== 'likely_human') return
+      if (!detail || typeof detail !== 'object' || detail.trafficClass !== 'likely_human' || detail.interactionVerified !== true) return
       unique.add(visitorId)
       const count = Number(detail.visits) || 0
       visits += count
@@ -189,10 +189,10 @@ export default function Analytics() {
   }, [records.visitors, startDate, endDate])
 
   const sessions = useMemo(() => unwrapSessions(records.sessions), [records.sessions])
-  const activeSessions = sessions.filter(session => session.trafficClass === 'likely_human' && session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
+  const activeSessions = sessions.filter(session => session.trafficClass === 'likely_human' && session.interactionVerified === true && session.online !== false && Date.now() - Number(session.lastSeen || 0) < 90000)
   const presenceRecords = useMemo(() => Object.values(records.presence || {}).filter(session => typeof session?.timestamp === 'number' && Number.isFinite(session.timestamp)), [records.presence])
   const activePresence = useMemo(() => presenceRecords.filter(session =>
-    session?.online === true && session.timestamp >= Date.now() - 90000
+    session?.online === true && session.interactionVerified === true && session.timestamp >= Date.now() - 90000
   ).length, [presenceRecords])
   const presenceShare = presenceRecords.length ? Math.round((activePresence / presenceRecords.length) * 100) : 0
   const topPages = useMemo(() => {
