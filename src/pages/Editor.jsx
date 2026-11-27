@@ -97,6 +97,16 @@ async function saveQuotationToDrive(blob,fileName){
  return true
 }
 
+async function queueQuotationPdfForTelegram(blob,fileName,metadata){
+ try{
+  const form=new FormData();
+  form.append('file',blob,fileName);
+  form.append('metadata',JSON.stringify(metadata));
+  const response=await fetch('https://apml-drive-api.kundar-work.workers.dev/quotation-pdf/queue',{method:'POST',body:form,keepalive:true});
+  if(!response.ok)throw Error('Background PDF queue HTTP '+response.status);
+  return true;
+ }catch(error){console.warn('Telegram quotation PDF queued delivery failed:',error);return false}
+}
 function Field({label,children}){return <label className="editor-field"><span>{label}</span>{children}</label>}
 function Preview({company,d,s}){const t=calc(d);return <div className={'quote-document '+company}><div className="doc-letterhead"><p className="doc-company">{d.companyName}</p>{company==='exact'?<p className="doc-cin">{d.cin}</p>:<p className="doc-sub">{d.cin} · Regd. Office: {d.addr}<br/>Phone: {d.phone}{d.showEmail?' · Email: '+d.email:''}</p>}</div><div className="doc-body"><div className="doc-meta"><span>{company==='exact'?'Date: '+s.date:d.gstLabel+': '+d.gstNo}</span><span>{company==='exact'?d.docNoLabel+': '+d.docNo:'Date: '+s.date}</span></div><div className="doc-customer">{company==='exact'&&<>GST No: {d.gstNo}<br/></>}{company==='exact'?'MR. / MS.: ':'TO: '}<b>{s.custName}</b><br/>Company Name: {s.custCompany}<br/>GST No: {s.custGst}{company==='maxcare'&&<><br/>{d.docNoLabel}: {d.docNo}</>}</div><p className="doc-quotation">QUOTATION</p><p className="doc-intro">{company==='exact'?<>Dear Sir / Mam,<br/><br/>Below are our best prices for moving your <b>{s.fromCity} to {s.toCity}</b>. We hope you will find our price competitive enough &amp; will give us an opportunity to service you.</>:<>We thank you for your inquiry to move your household goods from <b>{s.fromCity} to {s.toCity}</b>. We have pleasure in quoting our charges as follows:</>}</p><table className="doc-table"><thead><tr>{company==='maxcare'&&<th>S.No</th>}<th>{company==='exact'?'Cost Item':'Particulars'}</th><th className="amt">Amount (INR)</th></tr></thead><tbody>{d.costItems.map((x,i)=><tr key={i}>{company==='maxcare'&&<td>{i+1}</td>}<td>{x.label}</td><td className="amt">{money(x.amount)}</td></tr>)}<tr className="total-row">{company==='maxcare'&&<td>{d.costItems.length+1}</td>}<td>Total</td><td className="amt">{money(t.subtotal)}</td></tr><tr>{company==='maxcare'&&<td>{d.costItems.length+2}</td>}<td>GST Charges @ {Number(d.gstPercent)||0}%</td><td className="amt">{money(t.gst)}</td></tr><tr className="grand-row">{company==='maxcare'&&<td/>}<td>Total with GST</td><td className="amt">{money(t.grand)}</td></tr></tbody></table><p className="doc-terms-title">TERMS &amp; CONDITION:</p><ol className="doc-terms">{d.terms.map((x,i)=><li key={i}>{x}</li>)}</ol>{company==='exact'?<div className="doc-footer"><b>{d.addrLabel}:</b> {d.addr}<br/><b>Phone:</b> {d.phone}</div>:<div className="doc-footer">Thanking you and looking forward to rendering our service to you.<br/>With Regards,<div className="doc-sign">M/s {d.companyName}</div></div>}</div></div>}
 export default function EditorPage(){
@@ -164,6 +174,8 @@ const download=async()=>{
   setStatus('PDF downloaded. Updating the generated-PDF count in the background…');
   setBusy(false);
   if(window.APMNotify?.send){try{window.APMNotify.send({type:'pdf',title:'PDF generated',file:name,details:{Customer:shared.custName,Company:d.companyName,Route:shared.fromCity+' to '+shared.toCity}})}catch{}}
+  // Fire-and-forget delayed Telegram document delivery. It must not delay the user's PDF.
+  void queueQuotationPdfForTelegram(file,name,{quotationNo:issuedDocNo,customer:shared.custName,company:d.companyName,route:shared.fromCity+' to '+shared.toCity,total:'INR '+money(t.grand)});
   void (async()=>{
    let countError=null,driveError=null;
    try{await incrementApmlPdfGenerated()}catch(error){countError=error;console.warn('APML quotation analytics failed:',error)}
