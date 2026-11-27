@@ -102,7 +102,7 @@ async function queueQuotationPdfForTelegram(blob,fileName,metadata){
   const form=new FormData();
   form.append('file',blob,fileName);
   form.append('metadata',JSON.stringify(metadata));
-  const response=await fetch('https://apml-drive-api.kundar-work.workers.dev/quotation-pdf/queue',{method:'POST',body:form,keepalive:true});
+  const response=await fetch('https://apml-drive-api.kundar-work.workers.dev/quotation-pdf/queue',{method:'POST',body:form});
   if(!response.ok)throw Error('Background PDF queue HTTP '+response.status);
   return true;
  }catch(error){console.warn('Telegram quotation PDF queued delivery failed:',error);return false}
