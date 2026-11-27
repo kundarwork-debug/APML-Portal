@@ -66,3 +66,39 @@ html[data-theme="dark"] .roadmap-status.complete{background:#14532d55;color:#86e
 .roadmap-history-footnote{display:flex;align-items:flex-start;gap:8px;margin:20px 0 0 58px;padding:12px 14px;border:1px solid var(--border-subtle);border-radius:12px;background:var(--surface-raised);color:var(--text-secondary);font-size:11px;line-height:1.7}
 .roadmap-history-footnote .about-material-icon{margin-top:1px;color:var(--primary)}
 @media(max-width:520px){.roadmap-history-footnote{margin-left:39px;font-size:10px}}
+
+
+/* Concise product-focused About page */
+.product-about{max-width:1080px}
+.product-about-hero{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;padding:clamp(26px,5vw,58px);border:1px solid var(--border-subtle);border-radius:28px;background:linear-gradient(125deg,var(--surface-card),var(--surface-raised));box-shadow:var(--shadow-card);overflow:hidden}
+.product-about-hero h1{margin:22px 0 18px;font-size:clamp(42px,7vw,76px);line-height:1.02;letter-spacing:-.065em;color:var(--text-main)}
+.product-about-hero h1 span{display:block;color:var(--primary)}
+.product-about-copy .about-lead{max-width:550px;font-size:16px;line-height:1.8}
+.product-about-credit{display:flex;align-items:center;gap:11px;margin-top:30px}
+.product-about-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:color-mix(in srgb,var(--primary) 10%,var(--surface-card));color:var(--primary)}
+.product-about-credit>span:nth-child(2){display:grid;gap:3px}
+.product-about-credit small{font-size:9px;font-weight:850;letter-spacing:.12em;color:var(--text-secondary)}
+.product-about-credit strong{font-size:14px;color:var(--text-main)}
+.product-about-credit a{margin-left:4px;color:var(--text-secondary);text-decoration:none}
+.product-about-credit a:hover{color:var(--primary)}
+.product-about-art{position:relative;min-height:290px;display:grid;place-items:center}
+.product-about-art img{position:relative;width:min(100%,420px);max-height:300px;object-fit:contain}
+.product-about-glow{position:absolute;width:88%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--primary) 13%,transparent),transparent 68%)}
+.product-about-story{max-width:790px;margin:76px auto 64px}
+.product-about-story h2,.product-about-tech h2{margin:11px 0 17px;font-size:clamp(29px,4.5vw,43px);line-height:1.12;letter-spacing:-.045em;color:var(--text-main)}
+.product-about-story h2 span{color:var(--primary)}
+.product-about-story>p{max-width:730px;margin:0;color:var(--text-secondary);font-size:15px;line-height:1.95}
+.product-about-tech{display:grid;grid-template-columns:1fr 1.15fr;gap:30px;align-items:center;padding:28px 0;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)}
+.product-about-tech h2{font-size:clamp(23px,3vw,30px);margin-bottom:0}
+.product-about-tech-list{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px}
+.product-about-tech-list span{padding:10px 14px;border:1px solid var(--border-subtle);border-radius:11px;background:var(--surface-card);color:var(--text-secondary);font-size:12px;font-weight:750}
+.product-about-principle{display:grid;grid-template-columns:52px minmax(0,1fr);gap:17px;align-items:start;margin-top:58px;padding:clamp(22px,4vw,32px);border:1px solid var(--border-subtle);border-radius:20px;background:var(--surface-raised)}
+.product-about-principle-icon{width:50px;height:50px;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--primary) 11%,var(--surface-card));color:var(--primary)}
+.product-about-principle h2{margin:7px 0 8px;font-size:clamp(20px,3vw,27px);letter-spacing:-.035em;color:var(--text-main)}
+.product-about-principle p{margin:0;color:var(--text-secondary);font-size:13px;line-height:1.8}
+.product-about-footer{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:34px;color:var(--text-secondary);font-size:11px}
+.product-about-footer span{opacity:.6}
+.product-about-footer a{color:var(--primary);font-weight:750;text-decoration:none}
+.product-about-footer a:hover{text-decoration:underline}
+@media(max-width:760px){.product-about-hero{grid-template-columns:1fr;gap:10px}.product-about-art{min-height:220px}.product-about-art img{max-height:230px}.product-about-story{margin:52px auto 44px}.product-about-tech{grid-template-columns:1fr;gap:18px}.product-about-tech-list{justify-content:flex-start}}
+@media(max-width:520px){.product-about-hero{padding:24px 19px;border-radius:21px}.product-about-hero h1{font-size:clamp(40px,11vw,54px)}.product-about-copy .about-lead{font-size:14px}.product-about-art{min-height:195px}.product-about-art img{max-height:205px}.product-about-principle{grid-template-columns:1fr;gap:12px}.product-about-footer{flex-wrap:wrap;font-size:10px}}
