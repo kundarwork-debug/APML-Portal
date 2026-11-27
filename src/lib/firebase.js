@@ -1,11 +1,11 @@
 const config = {
-  apiKey: 'AIzaSyDgJ6uRCABWxAHOU1bIY4VuA-nQ0zM3aF8',
-  authDomain: 'apml-portal.firebaseapp.com',
-  databaseURL: 'https://apml-portal-default-rtdb.firebaseio.com',
-  projectId: 'apml-portal',
-  storageBucket: 'apml-portal.firebasestorage.app',
-  messagingSenderId: '479017159240',
-  appId: '1:479017159240:web:0853422718e6195b74a67d'
+  apiKey: 'AIzaSyDrAUGVJcdSw5A6xyO3Tykjcp1hFFG_dWM',
+  authDomain: 'portalapml.firebaseapp.com',
+  databaseURL: 'https://portalapml-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'portalapml',
+  storageBucket: 'portalapml.firebasestorage.app',
+  messagingSenderId: '461187970356',
+  appId: '1:461187970356:web:0853422718e6195b74a67d'
 }
 
 const scriptLoads = new Map()
