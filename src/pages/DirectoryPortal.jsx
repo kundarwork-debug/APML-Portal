@@ -131,6 +131,18 @@ export default function Directory(){
     try{setBusy(true);await db.child(id).remove();void logApmlAction({action:'Contact permanently deleted',module:'Directory',item:rows.find(row=>row.id===id)?.name||'Contact'});notify('Contact permanently deleted')}
     catch(e){notify('Delete failed: '+e.message)}finally{setBusy(false)}
   }
+  async function downloadSampleExcel(){
+    try{
+      if(!window.XLSX) await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=resolve;s.onerror=()=>reject(new Error('Excel template library unavailable'));document.head.appendChild(s)})
+      const XLSX=window.XLSX,book=XLSX.utils.book_new()
+      const sample=[['category','contactname','contactnumber','designation','fulladdress','location','region'],['Example Hub','Sample Contact','9999999999','Branch Manager','Replace with complete address','Mumbai','West'],['Example Branch','Another Sample','8888888888','Operations','Replace with complete address','Pune','West']]
+      const data=XLSX.utils.aoa_to_sheet(sample);data['!cols']=[{wch:18},{wch:24},{wch:18},{wch:22},{wch:38},{wch:18},{wch:18}]
+      XLSX.utils.book_append_sheet(book,data,'Sample Data')
+      const instructions=XLSX.utils.aoa_to_sheet([['DIRECTORY IMPORT TEMPLATE – INSTRUCTIONS'],['Use the Sample Data sheet as your starting point. Replace the example rows; do not rename the column headers.'],['Required columns (all headers must be present): category, contactname, contactnumber, designation, fulladdress, location, region'],['Required for each row: category, contactname, contactnumber. Location and region should be filled for proper directory placement.'],['Optional row values: designation and fulladdress may be left blank.'],['Duplicate check: contact number + location. Existing duplicates are skipped.'],['Remove the example rows before importing your real contacts. Phone numbers are best kept as text.']]);instructions['!cols']=[{wch:100}]
+      XLSX.utils.book_append_sheet(book,instructions,'Instructions')
+      XLSX.writeFile(book,'APML_Hub_Directory_Sample.xlsx')
+    }catch(e){notify('Template download failed: '+e.message)}
+  }
   async function importExcel(event){
     const file=event.target.files?.[0];if(!file)return
     try{
@@ -206,7 +218,7 @@ export default function Directory(){
       <div className="directory-toolbar">
         <div className="directory-panel-title"><Users size={19}/> Search all hubs &amp; branches</div>
         <div className="directory-actions">
-          {admin&&userEmail&&<><button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button>
+          {admin&&userEmail&&<><button className="directory-btn import" onClick={()=>document.getElementById('directory-excel').click()}><Upload size={16}/> Upload Excel</button><button className="directory-btn import" onClick={downloadSampleExcel}>Download Sample Excel</button>
           <input id="directory-excel" hidden type="file" accept=".xlsx,.xls,.csv" onChange={importExcel}/></>}
           <button className="directory-btn create" onClick={()=>setEdit({...EMPTY})}><Plus size={16}/> Create contact</button>
         </div>
